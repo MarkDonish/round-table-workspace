@@ -9,6 +9,8 @@
 
 The current source-of-truth files for `/room` in this repository are:
 
+- `README.md`
+- `AGENTS.md`
 - `docs/room-architecture.md`
 - `docs/room-selection-policy.md`
 - `docs/room-to-debate-handoff.md`
@@ -21,6 +23,7 @@ The current source-of-truth files for `/room` in this repository are:
 - `prompts/room-summary.md`
 - `prompts/room-upgrade.md`
 - `prompts/room-chat.md`
+- `examples/room-examples.md`
 - `.codex/skills/room-skill/SKILL.md`
 
 If a report or session note conflicts with the files above, the files above win.
@@ -40,6 +43,7 @@ The repository already contains a largely complete protocol layer for `/room`:
 - a clean fallback contract for chat in `docs/room-chat-contract.md`
 - a rebuilt and readable `prompts/room-chat.md`
 - a checked-in `/room` source entry aligned with the registry and bridge contract in `.codex/skills/room-skill/SKILL.md`
+- repository-level entrypoints now aligned so `/room` is first-class in `README.md`, `AGENTS.md`, and `examples/room-examples.md`
 - architecture decisions confirming the dual-mode product (`/room` + `/debate`) in `docs/DECISIONS-LOCKED.md`
 
 The `/debate` side is also structurally complete enough to be treated as an implemented source area, not an open design sketch.
@@ -58,7 +62,7 @@ The main gaps are:
 
 In short:
 
-`/room` is protocol-complete, bridge-specified, but not yet runtime-complete as a portable runnable feature.
+`/room` is protocol-complete, bridge-specified, entry-aligned, but not yet runtime-complete as a portable runnable feature.
 
 ---
 
@@ -95,7 +99,7 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 
 The most reasonable continuation path is:
 
-1. normalize the remaining Windows-local links in active `/room` prompts
+1. finish normalizing the remaining Windows-local links in active `/room` prompts
 2. implement the runtime bridge behind `.codex/skills/room-skill/SKILL.md` using `docs/agent-registry.md` + `docs/room-runtime-bridge.md` + `prompts/`
 3. run a first end-to-end `/room -> /summary -> /upgrade-to-debate` validation flow
 4. only after that, continue deeper runtime-level implementation
