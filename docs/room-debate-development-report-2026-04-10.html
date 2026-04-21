@@ -1,0 +1,1045 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Room Debate Development Report</title>
+<style>
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;line-height:1.65;color:#111;background:#fff;margin:0;padding:0;}
+.page{max-width:960px;margin:0 auto;padding:40px 56px 80px;}
+h1,h2,h3{line-height:1.25;margin-top:1.4em;margin-bottom:.6em;}
+h1{font-size:30px;border-bottom:2px solid #222;padding-bottom:12px;}
+h2{font-size:22px;border-bottom:1px solid #ddd;padding-bottom:8px;}
+h3{font-size:18px;}
+p{margin:.65em 0;}
+ul,ol{margin:.55em 0 .9em 1.5em;padding:0;}
+li{margin:.2em 0;}
+code{font-family:Consolas,monospace;background:#f3f4f6;padding:.1em .35em;border-radius:4px;}
+pre{background:#f6f8fa;padding:16px;border:1px solid #e5e7eb;border-radius:8px;overflow:auto;white-space:pre-wrap;word-break:break-word;}
+blockquote{margin:1em 0;padding:.4em 1em;border-left:4px solid #d1d5db;color:#374151;background:#f9fafb;}
+hr{border:none;border-top:1px solid #ddd;margin:24px 0;}
+@page{size:A4;margin:18mm 14mm 18mm 14mm;}
+</style>
+</head>
+<body><main class="page">
+<h1>Multi-Agent Decision OS Development Report</h1>
+<p>生成日期：2026-04-10</p>
+<p>作者：Codex</p>
+<p>项目位置：<code>C:\Users\CLH</code></p>
+<p>报告目的：为后续新对话继续开发提供完整背景、现状、设计逻辑、已确认决策与后续实施方向。</p>
+<hr>
+<h2>1. 报告摘要</h2>
+<p>本项目是一套面向 Mark 的“多 Agent / 多 skill 决策操作系统”。当前已经具备较完整的 <code>/debate</code> 结构化圆桌会议模式，能够在用户显式触发时，基于本地名人 skill 组织一次有分工、有主持、有审查、有统一决议的多 Agent 讨论。</p>
+<p>本轮讨论在现有 <code>/debate</code> 基础上，新增了第二种交互形态 <code>/room</code> 的产品与系统设计方向。<code>/room</code> 不替代 <code>/debate</code>，而是补足“持续协同推演、半结构化群聊、按阶段推进复杂问题”的使用场景。该模式的核心不是闲聊，而是协同推演。</p>
+<p>本报告将完整记录：</p>
+<ul>
+<li>现有 `/debate` 系统的定位与约束</li>
+<li>当前本地名人 skill 体系与 Agent 映射方式</li>
+<li>为什么需要新增 `/room`</li>
+<li>`/room` 的产品定位、用户交互和后台筛选逻辑</li>
+<li>新增名人 skill 时的自动发现与条件注册机制</li>
+<li>半结构化评分系统的详细设计</li>
+<li>当前已经确认的设计决议</li>
+<li>仍未完成的开发项与建议实现顺序</li>
+</ul>
+<hr>
+<h2>2. 开发背景</h2>
+<h3>2.1 已有项目背景</h3>
+<p>用户已在本地构建了一套多名人 skill 系统，包含但不限于：</p>
+<ul>
+<li>`steve-jobs-skill`</li>
+<li>`elon-musk-skill`</li>
+<li>`munger-skill`</li>
+<li>`feynman-skill`</li>
+<li>`naval-skill`</li>
+<li>`taleb-skill`</li>
+<li>`zhangxuefeng-skill`</li>
+<li>`paul-graham-skill`</li>
+<li>`zhang-yiming-skill`</li>
+<li>`karpathy-skill`</li>
+<li>`ilya-sutskever-skill`</li>
+<li>`mrbeast-skill`</li>
+<li>`trump-skill`</li>
+</ul>
+<p>这些 skill 在原始设计中不是“聊天人格”，而是“认知插件”或“认知镜头”。核心原则是先判断问题类型，再选择对应的认知镜头，而不是把名人当成娱乐性人设。</p>
+<h3>2.2 已有 `/debate` 背景</h3>
+<p>用户此前已经要求 Codex 开发过一套圆桌调度系统，其显式触发词为 <code>/debate</code>。本轮已确认这套机制不是新设想，而是已有项目中的正式结构。</p>
+<p><code>/debate</code> 的定位是：</p>
+<ul>
+<li>仅在用户显式输入 `/debate` 时触发</li>
+<li>作为上层调度 skill 工作</li>
+<li>组织 3-5 个最合适的名人 Agent 参会</li>
+<li>先分工，再发言，再汇总，再审查，再给统一决议</li>
+<li>不污染日常单 skill 路由</li>
+<li>不让多 Agent 协作变成松散群聊</li>
+</ul>
+<h3>2.3 新增 `/room` 的动机</h3>
+<p>用户在本轮对话中进一步明确了一个新需求：</p>
+<blockquote><p>讨论复杂问题时，希望像一个“Agent team / 多 Agent 聊天室”那样，把本地名人 skill 分配给不同 Agent，让它们持续协同，像一个顾问群一样参与复杂问题的推演。</p></blockquote>
+<p>用户并不想让系统只有正式的 <code>/debate</code> 会议模式，还希望有一种更灵活、更像多人群聊、但仍然可控的形态。因此，新增 <code>/room</code> 成为本轮设计的核心任务。</p>
+<hr>
+<h2>3. 现有 `/debate` 系统复盘</h2>
+<h3>3.1 系统使命</h3>
+<p>根据 <code>C:\Users\CLH\AGENTS.md</code>，项目使命是构建一套面向 Mark 的多 Agent / 多 skill 决策操作系统，分为两层：</p>
+<ul>
+<li>日常层：按问题类型调用单个或少量名人 skill</li>
+<li>圆桌层：显式输入 `/debate` 时进入结构化多 Agent 圆桌会议</li>
+</ul>
+<h3>3.2 `/debate` 的核心原则</h3>
+<p>当前系统强调：</p>
+<ul>
+<li>不按“想和谁聊天”路由，而按问题类型路由</li>
+<li>所有 skill 都是认知镜头，不是真人本体</li>
+<li>多 Agent 协作必须严格区分事实、推断、不确定项、建议</li>
+<li>必须有主持与审查，不能无边界扩写</li>
+<li>最终必须给出统一决议，不能把多个答案并列甩给用户</li>
+</ul>
+<h3>3.3 `/debate` 的任务类型</h3>
+<p><code>/debate</code> 当前正式使用 8 类路由：</p>
+<ul>
+<li>`startup`</li>
+<li>`product`</li>
+<li>`learning`</li>
+<li>`content`</li>
+<li>`risk`</li>
+<li>`planning`</li>
+<li>`strategy`</li>
+<li>`writing`</li>
+</ul>
+<h3>3.4 `/debate` 的默认组合</h3>
+<p>当前已经有写死的默认组合，例如：</p>
+<ul>
+<li>`startup`：Paul Graham + Steve Jobs + Munger + Taleb</li>
+<li>`product`：Steve Jobs + Zhang Yiming + Elon Musk + Munger</li>
+<li>`learning`：Karpathy + Feynman + Ilya</li>
+<li>`strategy`：Paul Graham + Munger + Taleb + Zhang Yiming</li>
+</ul>
+<h3>3.5 `/debate` 的工作流程</h3>
+<p>当前正式流程包括：</p>
+<ol>
+<li>识别议题</li>
+<li>识别任务类型</li>
+<li>选择参会 Agent</li>
+<li>分配职责</li>
+<li>逐个发言</li>
+<li>主持人汇总</li>
+<li>审查 Agent 审核</li>
+<li>输出最终决议</li>
+</ol>
+<h3>3.6 `/debate` 的边界</h3>
+<p><code>/debate</code> 明确不是自由聊天型群聊，而是高度结构化的“重大议题会议模式”。这一点在新增 <code>/room</code> 设计时必须保留，不可破坏。</p>
+<hr>
+<h2>4. 为什么 `/debate` 不等于“多 Agent 聊天室”</h2>
+<p>本轮讨论已经明确区分：</p>
+<h3>4.1 `/debate` 的本质</h3>
+<p><code>/debate</code> 更像：</p>
+<ul>
+<li>董事会会议</li>
+<li>正式圆桌</li>
+<li>高严肃度决策收敛流程</li>
+</ul>
+<p>特征是：</p>
+<ul>
+<li>先分工</li>
+<li>按顺序发言</li>
+<li>默认一轮或有限轮</li>
+<li>主持器强组织</li>
+<li>审查后才能放行</li>
+<li>最后只给单一结论</li>
+</ul>
+<h3>4.2 多 Agent 聊天室的本质</h3>
+<p>用户想要的“Agent team / 多 Agent 聊天室”更像：</p>
+<ul>
+<li>专家群聊</li>
+<li>顾问群</li>
+<li>可以持续存在的半结构化讨论房间</li>
+</ul>
+<p>特征是：</p>
+<ul>
+<li>更自然的群聊感</li>
+<li>用户可随时插话</li>
+<li>Agent 可按需互相补位</li>
+<li>可持续保留上下文</li>
+<li>不一定每轮都强制走正式审查</li>
+</ul>
+<p>由此得出关键结论：</p>
+<blockquote><p>`/debate` 属于多 Agent 协作系统，但不是“开放式多 Agent 聊天室”。</p></blockquote>
+<p>因此需要单独新增 <code>/room</code>。</p>
+<hr>
+<h2>5. `/room` 的正式产品定位</h2>
+<h3>5.1 用户需求权重</h3>
+<p>用户明确给出的用途权重为：</p>
+<ul>
+<li>协同推演：60%</li>
+<li>探索想法：20%</li>
+<li>日常陪跑：20%</li>
+</ul>
+<p>因此 <code>/room</code> 的核心定位不是“闲聊”，而是：</p>
+<blockquote><p>一个以协同推演为核心目标的半结构化多 Agent 房间。</p></blockquote>
+<h3>5.2 `/room` 的一句话定义</h3>
+<p><code>/room</code> 是一个持续可插话、可点名、可阶段总结、可按需升级为 <code>/debate</code> 的半结构化多 Agent 房间。</p>
+<h3>5.3 `/room` 与 `/debate` 的关系</h3>
+<p>两者必须长期共存，且边界清晰：</p>
+<ul>
+<li>`/room`：负责探索、推演、澄清、反复推进</li>
+<li>`/debate`：负责正式裁决、风险审查、统一决议</li>
+</ul>
+<h3>5.4 产品角色分工</h3>
+<p>可以把两者理解为：</p>
+<ul>
+<li>`/room` = 顾问群</li>
+<li>`/debate` = 董事会会议</li>
+</ul>
+<p><code>/room</code> 不是削弱版 <code>/debate</code>，而是另一种协作形态。</p>
+<hr>
+<h2>6. `/room` 采用的总体方案</h2>
+<p>本轮已确认采用的设计方向是：</p>
+<blockquote><p>方案 3：混合双层房间</p></blockquote>
+<h3>6.1 该方案的含义</h3>
+<p><code>/room</code> 默认是轻量聊天室：</p>
+<ul>
+<li>你说一句</li>
+<li>系统挑 2-4 个最相关 Agent 回应</li>
+<li>允许 1-2 轮简短互相补位</li>
+</ul>
+<p>当议题变复杂、冲突变大、需要更强收敛时，可以：</p>
+<ul>
+<li>手动收窄子议题</li>
+<li>要求阶段总结</li>
+<li>切到更聚焦的推演模式</li>
+<li>进一步升级为 `/debate`</li>
+</ul>
+<h3>6.2 该方案优点</h3>
+<ul>
+<li>保留群聊感</li>
+<li>不会退化成完全自由乱聊</li>
+<li>不会和现有 `/debate` 冲突</li>
+<li>适合复杂问题在多轮中逐步清晰化</li>
+</ul>
+<hr>
+<h2>7. `/room` 的命令语义设计</h2>
+<p>本轮已设计的主要命令语义如下。</p>
+<h3>7.1 建房命令</h3>
+<ul>
+<li>`/room 议题`</li>
+<li>`/room --with Jobs,Taleb 议题`</li>
+<li>`/room --without Trump 议题`</li>
+<li>`/room --topic product 议题`</li>
+<li>`/room --resume 房间名`</li>
+<li>`/room --persistent 议题`</li>
+</ul>
+<h3>7.2 房间内命令</h3>
+<ul>
+<li>`@Jobs ...`</li>
+<li>`/focus 子问题`</li>
+<li>`/expand`</li>
+<li>`/summary`</li>
+<li>`/status`</li>
+<li>`/agents`</li>
+<li>`/add Taleb`</li>
+<li>`/remove MrBeast`</li>
+<li>`/decide`</li>
+<li>`/upgrade-to-debate`</li>
+</ul>
+<h3>7.3 关键交互原则</h3>
+<ul>
+<li>默认临时房间，避免上下文污染</li>
+<li>只有显式 `--persistent` 或 `/resume` 才保留长期房间状态</li>
+<li>任何时候都可以点名单个 Agent 回应</li>
+<li>支持按子问题切换讨论焦点</li>
+</ul>
+<hr>
+<h2>8. `/room` 的房间状态模型</h2>
+<p>本轮已确认 <code>/room</code> 至少应维护以下状态：</p>
+<ul>
+<li>`room_id`</li>
+<li>`title`</li>
+<li>`mode`</li>
+<li>`primary_type`</li>
+<li>`secondary_type`</li>
+<li>`agents`</li>
+<li>`agent_roles`</li>
+<li>`active_focus`</li>
+<li>`conversation_log`</li>
+<li>`consensus_points`</li>
+<li>`open_questions`</li>
+<li>`tension_points`</li>
+<li>`recommended_next_step`</li>
+<li>`upgrade_signal`</li>
+</ul>
+<h3>8.1 设计原则</h3>
+<p><code>/room</code> 的状态不是为了存档而存档，而是为了推进讨论。</p>
+<p>系统必须始终知道：</p>
+<ul>
+<li>当前在讨论什么</li>
+<li>已经明确了什么</li>
+<li>还没明确什么</li>
+<li>接下来建议推进哪一步</li>
+</ul>
+<hr>
+<h2>9. `/room` 的 Agent 来源原则</h2>
+<p>本轮已经明确：</p>
+<blockquote><p>`/room` 不创建新 Agent 人格，必须复用用户本地已经配置好的名人 skill。</p></blockquote>
+<p>也就是说：</p>
+<ul>
+<li>`Agent = 本地名人 skill 的房间化实例`</li>
+<li>展示层使用 `Jobs`、`Taleb`、`Karpathy` 等简称</li>
+<li>底层映射到精确 skill 名</li>
+</ul>
+<p>例如：</p>
+<ul>
+<li>`Jobs` -&gt; `steve-jobs-skill`</li>
+<li>`Taleb` -&gt; `taleb-skill`</li>
+<li>`Karpathy` -&gt; `karpathy-skill`</li>
+</ul>
+<h3>9.1 与 `/debate` 的一致性要求</h3>
+<p><code>/room</code> 和 <code>/debate</code> 应共享：</p>
+<ul>
+<li>同一套 skill 映射表</li>
+<li>同一套角色边界</li>
+<li>同一套标签体系</li>
+<li>同一套对冲逻辑</li>
+</ul>
+<p>这保证它们是同一个系统中的两种模式，而不是两套平行系统。</p>
+<hr>
+<h2>10. 新增 skill 时的自动发现与条件注册机制</h2>
+<p>这是本轮讨论中的关键新增需求。</p>
+<h3>10.1 当前系统的问题</h3>
+<p>当前 <code>/debate</code> 的可用名人 skill 列表是写死在文档里的，因此：</p>
+<ul>
+<li>新增 skill 后不会自动进入 `/debate` 或未来 `/room` 的候选池</li>
+<li>必须手工更新文档和路由</li>
+</ul>
+<p>用户要求改成：</p>
+<blockquote><p>自动发现 + 条件注册</p></blockquote>
+<h3>10.2 设计目标</h3>
+<p>新 skill 加入本地目录后：</p>
+<ul>
+<li>系统应自动发现它的存在</li>
+<li>但不是发现就直接让它参会</li>
+<li>只有满足协作要求时才进入 Agent Registry</li>
+</ul>
+<h3>10.3 三种注册状态</h3>
+<p>建议引入：</p>
+<ul>
+<li>`registered`</li>
+<li>`discovered_but_incomplete`</li>
+<li>`disabled`</li>
+</ul>
+<h3>10.4 注册要求</h3>
+<p>一个 skill 要想被纳入 <code>/room</code> 和 <code>/debate</code> 的自动选人池，至少要具备：</p>
+<ul>
+<li>`display_name`</li>
+<li>`skill_name`</li>
+<li>`short_name`</li>
+<li>`primary_strengths`</li>
+<li>`non_goals`</li>
+<li>`task_types`</li>
+<li>`stance_tags`</li>
+<li>`expression_tags`</li>
+<li>`dominance_level`</li>
+<li>`counterbalance_with`</li>
+<li>`room_profile`</li>
+<li>`debate_profile`</li>
+</ul>
+<h3>10.5 推荐实现方式</h3>
+<p>优先读取：</p>
+<ul>
+<li>`roundtable-profile.md`</li>
+<li>或未来标准化的 `agent-profile.json`</li>
+</ul>
+<p>如果缺少这些信息：</p>
+<ul>
+<li>skill 进入 `discovered_but_incomplete`</li>
+<li>可以被系统发现</li>
+<li>但不能自动参会</li>
+</ul>
+<h3>10.6 核心原则</h3>
+<blockquote><p>不是装上 skill 就自动上麦，而是先发现，再检查，再注册。</p></blockquote>
+<p>这样可以防止系统被未经建模的新 skill 污染。</p>
+<hr>
+<h2>11. 为什么不是所有名人都参会</h2>
+<p>用户明确要求：</p>
+<blockquote><p>后台应该有一套筛选机制，根据当前讨论主题，选择最适合的人选参会，而不是让所有人都进来。</p></blockquote>
+<p>这一点非常关键。系统不是为了“热闹”，而是为了“有效推进”。</p>
+<p>由此本轮得出的根本原则是：</p>
+<blockquote><p>不是问“谁最有名”，而是问“当前这一步最需要谁”。</p></blockquote>
+<hr>
+<h2>12. 参会筛选机制的总体思路</h2>
+<p>本轮已设计的后台选人流程如下：</p>
+<ol>
+<li>议题解析</li>
+<li>候选召回</li>
+<li>相关性打分</li>
+<li>模型语义校正</li>
+<li>结构平衡校验</li>
+<li>人数裁剪与职责分配</li>
+</ol>
+<h3>12.1 议题解析时抽取的信号</h3>
+<p>系统需要先抽取：</p>
+<ul>
+<li>主任务类型</li>
+<li>当前子问题</li>
+<li>当前讨论阶段</li>
+<li>用户显式偏好</li>
+</ul>
+<p>这一步确保“同样是 product，也能分辨是在问切口、增长、风险还是体验”。</p>
+<h3>12.2 候选召回</h3>
+<p>先根据类型、子问题和阶段召回可能相关的 Agent，而不是直接最终定人。</p>
+<h3>12.3 最终目标</h3>
+<p>最终选人不是为了组成“最豪华阵容”，而是为了组成：</p>
+<blockquote><p>当前这一轮最小够用的最佳阵容。</p></blockquote>
+<hr>
+<h2>13. 半结构化评分系统设计</h2>
+<p>这是本轮最关键的技术设计之一。</p>
+<h3>13.1 总原则</h3>
+<p>用户追问的核心问题是：</p>
+<blockquote><p>相关性打分的核心标准是什么？是不是交给模型自己判断？</p></blockquote>
+<p>本轮结论是：</p>
+<blockquote><p>不应让模型自由拍脑袋选人，而应采用“规则打底，模型补充判断”的半结构化评分系统。</p></blockquote>
+<h3>13.2 总体流水线</h3>
+<p>建议后台按如下流程工作：</p>
+<ol>
+<li>解析当前输入</li>
+<li>硬约束过滤</li>
+<li>结构化打分</li>
+<li>模型小范围语义校正</li>
+<li>结构平衡</li>
+<li>人数裁剪</li>
+</ol>
+<hr>
+<h2>14. 第一层：硬约束过滤</h2>
+<p>这一层不算分，只做“能不能进池”。</p>
+<p>过滤掉：</p>
+<ul>
+<li>不在 `registered` 状态的 skill</li>
+<li>被 `--without` 显式排除的 Agent</li>
+<li>明显不适合当前大类问题的 Agent</li>
+<li>在 `non_goals` 中与当前子问题正面冲突的 Agent</li>
+<li>高重复、且当前没有新增价值的 Agent</li>
+</ul>
+<h3>14.1 作用</h3>
+<p>这一步的目的是减少无效候选，避免后续打分阶段被大量噪音干扰。</p>
+<hr>
+<h2>15. 第二层：结构化打分</h2>
+<p>本轮已确认总分建议拆成 7 个分项，满分 100。</p>
+<h3>15.1 子问题匹配分 `0-30`</h3>
+<p>这是最高权重。</p>
+<p>系统问的不是：</p>
+<ul>
+<li>他适不适合这个大类？</li>
+</ul>
+<p>而是：</p>
+<ul>
+<li>他适不适合回答当前这个具体子问题？</li>
+</ul>
+<p>例如：</p>
+<ul>
+<li>“值不值得做” -&gt; Paul Graham / Jobs / Munger</li>
+<li>“尾部风险” -&gt; Taleb / Munger</li>
+<li>“实现路径” -&gt; Karpathy / Ilya</li>
+</ul>
+<h3>15.2 任务类型匹配分 `0-20`</h3>
+<p>看他是否擅长当前主类型 / 副类型。</p>
+<h3>15.3 阶段适配分 `0-15`</h3>
+<p>当前阶段可以粗分为：</p>
+<ul>
+<li>`explore`</li>
+<li>`simulate`</li>
+<li>`stress_test`</li>
+<li>`converge`</li>
+<li>`decision`</li>
+</ul>
+<p>不同阶段适合不同 Agent。</p>
+<h3>15.4 职责独特性分 `0-15`</h3>
+<p>衡量这个 Agent 带来的信息增量。</p>
+<p>如果房间里已经有人承担相近职责，则独特性下降。</p>
+<h3>15.5 结构补位分 `0-10`</h3>
+<p>看他能不能补足当前房间短板。</p>
+<p>例如：</p>
+<ul>
+<li>当前缺防守位</li>
+<li>当前缺 grounded 位</li>
+<li>当前缺现实校准位</li>
+</ul>
+<h3>15.6 用户偏好分 `-10 到 +10`</h3>
+<p>响应：</p>
+<ul>
+<li>`--with`</li>
+<li>`--without`</li>
+<li>`@Taleb`</li>
+<li>用户显式排斥或偏爱某种视角</li>
+</ul>
+<h3>15.7 冗余与越权惩罚 `-20 到 0`</h3>
+<p>惩罚：</p>
+<ul>
+<li>与现有主责高度重复</li>
+<li>当前问题不在其擅长范围</li>
+<li>会严重破坏房间结构平衡</li>
+</ul>
+<hr>
+<h2>16. 评分公式</h2>
+<p>本轮建议的公式为：</p>
+<pre><code>
+TotalScore =
+  子问题匹配分
++ 任务类型匹配分
++ 阶段适配分
++ 职责独特性分
++ 结构补位分
++ 用户偏好分
+- 冗余与越权惩罚
+</code></pre>
+<p>建议默认权重：</p>
+<ul>
+<li>子问题匹配：30</li>
+<li>任务类型匹配：20</li>
+<li>阶段适配：15</li>
+<li>职责独特性：15</li>
+<li>结构补位：10</li>
+<li>用户偏好：10</li>
+<li>冗余惩罚：-20</li>
+</ul>
+<p>该权重体现的原则是：</p>
+<ul>
+<li>最重要的是“当前问题需不需要你”</li>
+<li>其次是“这个问题类型你是不是确实擅长”</li>
+<li>用户偏好重要，但不能压过问题本身</li>
+</ul>
+<hr>
+<h2>17. 模型在评分中的角色</h2>
+<p>本轮明确：</p>
+<blockquote><p>模型不直接决定参会名单。</p></blockquote>
+<p>模型只负责三类事情：</p>
+<h3>17.1 语义解析</h3>
+<p>把自然语言转成结构化输入：</p>
+<ul>
+<li>主类型</li>
+<li>副类型</li>
+<li>子问题</li>
+<li>阶段</li>
+<li>显式约束</li>
+</ul>
+<h3>17.2 软标签判断</h3>
+<p>例如：</p>
+<ul>
+<li>当前更像真假判断还是执行推演</li>
+<li>当前更需要解释还是风险压测</li>
+</ul>
+<h3>17.3 小范围校正</h3>
+<p>允许模型做 <code>-5 到 +5</code> 的小范围调整，但不能：</p>
+<ul>
+<li>绕过硬约束</li>
+<li>把低基础分角色硬拉到第一</li>
+<li>推翻结构平衡规则</li>
+</ul>
+<p>并且每次校正都应该附带简短理由。</p>
+<hr>
+<h2>18. 最终不是“分高就上”，而是组合优化</h2>
+<p>这是本轮讨论中特别强调的一点。</p>
+<p>系统不是简单取前 3 或前 5 高分，而要考虑：</p>
+<ul>
+<li>阵容是否平衡</li>
+<li>是否有职责冲突</li>
+<li>是否有明显重复</li>
+<li>是否缺少防守位</li>
+<li>是否缺少 grounded 位</li>
+</ul>
+<p>建议最终组合满足：</p>
+<ul>
+<li>至少 1 个主推进位</li>
+<li>至少 1 个防守位</li>
+<li>至少 1 个 grounded 位</li>
+<li>dominant 不超过一半</li>
+<li>主责不可重复</li>
+</ul>
+<p>因此，最后的参会名单应由“个人高分”与“组合健康度”共同决定。</p>
+<hr>
+<h2>19. 已确认的关键设计决议</h2>
+<p>截至本次对话，已经明确确认的设计决议如下。</p>
+<h3>19.1 关于 `/room`</h3>
+<ul>
+<li>`/room` 新增为正式产品形态</li>
+<li>定位是“半结构化多 Agent 房间”</li>
+<li>核心用途权重为：协同推演 60%，探索 20%，日常陪跑 20%</li>
+<li>`/room` 不替代 `/debate`</li>
+</ul>
+<h3>19.2 关于 `/debate`</h3>
+<ul>
+<li>`/debate` 保持原有正式圆桌与审查机制</li>
+<li>继续作为重大议题的高严肃度模式存在</li>
+</ul>
+<h3>19.3 关于 Agent 来源</h3>
+<ul>
+<li>`/room` 和 `/debate` 都必须复用本地名人 skill</li>
+<li>不新造一套独立人格体系</li>
+</ul>
+<h3>19.4 关于新增 skill</h3>
+<ul>
+<li>支持自动发现</li>
+<li>采用条件注册，不是安装即参会</li>
+</ul>
+<h3>19.5 关于选人</h3>
+<ul>
+<li>不让所有名人都参会</li>
+<li>按议题、子问题、阶段和房间结构进行筛选</li>
+</ul>
+<h3>19.6 关于评分系统</h3>
+<ul>
+<li>使用半结构化评分系统</li>
+<li>规则打底，模型辅助</li>
+<li>不允许模型自由拍脑袋决定最终名单</li>
+</ul>
+<hr>
+<h2>20. 当前仍未完成的设计部分</h2>
+<p>以下内容在本轮尚未设计完成，属于下一轮开发应优先继续的部分。</p>
+<h3>20.1 `/room` 的发言机制</h3>
+<p>需要继续定义：</p>
+<ul>
+<li>每轮默认让几个 Agent 发言</li>
+<li>是否允许 Agent 互相引用</li>
+<li>允许互相回应的轮数上限</li>
+<li>如何避免房间变成多人格表演</li>
+</ul>
+<h3>20.2 换人机制</h3>
+<p>需要继续定义：</p>
+<ul>
+<li>哪些 Agent 是“常驻核心组”</li>
+<li>什么时候临时补人</li>
+<li>什么时候临时降权或移出</li>
+</ul>
+<h3>20.3 升级机制</h3>
+<p>需要继续定义：</p>
+<ul>
+<li>什么时候从 `/room` 建议升级到 `/debate`</li>
+<li>升级时如何把当前房间状态压缩成 `/debate` 审查包输入</li>
+</ul>
+<h3>20.4 状态持久化</h3>
+<p>需要继续定义：</p>
+<ul>
+<li>persistent room 的状态存在哪</li>
+<li>是否按房间名、日期、主题落盘</li>
+<li>如何恢复状态</li>
+</ul>
+<h3>20.5 Agent Registry 文件格式</h3>
+<p>需要继续定义：</p>
+<ul>
+<li>用 `md`、`json` 还是混合格式</li>
+<li>自动扫描目录规则</li>
+<li>注册缓存机制</li>
+</ul>
+<h3>20.6 选人打分的实现细节</h3>
+<p>需要继续定义：</p>
+<ul>
+<li>结构化分数字段如何序列化</li>
+<li>模型小范围校正如何记录理由</li>
+<li>是否保留历史有效性分</li>
+</ul>
+<hr>
+<h2>21. 建议的后续开发顺序</h2>
+<p>为了保证项目可持续推进，建议下一轮开发按下面顺序进行。</p>
+<h3>Phase 1. 定义 `/room` 协议</h3>
+<p>先补完：</p>
+<ul>
+<li>发言机制</li>
+<li>换人机制</li>
+<li>升级到 `/debate` 的规则</li>
+</ul>
+<h3>Phase 2. 定义 Agent Registry</h3>
+<p>补完：</p>
+<ul>
+<li>自动发现规则</li>
+<li>条件注册标准</li>
+<li>元数据文件格式</li>
+</ul>
+<h3>Phase 3. 定义 Selection Policy</h3>
+<p>把本报告中已有的评分系统写成正式规则文档。</p>
+<h3>Phase 4. 补文档入口</h3>
+<p>建议新增：</p>
+<ul>
+<li>`docs/room-architecture.md`</li>
+<li>`docs/agent-registry.md`</li>
+<li>`docs/room-selection-policy.md`</li>
+<li>`prompts/room-chat.md`</li>
+<li>`prompts/room-summary.md`</li>
+<li>`prompts/room-upgrade.md`</li>
+</ul>
+<h3>Phase 5. 再决定实现载体</h3>
+<p>是继续作为文档与 prompt 驱动的 skill 系统，还是补一个真正的状态管理实现层。</p>
+<hr>
+<h2>22. 建议新增的正式文档</h2>
+<p>下一轮建议把当前报告拆分沉淀成这些长期文件：</p>
+<ul>
+<li>`docs/room-product-spec.md`</li>
+<li>`docs/room-state-model.md`</li>
+<li>`docs/agent-registry.md`</li>
+<li>`docs/selection-policy.md`</li>
+<li>`docs/room-to-debate-handoff.md`</li>
+<li>`prompts/room-chat.md`</li>
+<li>`prompts/room-summary.md`</li>
+<li>`prompts/room-upgrade.md`</li>
+</ul>
+<p>这样后续新增 skill、改路由、改评分系统时，都能在清晰边界内维护。</p>
+<hr>
+<h2>23. 开发注意事项</h2>
+<h3>23.1 必须保持 `/debate` 边界稳定</h3>
+<p>不要为了做 <code>/room</code> 把 <code>/debate</code> 变成聊天室。</p>
+<h3>23.2 不要让新增 skill 自动污染系统</h3>
+<p>必须坚持自动发现 + 条件注册，而不是发现即参会。</p>
+<h3>23.3 选人系统必须能解释</h3>
+<p>未来实现时，系统应该尽量能解释：</p>
+<ul>
+<li>为什么选这几个人</li>
+<li>为什么没选另外几个人</li>
+<li>当前每个人的职责是什么</li>
+</ul>
+<p>否则后期会很难维护。</p>
+<h3>23.4 强调“最小够用阵容”</h3>
+<p>不要让系统默认“人越多越好”。多 Agent 的核心价值是结构化互补，不是人数。</p>
+<hr>
+<h2>24. 可直接给下一轮对话的简短交接摘要</h2>
+<p>如果后续要在新对话里继续开发，可以直接把下面这段作为项目交接摘要：</p>
+<p>本项目已存在正式的 <code>/debate</code> 多 Agent 圆桌会议系统，基于本地名人 skill 工作，强调结构化分工、主持汇总、审查放行和统一决议。当前新增需求是设计第二种模式 <code>/room</code>，用于半结构化多 Agent 房间，核心用途是协同推演，权重为协同推演 60%、探索 20%、日常陪跑 20%。<code>/room</code> 必须复用本地名人 skill，不创建新人格；新增 skill 采用自动发现 + 条件注册机制；选人不是全员参会，而是根据议题、子问题、阶段和房间结构做后台筛选。后台筛选已设计为半结构化评分系统：硬约束过滤 + 结构化打分 + 模型小范围校正 + 结构平衡 + 人数裁剪。当前已完成产品方向、命令语义、房间状态、Agent Registry 与评分逻辑设计，尚未完成 <code>/room</code> 发言机制、换人机制、升级到 <code>/debate</code> 的交接规则与落地文档拆分。</p>
+<hr>
+<h2>25. 文件依据</h2>
+<p>本报告综合了以下已有文件与本轮对话中的新增设计：</p>
+<ul>
+<li>`C:\Users\CLH\AGENTS.md`</li>
+<li>`C:\Users\CLH\docs\debate-skill-architecture.md`</li>
+<li>`C:\Users\CLH\docs\agent-role-map.md`</li>
+<li>`C:\Users\CLH\docs\reviewer-protocol.md`</li>
+<li>`C:\Users\CLH\prompts\debate-roundtable.md`</li>
+<li>本轮关于 `/room` 的新增设计讨论</li>
+</ul>
+<hr>
+<h2>26. 结论</h2>
+<p>本轮开发工作本质上不是实现代码，而是完成了一个大型系统的第二形态设计定向：</p>
+<ul>
+<li>现有 `/debate` 已被重新确认和稳固</li>
+<li>新增 `/room` 的必要性已明确</li>
+<li>`/room` 的核心定位、与 `/debate` 的边界、Agent 来源、注册逻辑和选人评分框架都已形成清晰设计</li>
+</ul>
+<p>这意味着下一轮开发可以不再重复讨论“要不要做 <code>/room</code>”，而是直接进入：</p>
+<ul>
+<li>协议补全</li>
+<li>文档拆分</li>
+<li>交互细化</li>
+<li>状态管理设计</li>
+<li>自动发现与注册落地</li>
+</ul>
+<p>本报告应视为当前阶段的正式设计备份与跨对话开发交接文档。</p>
+<hr>
+<h2>27. `/room` 的发言机制设计</h2>
+<p>这是下一轮开发里最关键的交互层设计。本轮补充的目标是让 <code>/room</code> “像群聊”，但不退化成一堆名人互相表演或重复发言。</p>
+<h3>27.1 总体原则</h3>
+<p><code>/room</code> 的发言机制必须同时满足四个目标：</p>
+<ul>
+<li>有群聊感</li>
+<li>有信息增量</li>
+<li>有节奏控制</li>
+<li>能持续推进问题，而不是制造噪音</li>
+</ul>
+<p>因此，本项目不应采用“所有 Agent 自由抢话”的机制，而应采用：</p>
+<blockquote><p>主持器控制下的轻量多轮群聊机制。</p></blockquote>
+<p>也就是说，表面上看起来像群聊，但底层仍然是被调度的。</p>
+<h3>27.2 每轮默认发言人数</h3>
+<p>建议默认规则：</p>
+<ul>
+<li>用户每次新输入后，默认只让 `2-4` 个最相关 Agent 发言</li>
+<li>轻量状态优先 `2-3` 个</li>
+<li>只有在冲突明显、问题复杂时才扩到 `4` 个</li>
+<li>单轮不建议超过 `4` 个，否则阅读负担明显上升</li>
+</ul>
+<p>原因：</p>
+<ul>
+<li>太少无法形成协同推演</li>
+<li>太多会产生重复、争抢和阅读疲劳</li>
+</ul>
+<h3>27.3 发言角色分层</h3>
+<p>每轮发言建议分成三类角色：</p>
+<ul>
+<li>`primary responder`</li>
+<p>  本轮最主要回答当前子问题的人</p>
+<li>`support responder`</li>
+<p>  补充一个不同但相关的视角</p>
+<li>`challenge responder`</li>
+<p>  负责指出潜在漏洞、过度自信或被忽略的问题</p>
+<li>`optional synthesizer`</li>
+<p>  仅在有必要时，由主持器或某个指定 Agent 做一句阶段收束</p>
+</ul>
+<p>默认情况下，一轮里不一定四类都齐全，但至少应有：</p>
+<ul>
+<li>一个主回应位</li>
+<li>一个补充或挑战位</li>
+</ul>
+<h3>27.4 单条发言长度约束</h3>
+<p>为了保留群聊感，<code>/room</code> 的发言必须显著短于 <code>/debate</code>。</p>
+<p>建议设置两档：</p>
+<ul>
+<li>`chat-compact`</li>
+<p>  1 个核心结论 + 1-2 个依据 + 1 个建议动作</p>
+<li>`chat-extended`</li>
+<p>  在冲突较大或用户点名追问时，允许多写一段，但仍禁止写成正式长文</p>
+</ul>
+<p>建议默认目标：</p>
+<ul>
+<li>单个 Agent 每轮尽量控制在 `80-180` 中文字左右</li>
+<li>只有用户明确要求深挖，或当前子问题确实复杂，才允许超过这一范围</li>
+</ul>
+<h3>27.5 Agent 是否允许互相引用</h3>
+<p>允许，但必须受限。</p>
+<p>建议规则：</p>
+<ul>
+<li>默认允许 Agent 对上一轮已输出的某个观点做“有限回应”</li>
+<li>只允许回应“可见输出”，不允许假装看到了隐藏推理</li>
+<li>回应时必须明确引用对象，例如：</li>
+<p>  - “我同意 Jobs 关于价值主张过宽的判断，但我补一个风险点”</p>
+<p>  - “我不同意 PG 现在就判断需求成立，因为我们还没看切换成本”</p>
+</ul>
+<h3>27.6 互相回应的轮数上限</h3>
+<p>为避免房间失控，建议采用“最多 2 跳”的规则。</p>
+<p>即：</p>
+<ul>
+<li>用户发言后，系统选出第一轮回应者</li>
+<li>若有必要，允许其中 `1-2` 个 Agent 再做一轮回应或补位</li>
+<li>之后必须交给：</li>
+<p>  - 主持器做阶段总结</p>
+<p>  - 或用户继续推进</p>
+<p>  - 或执行 <code>/focus</code></p>
+</ul>
+<p>不允许 Agent 无限来回争论。</p>
+<h3>27.7 用户点名优先权</h3>
+<p>用户点名必须具有高优先级。</p>
+<p>例如：</p>
+<ul>
+<li>`@Taleb 你只看风险`</li>
+<li>`@Jobs 回应一下 PG`</li>
+</ul>
+<p>点名规则建议如下：</p>
+<ul>
+<li>被点名的 Agent 自动进入下一轮发言名单</li>
+<li>若点名内容明确限定职责，则该轮以该职责为准</li>
+<li>若点名会破坏结构平衡，也不应禁止，但主持器应显式提示“当前这轮偏斜”</li>
+</ul>
+<h3>27.8 主持器的隐性职责</h3>
+<p>虽然 <code>/room</code> 看起来像群聊，但主持器仍需承担以下后台职责：</p>
+<ul>
+<li>控制谁该说、谁不该说</li>
+<li>压制重复发言</li>
+<li>在冲突开始循环时及时收束</li>
+<li>记录当前结论、分歧和待定问题</li>
+<li>必要时提示用户是否应该 `/focus` 或 `/upgrade-to-debate`</li>
+</ul>
+<h3>27.9 防止“多人格表演”的规则</h3>
+<p>这是 <code>/room</code> 最重要的防污染机制之一。</p>
+<p>必须禁止：</p>
+<ul>
+<li>为了模仿名人语气而牺牲判断质量</li>
+<li>为了“像群聊”而制造无意义互怼</li>
+<li>多个 Agent 用不同措辞说同一个意思</li>
+<li>Agent 过度表演人格，不推进议题</li>
+</ul>
+<p>建议明确要求：</p>
+<blockquote><p>`/room` 中的名人 Agent 是认知角色，不是表演角色。风格可以存在，但信息增量优先级永远高于风格完整度。</p></blockquote>
+<h3>27.10 阶段总结触发条件</h3>
+<p>以下情况建议自动触发主持器做简短总结：</p>
+<ul>
+<li>连续 3 轮没有新增信息</li>
+<li>出现重复冲突</li>
+<li>当前子问题已经接近收敛</li>
+<li>用户显式请求 `/summary`</li>
+<li>系统判断当前应该切换到下一个子问题</li>
+</ul>
+<p>阶段总结必须输出：</p>
+<ul>
+<li>当前结论</li>
+<li>主要分歧</li>
+<li>仍未解决的问题</li>
+<li>建议下一步</li>
+</ul>
+<hr>
+<h2>28. `/room` 的换人机制设计</h2>
+<p>如果 <code>/room</code> 要真正适合复杂问题推演，就不能采用“一组选手打完全场”的模式。换人机制是必要能力。</p>
+<h3>28.1 换人机制的核心原则</h3>
+<p>系统要区分：</p>
+<ul>
+<li>`核心常驻组`</li>
+<li>`阶段性参与者`</li>
+<li>`临时补位者`</li>
+</ul>
+<p>也就是说，一个房间可以有连续上下文，但不代表每个子问题都要由同一批 Agent 负责。</p>
+<h3>28.2 核心常驻组</h3>
+<p>建议每个房间维持一个 <code>2-3</code> 人的核心常驻组。</p>
+<p>核心常驻组的特点：</p>
+<ul>
+<li>与议题主类型强相关</li>
+<li>在整场讨论里持续有用</li>
+<li>承担房间认知骨架作用</li>
+</ul>
+<p>例如一个 <code>product + strategy</code> 房间，常驻组可能是：</p>
+<ul>
+<li>Jobs</li>
+<li>Munger</li>
+<li>Paul Graham</li>
+</ul>
+<h3>28.3 阶段性参与者</h3>
+<p>某些 Agent 只在特定阶段价值高。</p>
+<p>例如：</p>
+<ul>
+<li>MrBeast 在“传播与选题张力”阶段进入</li>
+<li>Taleb 在“风险压测”阶段进入</li>
+<li>Karpathy 在“技术可行性”阶段进入</li>
+</ul>
+<p>阶段性参与者不需要长期驻场。</p>
+<h3>28.4 临时补位者</h3>
+<p>当房间出现结构短板时，可以临时加人。</p>
+<p>例如：</p>
+<ul>
+<li>讨论过于进攻型，需要补一个风险位 -&gt; 加 Taleb</li>
+<li>讨论过于抽象，需要补一个接地气位 -&gt; 加 Zhang Xuefeng</li>
+<li>讨论技术路线时缺乏实现直觉 -&gt; 加 Karpathy</li>
+</ul>
+<h3>28.5 什么时候应触发换人</h3>
+<p>建议触发条件包括：</p>
+<ul>
+<li>当前子问题与现有阵容不再匹配</li>
+<li>讨论阶段切换</li>
+<li>当前房间出现明显结构偏斜</li>
+<li>用户显式 `/add` 或 `/remove`</li>
+<li>某个 Agent 连续多轮没有信息增量</li>
+</ul>
+<h3>28.6 什么时候该移出或降权某个 Agent</h3>
+<p>以下情况建议降权或暂时移出：</p>
+<ul>
+<li>连续 2-3 轮没有新增信息</li>
+<li>其主责已完成</li>
+<li>当前子问题明显超出其边界</li>
+<li>房间信息重复度过高</li>
+<li>他继续发言会让房间结构失衡</li>
+</ul>
+<p>注意：</p>
+<ul>
+<li>“移出”不等于删除历史观点</li>
+<li>只是表示当前轮次不再优先让其继续发言</li>
+</ul>
+<h3>28.7 自动换人与用户可控的关系</h3>
+<p>建议采用“自动推荐 + 用户覆盖”的模式。</p>
+<p>即：</p>
+<ul>
+<li>系统可提示“建议加入 Taleb 压测风险”</li>
+<li>系统可提示“MrBeast 在当前子问题上价值已下降，建议暂时退场”</li>
+<li>但用户仍然可以手动保留、加人或点名</li>
+</ul>
+<h3>28.8 换人时必须解释理由</h3>
+<p>每次系统建议换人，最好能解释：</p>
+<ul>
+<li>为什么建议加这个人</li>
+<li>为什么建议暂时减少另一个人发言</li>
+<li>这会补什么结构短板</li>
+</ul>
+<p>否则长期使用时，用户会感觉系统在“神秘抽人”。</p>
+<hr>
+<h2>29. 从 `/room` 升级到 `/debate` 的交接协议</h2>
+<p>这是两种模式共存的核心接口，必须设计清楚。</p>
+<h3>29.1 升级的本质</h3>
+<p><code>/room -&gt; /debate</code> 不是重新开始，而是：</p>
+<blockquote><p>把房间里已经推演出的上下文，压缩成一份适合正式圆桌审议的输入包。</p></blockquote>
+<p>也就是说，升级不是丢弃 <code>/room</code>，而是把 <code>/room</code> 的成果转成 <code>/debate</code> 的正式前置材料。</p>
+<h3>29.2 什么时候建议升级</h3>
+<p>以下情况建议主持器提示升级：</p>
+<ul>
+<li>议题已经进入“该不该定案”的阶段</li>
+<li>当前分歧较大，需要正式收敛</li>
+<li>当前问题代价较高，不宜继续松散讨论</li>
+<li>需要显式风险审查</li>
+<li>需要最终只有一个统一建议</li>
+<li>用户明确输入 `/upgrade-to-debate`</li>
+</ul>
+<h3>29.3 什么时候不建议升级</h3>
+<p>以下情况通常不应急着升级：</p>
+<ul>
+<li>问题仍然模糊，边界不清</li>
+<li>当前还处在发散探索阶段</li>
+<li>仍缺少关键背景信息</li>
+<li>讨论尚未形成足够清晰的子问题</li>
+</ul>
+<h3>29.4 升级前必须生成的 Handoff Packet</h3>
+<p>建议引入一个正式对象：</p>
+<ul>
+<li>`room_to_debate_handoff_packet`</li>
+</ul>
+<p>它至少应包含：</p>
+<ol>
+<li>原始议题</li>
+<li>当前房间标题</li>
+<li>主类型与副类型</li>
+<li>当前已确定的子问题</li>
+<li>已达成共识</li>
+<li>核心分歧</li>
+<li>仍未解决的问题</li>
+<li>当前已有的候选方案</li>
+<li>当前房间中已出现的重要事实</li>
+<li>已显式表达的不确定项</li>
+<li>建议带入 `/debate` 的参会 Agent</li>
+<li>建议这些 Agent 的职责草案</li>
+<li>升级原因</li>
+</ol>
+<h3>29.5 Handoff Packet 的作用</h3>
+<p>它的作用不是替代 <code>/debate</code>，而是让 <code>/debate</code> 不用从零开始识别问题。</p>
+<p>换句话说：</p>
+<ul>
+<li>`/room` 负责把问题推演清楚</li>
+<li>`handoff packet` 负责把推演结果转成正式会议输入</li>
+<li>`/debate` 负责在这个基础上进行正式审议与审查</li>
+</ul>
+<h3>29.6 升级后的职责边界</h3>
+<p>一旦进入 <code>/debate</code>：</p>
+<ul>
+<li>`/room` 中自由群聊式的发言机制停止</li>
+<li>正式切换到 `/debate` 的分工、发言、汇总、审查结构</li>
+<li>`/debate` 不直接继承 `/room` 的松散发言，而是只继承经过主持器整理后的输入包</li>
+</ul>
+<h3>29.7 防止污染的关键规则</h3>
+<p>为了不让 <code>/room</code> 污染 <code>/debate</code>，建议设定：</p>
+<ul>
+<li>`/debate` 只读取 `handoff packet`，不直接逐条消费整个群聊日志</li>
+<li>群聊日志可以作为附录参考，但不应成为正式审查对象</li>
+<li>正式审查对象仍然应是 `/debate` 内产生的显式发言与汇总</li>
+</ul>
+<p>这样做的原因是：</p>
+<ul>
+<li>`/room` 允许探索性、试探性、不完全收敛的内容</li>
+<li>`/debate` 必须面对正式审查与最终决议</li>
+</ul>
+<p>两者不能混为一谈。</p>
+<h3>29.8 升级时的默认选人策略</h3>
+<p>升级到 <code>/debate</code> 时，不建议机械沿用 <code>/room</code> 当前所有成员。</p>
+<p>更合理的方式是：</p>
+<ul>
+<li>从 `handoff packet` 中读取“建议候选人”</li>
+<li>再按 `/debate` 的正式路由和对冲规则重新确定最终名单</li>
+<li>允许保留一部分 `/room` 常驻成员</li>
+<li>允许替换掉那些只适合探索、不适合正式裁决的成员</li>
+</ul>
+<h3>29.9 升级结果的用户体验</h3>
+<p>建议升级时对用户呈现为：</p>
+<ul>
+<li>“当前房间已经进入定案阶段，建议升级到 `/debate`。”</li>
+<li>“我将把当前讨论压缩为正式议题输入包，并重新组织圆桌审议。”</li>
+</ul>
+<p>这样用户会明确感知到：</p>
+<ul>
+<li>不是又开了一个新话题</li>
+<li>而是当前讨论进入了更高严肃度阶段</li>
+</ul>
+<hr>
+<h2>30. 新增的整体开发建议</h2>
+<p>在完成本次补充后，下一轮开发建议的优先级进一步收敛为：</p>
+<ol>
+<li>把本报告中 `/room` 的发言机制、换人机制、升级协议拆成独立文档</li>
+<li>为 `/room` 新增 prompt 文档与命令说明</li>
+<li>设计 Agent Registry 的元数据标准与自动发现流程</li>
+<li>再决定是否需要真正的状态持久化实现层</li>
+</ol>
+<p>这样可以确保整个系统先把“协议层和文档层”做稳，再考虑更重的工程实现。</p>
+</main></body></html>
