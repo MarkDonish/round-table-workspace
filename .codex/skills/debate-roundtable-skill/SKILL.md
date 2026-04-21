@@ -3,10 +3,10 @@ name: debate-roundtable-skill
 description: |
   Explicit-only /debate roundtable dispatcher.
 ---
-  重大议题圆桌会议调度 skill。仅在用户明确输入 `/debate` 时使用。它不是新的名人人格，而是上层调度器：识别议题、解析参数、路由任务类型、选择 3-5 个最合适的本地名人 skill 作为独立 Agent 参会、分配职责、组织结构化发言、调用审查 Agent 审查可见推理产物，并在审查通过后输出统一决议。禁止在普通日常问题中触发，禁止污染原有名人 skill 的独立使用逻辑。
----
 
 # /debate 圆桌会议调度 skill
+
+重大议题圆桌会议调度 skill。仅在用户明确输入 `/debate` 时使用。它不是新的名人人格，而是上层调度器：识别议题、解析参数、路由任务类型、选择 3-5 个最合适的本地名人 skill 作为独立 Agent 参会、分配职责、组织结构化发言、调用审查 Agent 审核可见推理产物，并在审查通过后输出统一决议。
 
 ## 系统定位
 
@@ -34,6 +34,12 @@ description: |
 - 不覆盖原有单 skill 使用逻辑
 - 不主动拉起多 Agent 讨论
 
+如果输入来自 `/room` 的 handoff packet，则把它视为已经成立的显式 `/debate` 上下文：
+
+- 优先消费 handoff packet，而不是回退到历史报告
+- 不把旧 Windows 机器路径当成当前入口
+- 不重写 `/room` 已经打包好的共识、张力和开放问题
+
 ## 输入语义
 
 允许的输入形式：
@@ -43,6 +49,7 @@ description: |
 - `/debate --without Trump 议题`
 - `/debate --quick 议题`
 - 参数组合形式
+- `/room` 升级而来的 handoff packet
 
 参数规则：
 
@@ -67,6 +74,7 @@ description: |
 - `ilya-sutskever-skill`
 - `mrbeast-skill`
 - `trump-skill`
+- `justin-sun-skill`
 
 文档中的 `Jobs / Taleb / Paul Graham` 等是角色简称，实际调用优先回退到精确 skill 名。
 
@@ -110,11 +118,12 @@ description: |
 2. 最多补 1 个副分类
 3. 优先用主分类 Agent，副分类只补 1 个缺口
 4. 应用 `--with / --without`
-5. 校验标签平衡：
+5. 如果输入是 `/room` handoff，则优先从 packet 的 `field_11_suggested_agents` 起步，再校验结构平衡
+6. 校验标签平衡：
    - 至少 1 个 `defensive`
    - 至少 1 个 `grounded`
    - `dominant` 不得超过一半
-6. 若不平衡，自动补位；仍不平衡时显式提示
+7. 若不平衡，自动补位；仍不平衡时显式提示
 
 ## Token 预算
 
@@ -143,6 +152,12 @@ description: |
 6. 主持人汇总
 7. 审查 Agent 审核
 8. 审查通过后输出最终决议；不通过则进入一次定向补充讨论
+
+如果输入来自 `/room` handoff：
+
+- Step 1 直接消费 `field_01` 到 `field_13`
+- 主持人不重做 `/room` 已完成的总结工作
+- 审查时重点检查 handoff packet 与 `/debate` 最终建议是否一致、是否遗漏关键 tension
 
 ### Quick 模式
 
@@ -212,14 +227,22 @@ Full 模式必须基于审查包审核：
 
 执行时优先遵循这些项目文件：
 
-- `C:\Users\CLH\AGENTS.md`
-- `C:\Users\CLH\docs\debate-skill-architecture.md`
-- `C:\Users\CLH\docs\agent-role-map.md`
-- `C:\Users\CLH\docs\reviewer-protocol.md`
-- `C:\Users\CLH\docs\red-flags.md`
-- `C:\Users\CLH\prompts\debate-roundtable.md`
-- `C:\Users\CLH\prompts\debate-reviewer.md`
-- `C:\Users\CLH\prompts\debate-followup.md`
+- `AGENTS.md`
+- `docs/debate-skill-architecture.md`
+- `docs/agent-role-map.md`
+- `docs/reviewer-protocol.md`
+- `docs/red-flags.md`
+- `docs/room-to-debate-handoff.md`
+- `prompts/debate-roundtable.md`
+- `prompts/debate-reviewer.md`
+- `prompts/debate-followup.md`
+
+如果输入是 `/room` handoff，则 `docs/room-to-debate-handoff.md` 是 packet 解释层的直接真源。
+
+以下目录不是当前实现真源：
+
+- `reports/`
+- `artifacts/`
 
 ## 输出风格
 
