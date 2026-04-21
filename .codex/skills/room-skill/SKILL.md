@@ -35,6 +35,7 @@ description: |
 - `AGENTS.md`
 - `docs/room-runtime-status.md`
 - `docs/room-chat-contract.md`
+- `docs/agent-registry.md`
 - `docs/DECISIONS-LOCKED.md`
 - `docs/room-architecture.md`
 - `docs/room-selection-policy.md`
@@ -61,8 +62,9 @@ description: |
 
 - `/room` 的状态模型、命令语义、发言机制、summary 和 upgrade 协议已经在 `docs/` 与 `prompts/` 中落地
 - `.codex/skills/room-skill/SKILL.md` 是 `/room` 的源码入口，不应再依赖历史报告来解释架构
-- `prompts/room-chat.md` 主体仍存在已知编码污染；在该文件完全修复前，如遇冲突，以 `docs/room-architecture.md` 与 `docs/room-chat-contract.md` 为准
-- 本仓库当前不应假设已有完整的 Mac 可运行 orchestrator 代码
+- `docs/agent-registry.md` 已提供面向 runtime 的 agent registry 视图，供 selection / orchestration / handoff 对齐使用
+- `prompts/room-chat.md` 已在 2026-04-21 重建为可读版本；如遇冲突，先以 `docs/room-architecture.md` 与 `docs/room-chat-contract.md` 为准，再回看 prompt
+- 本仓库当前不应假设已存在完整的 Mac 可运行 orchestrator 代码
 
 ## 最小工作流
 
@@ -119,14 +121,15 @@ description: |
 4. `reports/` 只能辅助理解历史，不能覆盖真源
 5. 不允许继续引入机器相关绝对路径
 6. `/room -> /debate` 只能通过 handoff packet，不允许直接把原始群聊日志当 `/debate` 输入
+7. 运行时 bridge 缺失时要如实暴露，不要假装项目已经 100% 完成
 
 ## 开发优先级
 
 如果继续开发 `/room`，优先顺序固定为：
 
 1. 保持 `docs/`、`prompts/`、`.codex/skills/` 为真源
-2. 修复 prompt 污染和路径污染
-3. 补齐 runtime bridge
+2. 补齐 runtime bridge
+3. 跑通 `/room -> /summary -> /upgrade-to-debate` 的首轮验证
 4. 再推进更深的交互或工程实现
 
 ## 非目标
