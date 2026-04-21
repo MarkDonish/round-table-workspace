@@ -1,0 +1,249 @@
+# Room End-to-End Validation
+
+> Purpose: define the first production-style validation flow for `/room`, so the project can move from source alignment to runtime confidence.
+> Last reviewed: 2026-04-21
+
+---
+
+## When To Use This
+
+Run this validation after:
+
+- `/room` source files are aligned
+- the host or orchestrator has wired the checked-in workflow
+- active prompts no longer depend on machine-local paths
+
+This file is not a historical report. It is the source validation checklist for the first live `/room` run.
+
+---
+
+## Validation Goal
+
+Prove that the following chain works on a portable host setup:
+
+1. `/room`
+2. one normal follow-up turn
+3. `/summary`
+4. `/upgrade-to-debate`
+5. handoff acceptance by `debate-roundtable-skill`
+
+Success means the repo is no longer only protocol-complete. It means the checked-in workflow is executable in practice.
+
+---
+
+## Preconditions
+
+Before starting, confirm all of the following:
+
+- `README.md`, `AGENTS.md`, `.codex/skills/room-skill/SKILL.md`, and `.codex/skills/room-skill/WORKFLOW.md` agree on `/room` semantics
+- `docs/room-runtime-bridge.md` is treated as the bridge contract
+- `prompts/room-selection.md`, `prompts/room-chat.md`, `prompts/room-summary.md`, and `prompts/room-upgrade.md` are available to the host
+- no step depends on `reports/` as live runtime input
+- no step depends on Windows-local absolute paths
+
+If any of the above is false, stop and fix source before validation.
+
+---
+
+## Canonical Test Topic
+
+Use one stable topic for the first full run so results are easy to compare across machines:
+
+`/room 我想讨论一个面向大学生的 AI 学习产品，先别急着下结论，先把方向、切口、风险一步一步推出来。`
+
+This topic is good because it naturally exercises:
+
+- `startup`
+- `product`
+- `risk`
+- focus narrowing
+- summary extraction
+- possible upgrade tension
+
+---
+
+## Test Flow
+
+### Step 1. Create A Room
+
+Input:
+
+`/room 我想讨论一个面向大学生的 AI 学习产品，先别急着下结论，先把方向、切口、风险一步一步推出来。`
+
+Expected checks:
+
+- a new `room_id` is created
+- `original_topic` is preserved verbatim
+- `primary_type` and `secondary_type` are set
+- `agents` and `agent_roles` are populated
+- `turn_count` is initialized correctly
+- no state field is written by the prompt directly
+
+Blocking failures:
+
+- no roster returned
+- malformed room state
+- machine-local path requirement
+
+### Step 2. Run One Follow-Up Turn
+
+Input:
+
+`/focus 先只盯最小可验证切口`
+
+Expected checks:
+
+- the same room is reused, not replaced
+- `active_focus` changes to the new focus
+- `room_turn` selection happens from the existing roster
+- `turn_role` is assigned by the host bridge, not by chat prompt
+- a new Turn is appended to `conversation_log`
+- `recent_log`, `last_stage`, `turn_count`, and `silent_rounds` are updated
+
+Blocking failures:
+
+- room is recreated instead of continued
+- prompt tries to own state writes
+- `conversation_log` writeback is partial or malformed
+
+### Step 3. Run Summary
+
+Input:
+
+`/summary`
+
+Expected checks:
+
+- `consensus_points` contains only content traceable to conversation
+- `open_questions` reflects current unresolved questions
+- `tension_points` captures actual unresolved disagreement
+- `recommended_next_step` is specific and actionable
+- `last_summary_turn` is updated
+
+Blocking failures:
+
+- summary invents claims not in log
+- summary fields remain empty despite meaningful discussion
+- host fails to persist summary output cleanly
+
+### Step 4. Trigger Upgrade
+
+Input:
+
+`/upgrade-to-debate`
+
+Expected checks:
+
+- a valid `upgrade_signal` exists or explicit request path is accepted
+- a handoff packet is produced
+- the packet includes structured:
+  - original topic
+  - sub problems
+  - consensus points
+  - tension points
+  - open questions
+  - candidate solutions
+  - suggested agents
+  - upgrade reason
+
+Blocking failures:
+
+- packet missing `field_11_suggested_agents`
+- packet missing `field_13_upgrade_reason`
+- packet built from raw room log without schema packaging
+
+### Step 5. Pass Packet To Debate
+
+Expected checks:
+
+- `debate-roundtable-skill` accepts the handoff context
+- `/debate` does not fall back to historical reports
+- `/debate` treats the packet as the authoritative room handoff
+
+Blocking failures:
+
+- `/debate` ignores packet fields
+- `/debate` reverts to Windows-local assumptions
+- packet is accepted but structurally inconsistent with `docs/room-to-debate-handoff.md`
+
+---
+
+## Required Evidence
+
+A successful validation run should leave behind evidence that can be checked without hand-waving:
+
+- a created room state snapshot
+- at least 2 turns in `conversation_log`
+- a persisted summary snapshot
+- a generated handoff packet
+- proof that `debate-roundtable-skill` accepted the packet shape
+
+If one of these is missing, the run is incomplete.
+
+---
+
+## Pass Criteria
+
+Mark the validation as passed only if all of the following are true:
+
+1. `/room` creates and updates a stable state object
+2. prompts do not directly write room state
+3. `turn_role` assignment happens outside `room-chat.md`
+4. `/summary` persists usable structured state
+5. `/upgrade-to-debate` emits a valid handoff packet
+6. `/debate` accepts the packet without needing historical reports
+7. no Windows-local path is required at any point
+
+---
+
+## Fail Classification
+
+### Source Failure
+
+Use this label when the problem is in checked-in docs, prompts, or workflow definitions.
+
+Examples:
+
+- prompt contract mismatch
+- missing required field in source schema
+- contradictory routing instructions
+
+### Host Failure
+
+Use this label when the source is adequate but the host execution layer is not.
+
+Examples:
+
+- state not persisted correctly
+- room context lost between turns
+- handoff packet not forwarded correctly
+
+### Environment Failure
+
+Use this label when the workflow is blocked by local machine setup.
+
+Examples:
+
+- local Git not authenticated
+- required runtime host unavailable
+- path assumptions not portable
+
+---
+
+## Current Known Blockers
+
+As of 2026-04-21, the main blockers before this validation can fully pass are:
+
+- some active `/room` prompts still contain Windows-local legacy header links
+- the host-side `/room` execution path is not yet proven end to end on this Mac
+- local terminal Git access on this Mac still depends on GitHub trust for the generated SSH key
+
+---
+
+## Next Action After Pass
+
+Once this validation passes:
+
+1. mark `/room` as host-validated in `docs/room-runtime-status.md`
+2. begin deeper runtime implementation or product-level development
+3. treat `/room` as a usable development surface instead of a protocol-only design layer
