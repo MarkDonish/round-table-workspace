@@ -1,0 +1,137 @@
+{
+  "mode": "room_turn",
+  "parsed_topic": {
+    "main_type": "product",
+    "main_type_reason": "首轮仍在探索产品方向和价值密度。",
+    "secondary_type": "startup",
+    "sub_problems": [
+      {
+        "text": "这个产品到底解决什么学生高频痛点",
+        "tags": ["value_proposition", "product_focus"]
+      },
+      {
+        "text": "要避免一开始就做成泛化 AI 助手",
+        "tags": ["downside_analysis", "execution_path"]
+      }
+    ],
+    "stage": "explore",
+    "stage_reason": "仍在先找方向和切口。",
+    "constraints": {
+      "with": [],
+      "without": [],
+      "mentions": []
+    }
+  },
+  "hard_filtered": [],
+  "scorecards": [
+    {
+      "agent": "steve-jobs",
+      "scores": {
+        "subproblem_match": 5,
+        "task_type_match": 5,
+        "stage_fit": 5,
+        "role_uniqueness": 4,
+        "structure_complement": 5,
+        "user_preference": 0,
+        "redundancy_penalty": -1,
+        "model_adjust": 2,
+        "model_adjust_reason": "需要一个先定义切口的人。"
+      },
+      "total": 25
+    },
+    {
+      "agent": "taleb",
+      "scores": {
+        "subproblem_match": 4,
+        "task_type_match": 5,
+        "stage_fit": 4,
+        "role_uniqueness": 5,
+        "structure_complement": 5,
+        "user_preference": 0,
+        "redundancy_penalty": 0,
+        "model_adjust": 1,
+        "model_adjust_reason": "需要明确指出方向级别的暴露。"
+      },
+      "total": 24
+    },
+    {
+      "agent": "karpathy",
+      "scores": {
+        "subproblem_match": 4,
+        "task_type_match": 4,
+        "stage_fit": 5,
+        "role_uniqueness": 4,
+        "structure_complement": 4,
+        "user_preference": 0,
+        "redundancy_penalty": 0,
+        "model_adjust": 1,
+        "model_adjust_reason": "需要把技术实现范围翻译成最小闭环。"
+      },
+      "total": 22
+    }
+  ],
+  "roster": [
+    {
+      "agent": "steve-jobs",
+      "short_name": "Jobs",
+      "role": "产品切口与价值主张裁判",
+      "structural_role": "offensive"
+    },
+    {
+      "agent": "munger",
+      "short_name": "Munger",
+      "role": "下行风险与验证纪律审查员",
+      "structural_role": "defensive"
+    },
+    {
+      "agent": "taleb",
+      "short_name": "Taleb",
+      "role": "尾部风险和不可逆暴露守门人",
+      "structural_role": "defensive"
+    },
+    {
+      "agent": "karpathy",
+      "short_name": "Karpathy",
+      "role": "最薄技术闭环与可实现性解释者",
+      "structural_role": "moderate"
+    }
+  ],
+  "speakers": [
+    {
+      "agent": "steve-jobs",
+      "short_name": "Jobs",
+      "structural_role": "offensive"
+    },
+    {
+      "agent": "taleb",
+      "short_name": "Taleb",
+      "structural_role": "defensive"
+    },
+    {
+      "agent": "karpathy",
+      "short_name": "Karpathy",
+      "structural_role": "moderate"
+    }
+  ],
+  "structural_check": {
+    "defensive_count": 2,
+    "grounded_count": 3,
+    "dominant_count": 2,
+    "dominant_ratio": 0.5,
+    "passed": true,
+    "warnings": []
+  },
+  "forced_rebalance": null,
+  "patch_applied": null,
+  "explanation": {
+    "why_selected": [
+      "Jobs 负责先定义必须聚焦的学生痛点。",
+      "Taleb 负责提醒不要从第一天就承诺泛化收益。",
+      "Karpathy 负责把产品想法压成能做出来的闭环。"
+    ],
+    "why_not_selected": [
+      "Munger 这一轮暂时让位给更强的产品切口讨论。",
+      "当前还不到需要正式收敛 kill rule 的阶段。"
+    ]
+  }
+}

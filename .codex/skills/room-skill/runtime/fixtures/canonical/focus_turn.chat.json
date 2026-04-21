@@ -1,0 +1,33 @@
+{
+  "turn_id": 2,
+  "stage": "simulate",
+  "active_focus": "先只盯最小可验证切口",
+  "user_input": "/focus 先只盯最小可验证切口",
+  "speakers": [
+    {
+      "agent_id": "steve-jobs",
+      "short_name": "Jobs",
+      "role": "primary",
+      "content": "不要一上来做“全能学习助手”。第一刀就做一个学生今天愿意上传真实材料来试的场景，我会优先押“作业反馈或写作改写”，因为结果最容易被立刻感知，也最容易看出他们会不会主动再来一次。"
+    },
+    {
+      "agent_id": "munger",
+      "short_name": "Munger",
+      "role": "challenge",
+      "content": "只看“感觉不错”会非常危险。你必须在实验前就写明两个东西：成功条件是什么，什么时候停。比如 7 天内有多少人愿意主动提交第二份材料；如果没有达到，就不要继续往系统化产品上加码。"
+    },
+    {
+      "agent_id": "karpathy",
+      "short_name": "Karpathy",
+      "role": "synthesizer",
+      "content": "技术上可以做得非常薄：输入一份学生真实作业，输出结构化反馈和下一步修改建议，再记录他们是否真的按这个反馈继续迭代。这个 loop 足够窄，也足够接近之后是否能形成高频使用。"
+    }
+  ],
+  "cited_agents": [],
+  "warnings": [],
+  "meta": {
+    "generated_at_turn": 2,
+    "prompt_version": "room-chat v0.1.4-rebuilt",
+    "tokens_used_estimate": 1260
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "mode": "room_turn",
+  "parsed_topic": {
+    "main_type": "product",
+    "main_type_reason": "当前请求已经把讨论压到最小可验证切口。",
+    "secondary_type": "startup",
+    "sub_problems": [
+      {
+        "text": "哪一个具体场景最适合作为第一刀",
+        "tags": ["product_focus", "user_experience"]
+      },
+      {
+        "text": "实验要如何定义 kill rule 和成功条件",
+        "tags": ["execution_path", "resource_allocation"]
+      }
+    ],
+    "stage": "simulate",
+    "stage_reason": "已经不只是开放探索，而是在推一个最小实验路径。",
+    "constraints": {
+      "with": [],
+      "without": [],
+      "mentions": []
+    }
+  },
+  "hard_filtered": [],
+  "scorecards": [
+    {
+      "agent": "steve-jobs",
+      "scores": {
+        "subproblem_match": 5,
+        "task_type_match": 5,
+        "stage_fit": 5,
+        "role_uniqueness": 4,
+        "structure_complement": 5,
+        "user_preference": 0,
+        "redundancy_penalty": 0,
+        "model_adjust": 2,
+        "model_adjust_reason": "需要继续压缩到学生愿意重复用的单点体验。"
+      },
+      "total": 26
+    },
+    {
+      "agent": "munger",
+      "scores": {
+        "subproblem_match": 5,
+        "task_type_match": 5,
+        "stage_fit": 4,
+        "role_uniqueness": 5,
+        "structure_complement": 5,
+        "user_preference": 0,
+        "redundancy_penalty": 0,
+        "model_adjust": 2,
+        "model_adjust_reason": "这一轮必须把 kill rule 写清。"
+      },
+      "total": 26
+    },
+    {
+      "agent": "karpathy",
+      "scores": {
+        "subproblem_match": 4,
+        "task_type_match": 4,
+        "stage_fit": 5,
+        "role_uniqueness": 4,
+        "structure_complement": 4,
+        "user_preference": 0,
+        "redundancy_penalty": 0,
+        "model_adjust": 1,
+        "model_adjust_reason": "需要把实验变成最薄可运行闭环。"
+      },
+      "total": 22
+    }
+  ],
+  "roster": [
+    {
+      "agent": "steve-jobs",
+      "short_name": "Jobs",
+      "role": "产品切口与价值主张裁判",
+      "structural_role": "offensive"
+    },
+    {
+      "agent": "munger",
+      "short_name": "Munger",
+      "role": "下行风险与验证纪律审查员",
+      "structural_role": "defensive"
+    },
+    {
+      "agent": "taleb",
+      "short_name": "Taleb",
+      "role": "尾部风险和不可逆暴露守门人",
+      "structural_role": "defensive"
+    },
+    {
+      "agent": "karpathy",
+      "short_name": "Karpathy",
+      "role": "最薄技术闭环与可实现性解释者",
+      "structural_role": "moderate"
+    }
+  ],
+  "speakers": [
+    {
+      "agent": "steve-jobs",
+      "short_name": "Jobs",
+      "structural_role": "offensive"
+    },
+    {
+      "agent": "munger",
+      "short_name": "Munger",
+      "structural_role": "defensive"
+    },
+    {
+      "agent": "karpathy",
+      "short_name": "Karpathy",
+      "structural_role": "moderate"
+    }
+  ],
+  "structural_check": {
+    "defensive_count": 2,
+    "grounded_count": 3,
+    "dominant_count": 2,
+    "dominant_ratio": 0.5,
+    "passed": true,
+    "warnings": []
+  },
+  "forced_rebalance": null,
+  "patch_applied": null,
+  "explanation": {
+    "why_selected": [
+      "Jobs 负责继续压缩单点体验。",
+      "Munger 负责明确实验边界和 kill rule。",
+      "Karpathy 负责把 MVP 变成一个薄闭环。"
+    ],
+    "why_not_selected": [
+      "Taleb 的风险视角已经进入当前状态，但这一轮更需要先把验证动作写实。",
+      "继续让阵容保持 3 人，避免讨论又扩散。"
+    ]
+  }
+}

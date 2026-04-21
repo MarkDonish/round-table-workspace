@@ -1,0 +1,147 @@
+{
+  "mode": "room_full",
+  "parsed_topic": {
+    "main_type": "product",
+    "main_type_reason": "核心问题是先定义一个大学生真正会反复使用的 AI 学习产品切口。",
+    "secondary_type": "startup",
+    "sub_problems": [
+      {
+        "text": "大学生为什么会为额外的 AI 学习产品留下来",
+        "tags": ["value_proposition", "user_experience"]
+      },
+      {
+        "text": "最小可验证切口应该是什么",
+        "tags": ["product_focus", "execution_path"]
+      },
+      {
+        "text": "如何把试错成本和下行风险压低",
+        "tags": ["downside_analysis", "resource_allocation"]
+      }
+    ],
+    "stage": "explore",
+    "stage_reason": "用户明确要求先探索方向、切口和风险，而不是直接下结论。",
+    "constraints": {
+      "with": [],
+      "without": [],
+      "mentions": []
+    }
+  },
+  "hard_filtered": [
+    {
+      "agent": "trump",
+      "rule": "R2",
+      "reason": "默认排除且当前议题不需要高戏剧性表达。"
+    }
+  ],
+  "scorecards": [
+    {
+      "agent": "steve-jobs",
+      "scores": {
+        "subproblem_match": 5,
+        "task_type_match": 5,
+        "stage_fit": 5,
+        "role_uniqueness": 4,
+        "structure_complement": 5,
+        "user_preference": 0,
+        "redundancy_penalty": -1,
+        "model_adjust": 2,
+        "model_adjust_reason": "需要一个能压缩产品切口的人。"
+      },
+      "total": 25
+    },
+    {
+      "agent": "munger",
+      "scores": {
+        "subproblem_match": 4,
+        "task_type_match": 5,
+        "stage_fit": 4,
+        "role_uniqueness": 5,
+        "structure_complement": 5,
+        "user_preference": 0,
+        "redundancy_penalty": -1,
+        "model_adjust": 1,
+        "model_adjust_reason": "需要一个先锁下行和验证纪律的人。"
+      },
+      "total": 23
+    },
+    {
+      "agent": "taleb",
+      "scores": {
+        "subproblem_match": 4,
+        "task_type_match": 5,
+        "stage_fit": 4,
+        "role_uniqueness": 5,
+        "structure_complement": 4,
+        "user_preference": 0,
+        "redundancy_penalty": -1,
+        "model_adjust": 1,
+        "model_adjust_reason": "需要明确暴露和不可逆风险。"
+      },
+      "total": 22
+    },
+    {
+      "agent": "karpathy",
+      "scores": {
+        "subproblem_match": 4,
+        "task_type_match": 4,
+        "stage_fit": 5,
+        "role_uniqueness": 4,
+        "structure_complement": 4,
+        "user_preference": 0,
+        "redundancy_penalty": -1,
+        "model_adjust": 1,
+        "model_adjust_reason": "需要把技术闭环讲清楚但不把讨论拉偏。"
+      },
+      "total": 21
+    }
+  ],
+  "roster": [
+    {
+      "agent": "steve-jobs",
+      "short_name": "Jobs",
+      "role": "产品切口与价值主张裁判",
+      "structural_role": "offensive"
+    },
+    {
+      "agent": "munger",
+      "short_name": "Munger",
+      "role": "下行风险与验证纪律审查员",
+      "structural_role": "defensive"
+    },
+    {
+      "agent": "taleb",
+      "short_name": "Taleb",
+      "role": "尾部风险和不可逆暴露守门人",
+      "structural_role": "defensive"
+    },
+    {
+      "agent": "karpathy",
+      "short_name": "Karpathy",
+      "role": "最薄技术闭环与可实现性解释者",
+      "structural_role": "moderate"
+    }
+  ],
+  "speakers": null,
+  "structural_check": {
+    "defensive_count": 2,
+    "grounded_count": 3,
+    "dominant_count": 2,
+    "dominant_ratio": 0.5,
+    "passed": true,
+    "warnings": []
+  },
+  "forced_rebalance": null,
+  "patch_applied": null,
+  "explanation": {
+    "why_selected": [
+      "Jobs 负责把讨论压到一个真正有吸引力的切口上。",
+      "Munger 和 Taleb 保证讨论不会滑向模糊的乐观想象。",
+      "Karpathy 负责把技术实现难度翻译成可验证闭环。"
+    ],
+    "why_not_selected": [
+      "MrBeast 更偏分发和内容爆发，不是当前第一轮的主问题。",
+      "PG 适合更偏创业机会判断，但当前需要先压到单点切口。",
+      "Trump 仍保持默认排除。"
+    ]
+  }
+}

@@ -17,6 +17,14 @@ It sits between:
 
 It does not replace prompt logic. It defines what the missing orchestrator must read, write, and validate.
 
+The minimal checked-in bridge implementation now lives at:
+
+- `.codex/skills/room-skill/runtime/room_runtime.py`
+- `.codex/skills/room-skill/runtime/README.md`
+- `.codex/skills/room-skill/runtime/fixtures/canonical/`
+
+This document remains the contract layer. The runtime code must stay aligned with it.
+
 ---
 
 ## What The Bridge Owns
@@ -201,6 +209,8 @@ A `/room` bridge is not Mac-ready unless all of the following are true:
 - it treats `.codex/skills/room-skill/SKILL.md` as the runtime entry contract
 - it can run the same flow on a fresh Mac clone of this repo
 
+The current checked-in bridge satisfies the repo-relative path and state writeback requirements, and it ships with a canonical fixture replay for local validation.
+
 ---
 
 ## Minimum Validation Flow
@@ -227,4 +237,4 @@ Success means:
 - This document does not define UI behavior.
 - This document does not replace the prompt files.
 - This document does not authorize new repo structure changes by itself.
-- This document does not claim the runtime bridge already exists.
+- This document does not claim that provider-backed live integration is already finished.

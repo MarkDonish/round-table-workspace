@@ -1,0 +1,103 @@
+{
+  "mode": "room_upgrade",
+  "handoff_packet": {
+    "schema_version": "v0.1",
+    "generated_at_turn": 2,
+    "source_room_id": "__ROOM_ID__",
+    "field_01_original_topic": "我想讨论一个面向大学生的 AI 学习产品，先别急着下结论，先把方向、切口、风险一步一步推出来。",
+    "field_02_room_title": "面向大学生的 AI 学习产品",
+    "field_03_type": {
+      "primary": "product",
+      "secondary": "startup"
+    },
+    "field_04_sub_problems": [
+      {
+        "text": "大学生为什么会为额外的 AI 学习产品留下来",
+        "tags": ["value_proposition", "user_experience"],
+        "discussed_in_turns": [1, 2],
+        "status": "open"
+      },
+      {
+        "text": "最小可验证切口应该是什么",
+        "tags": ["product_focus", "execution_path"],
+        "discussed_in_turns": [1, 2],
+        "status": "open"
+      },
+      {
+        "text": "如何把试错成本和下行风险压低",
+        "tags": ["downside_analysis", "resource_allocation"],
+        "discussed_in_turns": [1, 2],
+        "status": "converged"
+      }
+    ],
+    "field_05_consensus_points": [
+      "首个版本必须围绕一个高频学习场景，而不是泛化成全能 AI 助教",
+      "最小验证应先证明学生愿不愿意反复使用，而不是先证明长期商业模式",
+      "实验设计需要明确 kill rule，避免在模糊反馈上持续投入"
+    ],
+    "field_06_tension_points": [
+      "Jobs 倾向先押最强单点体验，Munger 更强调先把验证成本压到最低",
+      "Karpathy 认为技术上可快速做薄闭环，但 Taleb 对错误反馈带来的信任损伤更谨慎"
+    ],
+    "field_07_open_questions": [
+      "哪个具体学习场景最适合作为第一刀：作业反馈、错题复盘，还是口语陪练？",
+      "大学生愿意持续使用的触发频率能否高到支撑留存？"
+    ],
+    "field_08_candidate_solutions": [
+      {
+        "solution_text": "先做作业反馈或写作改写这个单一场景的 7 天 MVP",
+        "proposed_by": ["steve-jobs", "karpathy"],
+        "support_level": "high",
+        "unresolved_concerns": [
+          "Munger 认为必须提前写清 kill rule",
+          "Taleb 担心错误反馈会造成信任损伤"
+        ]
+      },
+      {
+        "solution_text": "先用人工辅助加半自动生成验证需求，再决定是否正式产品化",
+        "proposed_by": ["munger", "taleb"],
+        "support_level": "medium",
+        "unresolved_concerns": [
+          "Jobs 担心没有锋利体验时很难判断用户是否真的想要"
+        ]
+      }
+    ],
+    "field_09_factual_claims": [],
+    "field_10_uncertainty_points": [
+      "学生是否会把高价值学习材料持续交给系统处理仍未验证",
+      "错误反馈对信任与复用率的影响还没有实测数据"
+    ],
+    "field_11_suggested_agents": [
+      "steve-jobs",
+      "munger",
+      "taleb",
+      "karpathy"
+    ],
+    "field_12_suggested_agent_roles": {
+      "steve-jobs": "压缩成一个学生愿意反复使用的强单点体验，砍掉不必要范围。",
+      "munger": "审查实验设计是否自欺，并给出 kill rule 与资源边界。",
+      "taleb": "检查错误反馈、不可逆信任损伤和下行暴露。",
+      "karpathy": "评估最薄技术闭环是否足以支持高频真实使用。"
+    },
+    "field_13_upgrade_reason": {
+      "reason_code": "user_explicit_request",
+      "reason_text": "房间已形成可讨论的候选切口与张力点，用户要求进入更正式的 /debate 审议。",
+      "triggered_by": "user_explicit",
+      "confidence": 0.82,
+      "warning_flags": []
+    }
+  },
+  "packaging_meta": {
+    "turns_scanned": 2,
+    "solutions_extracted": 2,
+    "claims_extracted": 0,
+    "agents_filtered_out": [],
+    "agents_upgraded_in": [],
+    "warnings": []
+  },
+  "meta": {
+    "generated_at_turn": 2,
+    "prompt_version": "room-upgrade v0.2",
+    "next_action": "pass_packet_to_debate_skill"
+  }
+}

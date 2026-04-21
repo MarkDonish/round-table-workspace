@@ -68,8 +68,9 @@ description: |
 
 1. 先读取本文件
 2. 再读取 `.codex/skills/room-skill/WORKFLOW.md`
-3. 按 workflow 执行具体命令路径
-4. 只在需要解释协议边界时再回到 `docs/room-runtime-bridge.md` 与相关 prompts
+3. 若需要 checked-in host bridge，使用 `.codex/skills/room-skill/runtime/room_runtime.py`
+4. 需要命令示例和产物路径时，读取 `.codex/skills/room-skill/runtime/README.md`
+5. 只在需要解释协议边界时再回到 `docs/room-runtime-bridge.md` 与相关 prompts
 
 `WORKFLOW.md` 是当前 checked-in 的 runtime playbook。
 
@@ -177,13 +178,17 @@ description: |
 
 - `/room` 的协议层已完整进入真源
 - `.codex/skills/room-skill/WORKFLOW.md` 已提供 checked-in 的 runtime playbook
-- 但宿主侧的持久化执行与 Mac 端端到端验证仍未证明完成
+- `.codex/skills/room-skill/runtime/room_runtime.py` 已提供 checked-in 的 host-side bridge
+- canonical fixture 已可在 Mac 本地跑通 `/room -> /summary -> /upgrade-to-debate`
+- 但真实模型调用链上的 live host validation 仍未证明完成
 
 因此，当前状态应视为：
 
 - `protocol-complete`
 - `workflow-checked-in`
-- `host-runtime-not-yet-validated`
+- `bridge-checked-in`
+- `fixture-validated-on-mac`
+- `provider-live-not-yet-validated`
 
 而不是“已经 100% 可运行”。
 
@@ -203,10 +208,10 @@ description: |
 如果继续开发 `/room`，优先顺序固定为：
 
 1. 保持 `docs/`、`prompts/`、`examples/`、`.codex/skills/` 为真源
-2. 清理剩余 active prompt 中的旧 Windows 路径污染
-3. 让宿主按 `WORKFLOW.md` 跑通 state writeback
-4. 跑通 `/room -> /summary -> /upgrade-to-debate` 首轮验证
-5. 再推进更深的运行时实现
+2. 保持 `.codex/skills/room-skill/runtime/` 与 `docs/room-runtime-bridge.md` 同步
+3. 让真实宿主复用当前 bridge 的 state writeback 与 schema 校验
+4. 跑通一轮带真实 prompt 调用的 `/room -> /summary -> /upgrade-to-debate`
+5. 再推进更深的运行时整合
 
 ---
 

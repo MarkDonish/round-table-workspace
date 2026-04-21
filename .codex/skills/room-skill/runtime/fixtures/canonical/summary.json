@@ -1,0 +1,42 @@
+{
+  "mode": "room_summary",
+  "current_turn": 2,
+  "stage": "simulate",
+  "summary_update": {
+    "consensus_points": [
+      "首个版本必须围绕一个高频学习场景，而不是泛化成全能 AI 助教",
+      "最小验证应先证明学生愿不愿意反复使用，而不是先证明长期商业模式",
+      "实验设计需要明确 kill rule，避免在模糊反馈上持续投入"
+    ],
+    "open_questions": [
+      "哪个具体学习场景最适合作为第一刀：作业反馈、错题复盘，还是口语陪练？",
+      "大学生愿意持续使用的触发频率能否高到支撑留存？"
+    ],
+    "tension_points": [
+      "Jobs 倾向先押最强单点体验，Munger 更强调先把验证成本压到最低",
+      "Karpathy 认为技术上可快速做薄闭环，但 Taleb 对错误反馈带来的信任损伤更谨慎"
+    ],
+    "recommended_next_step": "先选一个具体场景做 7 天小实验，只追踪完成率、复用率和愿不愿意主动上传下一份学习材料。"
+  },
+  "merge_strategy_applied": {
+    "consensus_points": "appended_and_deduped",
+    "open_questions": "replaced",
+    "tension_points": "appended_and_deduped",
+    "recommended_next_step": "overwritten"
+  },
+  "stats": {
+    "turns_scanned": 2,
+    "speakers_covered": 4,
+    "new_consensus_added": 3,
+    "consensus_merged_with_previous": 0,
+    "new_tensions_added": 2,
+    "open_questions_resolved": 0,
+    "open_questions_remaining": 2
+  },
+  "meta": {
+    "generated_at_turn": 2,
+    "trigger": "/summary",
+    "prompt_version": "room-summary v0.2",
+    "upgrade_hint": null
+  }
+}

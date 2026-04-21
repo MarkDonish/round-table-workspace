@@ -27,6 +27,9 @@ The current source-of-truth files for `/room` are:
 - `examples/room-examples.md`
 - `.codex/skills/room-skill/SKILL.md`
 - `.codex/skills/room-skill/WORKFLOW.md`
+- `.codex/skills/room-skill/runtime/room_runtime.py`
+- `.codex/skills/room-skill/runtime/README.md`
+- `.codex/skills/room-skill/runtime/fixtures/canonical/`
 
 If a report, checkpoint, or session artifact conflicts with the files above, the files above win.
 
@@ -44,6 +47,8 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in runtime workflow playbook in `.codex/skills/room-skill/WORKFLOW.md`
 - a checked-in `/room` runtime entry in `.codex/skills/room-skill/SKILL.md`
 - a checked-in end-to-end validation guide in `docs/room-e2e-validation.md`
+- a checked-in host bridge implementation in `.codex/skills/room-skill/runtime/room_runtime.py`
+- a checked-in canonical fixture pack in `.codex/skills/room-skill/runtime/fixtures/canonical/`
 - repository-level entrypoints aligned so `/room` is first-class in `README.md`, `AGENTS.md`, and `examples/room-examples.md`
 - a clean fallback chat contract in `docs/room-chat-contract.md`
 - rebuilt and portable active prompts in:
@@ -51,6 +56,7 @@ The repository already contains a largely complete source layer for `/room`:
   - `prompts/room-summary.md`
   - `prompts/room-upgrade.md`
   - `prompts/room-selection.md`
+- a Mac-local canonical replay path that writes evidence bundles to `artifacts/runtime/rooms/<room_id>/`
 
 The `/debate` side is also structurally complete enough to be treated as an implemented source area, not an open sketch.
 
@@ -58,17 +64,17 @@ The `/debate` side is also structurally complete enough to be treated as an impl
 
 ## What Is Not Yet Completed In This Repo
 
-The remaining unfinished part is no longer the checked-in source definition.
+The remaining unfinished part is no longer the checked-in bridge itself.
 
-The remaining gap is the host-side portable execution and validation layer:
+The remaining gap is the live host integration layer:
 
-1. the checked-in workflow and bridge still need a real host-side state persistence path that is proven end to end on Mac
-2. the first real `/room -> /summary -> /upgrade-to-debate` validation run still has not been completed against a live host flow
-3. the local terminal Git chain on this Mac is still not fully usable until GitHub trusts the prepared SSH key
+1. the checked-in bridge is fixture-validated on Mac, but not yet proven against a real prompt-calling host loop
+2. the first live `/room -> /summary -> /upgrade-to-debate` run with actual prompt execution still has not been completed
+3. debate handoff is currently contract-validated through the checked-in skill entry, not yet through a live multi-agent `/debate` execution chain
 
 In short:
 
-`/room` is protocol-complete, prompt-cleaned, workflow-checked-in, validation-specified, and entry-aligned, but not yet host-validated as a portable runnable feature.
+`/room` is protocol-complete, prompt-cleaned, workflow-checked-in, bridge-checked-in, and fixture-validated on Mac, but not yet fully live-validated against a real prompt host.
 
 ---
 
@@ -95,9 +101,9 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 
 ## Current Risks
 
-- The host-side `/room` execution path is specified, but still not live-validated on this Mac.
+- The host-side `/room` execution path now exists and is fixture-validated, but still not live-validated with actual prompt calls.
 - Historical reports still reference old Windows runtime paths, which can mislead future continuation if read as implementation truth.
-- Local terminal Git is still one GitHub-side trust step away from working end to end on this machine.
+- The generated room bundles under `artifacts/runtime/rooms/` are outputs and must not be treated as new source-of-truth files.
 
 ---
 
@@ -105,10 +111,10 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 
 The most reasonable continuation path is:
 
-1. wire the host-side `/room` execution path to the checked-in `WORKFLOW.md`
-2. run the first real flow from `docs/room-e2e-validation.md`
-3. verify the resulting handoff packet is accepted by `debate-roundtable-skill`
-4. after the host flow passes, treat `/room` as runtime-ready instead of only source-ready
+1. point the real prompt-calling host at `.codex/skills/room-skill/runtime/room_runtime.py`
+2. run the live flow from `docs/room-e2e-validation.md`
+3. verify the resulting handoff packet is accepted by a real `/debate` execution, not only by contract check
+4. after the live host flow passes, treat `/room` as runtime-ready instead of only bridge-ready
 
 This keeps the repository structure stable:
 

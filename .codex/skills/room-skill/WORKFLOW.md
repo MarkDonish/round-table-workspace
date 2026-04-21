@@ -14,11 +14,20 @@ Follow this precedence order:
 1. `AGENTS.md`
 2. `.codex/skills/room-skill/SKILL.md`
 3. this file
-4. `docs/room-runtime-bridge.md`
-5. `docs/room-architecture.md`
-6. `prompts/room-*.md`
+4. `.codex/skills/room-skill/runtime/room_runtime.py`
+5. `docs/room-runtime-bridge.md`
+6. `docs/room-architecture.md`
+7. `prompts/room-*.md`
 
 If historical reports disagree with this workflow, the checked-in source files win.
+
+The current checked-in host bridge lives at:
+
+- `.codex/skills/room-skill/runtime/room_runtime.py`
+
+Its generated state and evidence bundles live under:
+
+- `artifacts/runtime/rooms/<room_id>/`
 
 ---
 

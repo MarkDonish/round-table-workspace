@@ -24,12 +24,14 @@
 - `docs/agent-registry.md` 已提供 runtime-facing 的 agent registry
 - `prompts/room-chat.md` 已重建为可读版本
 - `docs/room-runtime-bridge.md` 已把缺失的 runtime bridge 责任边界锁成真源
+- `.codex/skills/room-skill/runtime/room_runtime.py` 已把 `/room` 的 host-side bridge 代码正式入仓
+- `.codex/skills/room-skill/runtime/fixtures/canonical/` 已提供 checked-in 的首轮验证 fixture
 
 ### 还没完成的核心能力
 
-- `/room` 真正可运行的 orchestrator/runtime 代码仍未完整入仓
-- 一些 active prompt 文件头部仍残留旧 Windows 本地绝对链接
-- 还没有完成一轮严格的 `/room -> /summary -> /upgrade-to-debate` 端到端实测
+- `/room` 的 provider-backed live host integration 还没和真实模型调用链完全接上线
+- 还没有完成一轮带真实 prompt 调用的 `/room -> /summary -> /upgrade-to-debate` live run
+- 当前已完成的是 fixture-driven 的本地 bridge 验证，不应误报成所有宿主都已 100% 实战验证
 
 简化结论：
 
@@ -160,6 +162,7 @@ round-table-workspace/
 - chat contract：`docs/room-chat-contract.md`
 - bridge contract：`docs/room-runtime-bridge.md`
 - 当前边界：`docs/room-runtime-status.md`
+- runtime bridge：`.codex/skills/room-skill/runtime/README.md`
 - examples：`examples/room-examples.md`
 
 ### `/debate`
