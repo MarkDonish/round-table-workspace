@@ -1,39 +1,65 @@
 # Mark 多 Agent 决策框架
 
-这是一个兼容现有名人 skill 的决策系统。
+这是一个兼容现有名人 skill 的决策系统仓库，也是当前 round-table 工作区的长期真源。
 
-它有两种工作模式：
+它现在有 3 层使用方式：
 
-1. 日常模式：按任务类型调用单个或少量名人 skill
-2. `/debate` 模式：明确触发重大议题圆桌会议，由上层 skill 调度 3-5 个 Agent 参会并追加审查 Agent
+1. 日常模式：按任务类型调用单个或少量 skill
+2. `/room` 模式：显式触发的状态化多 Agent 房间，用于探索、推进、总结、升级
+3. `/debate` 模式：显式触发的重大议题圆桌审议，用于形成审查后的统一决议
 
-`/debate` 不是另一个名人人格，也不会替代你原来单独使用 `steve-jobs-skill`、`munger-skill`、`taleb-skill` 等本地 skill 的方式。
+`/room` 和 `/debate` 都不是默认模式。只有在用户明确进入对应上下文时才启用。
 
 ---
 
-## `/debate` 是什么
+## 当前状态
 
-`/debate` 是一个重大议题圆桌会议 skill。
+项目不是 100% 完成，但核心边界已经非常清楚。
 
-当你明确输入：
+### 已完成的核心能力
 
-- `/debate 这个创业方向值不值得做`
-- `/debate 我要不要给产品加这个功能`
-- `/debate 这个重大选择应该怎么判断`
-- `/debate --with Jobs,Taleb 这个方向值不值得做`
-- `/debate --without Trump 这个方案怎么定`
-- `/debate --quick 我该不该做这个功能`
+- `/debate` 的 skill 架构、角色边界、reviewer 协议、红旗规则、主 prompts 已经落地
+- `/room` 的状态模型、selection / chat / summary / upgrade 协议已经落地
+- `/room -> /debate` 的 handoff schema 已经落地
+- `docs/agent-registry.md` 已提供 runtime-facing 的 agent registry
+- `prompts/room-chat.md` 已重建为可读版本
+- `docs/room-runtime-bridge.md` 已把缺失的 runtime bridge 责任边界锁成真源
 
-系统会：
+### 还没完成的核心能力
 
-1. 识别议题
-2. 产出主分类与副分类
-3. 自动选择 3-5 个最合适的名人 Agent
-4. 给每个 Agent 分工
-5. 逐个发言
-6. 由主持人汇总
-7. 由审查 Agent 审核
-8. 审查通过后输出最终决议
+- `/room` 真正可运行的 orchestrator/runtime 代码仍未完整入仓
+- 一些 active prompt 文件头部仍残留旧 Windows 本地绝对链接
+- 还没有完成一轮严格的 `/room -> /summary -> /upgrade-to-debate` 端到端实测
+
+简化结论：
+
+- `/debate`：已可视为结构完成
+- `/room`：协议完成、bridge 已定义，但 runtime implementation 还差最后接线
+
+---
+
+## Source Of Truth
+
+这个仓库里真正应当长期维护的真源目录是：
+
+- `README.md`
+- `AGENTS.md`
+- `docs/`
+- `prompts/`
+- `examples/`
+- `.codex/skills/debate-roundtable-skill/`
+- `.codex/skills/room-skill/`
+- `.codex/skills/*/roundtable-profile.md`
+
+以下目录不是当前实现真源：
+
+- `reports/`
+- `artifacts/`
+
+其中：
+
+- `reports/` 保存开发历史、handoff、validation、session 报告
+- `artifacts/` 保存运行产物、fixture、导出文件
 
 ---
 
@@ -50,6 +76,12 @@ round-table-workspace/
 │  ├─ agent-role-map.md
 │  ├─ reviewer-protocol.md
 │  ├─ red-flags.md
+│  ├─ room-architecture.md
+│  ├─ room-selection-policy.md
+│  ├─ room-to-debate-handoff.md
+│  ├─ room-chat-contract.md
+│  ├─ room-runtime-bridge.md
+│  ├─ room-runtime-status.md
 │  └─ superpowers/specs/
 ├─ prompts/
 │  ├─ debate-roundtable.md
@@ -57,9 +89,11 @@ round-table-workspace/
 │  ├─ debate-followup.md
 │  └─ room-*.md
 ├─ examples/
-│  └─ debate-examples.md
+│  ├─ debate-examples.md
+│  └─ room-examples.md
 ├─ .codex/skills/
 │  ├─ debate-roundtable-skill/SKILL.md
+│  ├─ room-skill/SKILL.md
 │  └─ */roundtable-profile.md
 ├─ reports/
 │  ├─ checkpoints/
@@ -70,12 +104,6 @@ round-table-workspace/
    ├─ fixtures/
    └─ rendered/
 ```
-
-说明：
-
-- `docs/`、`prompts/`、`examples/`、`.codex/skills/` 是项目真源。
-- `reports/` 保存开发历史、handoff、validation、session 报告。
-- `artifacts/` 保存运行产物、fixture、导出文件。
 
 ---
 
@@ -89,13 +117,25 @@ round-table-workspace/
 - `用 feynman-skill 讲明白 attention`
 - `用 taleb-skill 审查这个方案风险`
 
-### 圆桌模式
+### `/room` 模式
 
-明确输入 `/debate`：
+适合需要连续推进、保留状态、阶段总结、必要时升级成正式审议的场景。
+
+示例：
+
+- `/room 我想讨论一个面向大学生的 AI 学习产品，从方向、切口、风险一步步推进`
+- `/focus 先只盯“最小可验证切口”`
+- `/summary`
+- `/upgrade-to-debate`
+
+### `/debate` 模式
+
+适合重大判断、需要明确分工和审查放行的场景。
+
+示例：
 
 - `/debate 这个创业方向值不值得做`
-- `/debate 产品要不要加这个功能`
-- `/debate 我该不该 all-in 做这个项目`
+- `/debate 我是否应该给产品加这个功能`
 - `/debate --with Jobs,Taleb 这个方向值不值得做`
 - `/debate --without Trump 这个方案怎么定`
 - `/debate --quick 我该不该先做这个 MVP`
@@ -106,10 +146,27 @@ round-table-workspace/
 
 ## 关键入口
 
-- 系统规则：`AGENTS.md`
-- 路由器：`docs/router.md`
-- 圆桌架构：`docs/debate-skill-architecture.md`
+### 通用入口
+
+- 项目规则：`AGENTS.md`
+- 快速路由：`docs/router.md`
+
+### `/room`
+
+- skill：`.codex/skills/room-skill/SKILL.md`
+- 架构：`docs/room-architecture.md`
+- selection：`docs/room-selection-policy.md`
+- handoff：`docs/room-to-debate-handoff.md`
+- chat contract：`docs/room-chat-contract.md`
+- bridge contract：`docs/room-runtime-bridge.md`
+- 当前边界：`docs/room-runtime-status.md`
+- examples：`examples/room-examples.md`
+
+### `/debate`
+
+- skill：`.codex/skills/debate-roundtable-skill/SKILL.md`
+- 架构：`docs/debate-skill-architecture.md`
 - 角色边界：`docs/agent-role-map.md`
 - 审查协议：`docs/reviewer-protocol.md`
-- 主提示词：`prompts/debate-roundtable.md`
-- 圆桌 skill：`.codex/skills/debate-roundtable-skill/SKILL.md`
+- 红旗：`docs/red-flags.md`
+- examples：`examples/debate-examples.md`
