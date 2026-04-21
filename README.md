@@ -152,6 +152,7 @@ round-table-workspace/
 
 - 项目规则：`AGENTS.md`
 - 快速路由：`docs/router.md`
+- 开发同步协议：`docs/development-sync-protocol.md`
 
 ### `/room`
 

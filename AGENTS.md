@@ -30,6 +30,23 @@ Historical material lives under:
 - `reports/`
 - `artifacts/`
 
+## Development Sync
+
+For every new development task, follow:
+
+- `docs/development-sync-protocol.md`
+
+Default rule:
+
+- develop locally
+- verify locally
+- commit verified changes
+- push to `origin/main`
+- report completed work, verification, and remaining gaps
+
+Do not treat exploratory local edits as complete work.
+Do not treat `reports/` as the active implementation source.
+
 ## Room Roundtable
 
 `/room` is an explicit-only stateful roundtable mode. It is not the default mode.
