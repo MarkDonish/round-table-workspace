@@ -34,6 +34,7 @@ description: |
 
 - `AGENTS.md`
 - `docs/room-runtime-status.md`
+- `docs/room-runtime-bridge.md`
 - `docs/room-chat-contract.md`
 - `docs/agent-registry.md`
 - `docs/DECISIONS-LOCKED.md`
@@ -63,6 +64,7 @@ description: |
 - `/room` 的状态模型、命令语义、发言机制、summary 和 upgrade 协议已经在 `docs/` 与 `prompts/` 中落地
 - `.codex/skills/room-skill/SKILL.md` 是 `/room` 的源码入口，不应再依赖历史报告来解释架构
 - `docs/agent-registry.md` 已提供面向 runtime 的 agent registry 视图，供 selection / orchestration / handoff 对齐使用
+- `docs/room-runtime-bridge.md` 已把缺失的 orchestrator bridge 边界、状态写入责任和最小验证流锁成真源
 - `prompts/room-chat.md` 已在 2026-04-21 重建为可读版本；如遇冲突，先以 `docs/room-architecture.md` 与 `docs/room-chat-contract.md` 为准，再回看 prompt
 - 本仓库当前不应假设已存在完整的 Mac 可运行 orchestrator 代码
 
