@@ -30,7 +30,7 @@
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 provider-backed 链路
 - `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py` 已提供 checked-in 的 `/debate` handoff packet 可执行预检
 - `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py` 已提供 checked-in 的 `/debate` execution bridge，包括 reject -> followup -> re-review validation chain
-- `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py` 已提供 checked-in 的 `/debate` prompt-host E2E 验证入口
+- `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py` 已提供 checked-in 的 `/debate` prompt-host E2E 验证入口，并可直接消费真实 `/room` handoff packet
 - `.codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 `/debate` provider-backed 链路
 - `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/` 已提供 checked-in 的 debate execution fixtures
 - `.codex/skills/room-skill/runtime/fixtures/canonical/` 已提供 checked-in 的首轮验证 fixture
@@ -39,7 +39,7 @@
 
 - `/room` 的 provider-backed live host integration 还没和真实模型调用链完全接上线，但仓库里已经有 `.env` + Chat Completions-compatible adapter + checked-in E2E validation runner + 本地 mock provider
 - 还没有完成一轮带真实 prompt 调用的 `/room -> /summary -> /upgrade-to-debate` live run
-- `/debate` 还没有完成真实外部 provider 的 roundtable / reviewer / followup live run
+- `/debate` 还没有完成真实外部 provider 的 roundtable / reviewer / followup live run，但 runtime 已支持直接消费真实 `/room` packet 做联调
 - 当前已完成的是 fixture-driven 验证 + mock provider-backed 验证；`/debate` 已有 checked-in reject-followup-rereview 验证链和 provider-backed 本地验证，但仍不应误报成所有宿主都已 100% 实战验证
 
 简化结论：

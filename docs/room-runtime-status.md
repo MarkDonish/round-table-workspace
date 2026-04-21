@@ -125,7 +125,7 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 ## Current Risks
 
 - The host-side `/room` execution path now exists, and the provider-backed path can be locally exercised through a checked-in mock provider, but it still is not externally live-validated with actual prompt calls.
-- `/room -> /debate` handoff is no longer a plain-text contract grep, and `/debate` now has a checked-in reject-followup-rereview path plus local mock-provider validation, but the repo still lacks end-to-end proof from a real external `/debate` execution chain.
+- `/room -> /debate` handoff is no longer a plain-text contract grep, and `/debate` now has a checked-in reject-followup-rereview path plus local mock-provider validation and direct `--packet-json` intake, but the repo still lacks end-to-end proof from a real external `/debate` execution chain.
 - Historical reports still reference old Windows runtime paths, which can mislead future continuation if read as implementation truth.
 - The generated room bundles under `artifacts/runtime/rooms/` are outputs and must not be treated as new source-of-truth files.
 
@@ -139,7 +139,7 @@ The most reasonable continuation path is:
 2. use `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` plus `.codex/skills/room-skill/runtime/room_e2e_validation.py --executor chat_completions` for local provider-path regression
 3. run `.codex/skills/room-skill/runtime/room_e2e_validation.py --executor chat_completions --env-file .env.room` against a real provider
 4. run `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py --executor chat_completions --env-file .env.debate --scenario reject_followup` against a real provider
-5. verify a real `/room` handoff packet can feed a real `/debate` execution, not only canonical packet material
+5. run `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py --packet-json <real_room_packet>` so a real `/room` handoff packet feeds a real `/debate` execution path, not only canonical packet material
 6. after the live host flow passes, treat `/room` and `/debate` as runtime-ready instead of only locally validated
 
 This keeps the repository structure stable:

@@ -74,6 +74,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Explicit env file for /debate Chat Completions mode.",
     )
     parser.add_argument(
+        "--packet-json",
+        help=(
+            "Optional /room handoff packet JSON to consume directly. "
+            "When omitted, the checked-in canonical upgrade fixture is used."
+        ),
+    )
+    parser.add_argument(
         "--fixtures-dir",
         default=str(DEFAULT_FIXTURES_DIR),
         help="Fixture directory for fixture mode.",
@@ -98,12 +105,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 def run_validation(args: argparse.Namespace) -> dict[str, Any]:
     state_root = Path(args.state_root).expanduser().resolve()
-    debate_id = args.debate_id or f"debate-e2e-{uuid.uuid4().hex[:8]}"
-    room_id = f"room-{debate_id}"
+    launch_bundle, packet_source = resolve_launch_bundle(args)
+    debate_id = launch_bundle["debate_id"]
+    room_id = launch_bundle["source_room_id"]
     debate_dir = runtime.get_debate_dir(state_root, debate_id)
     runtime.ensure_directory(debate_dir)
 
-    launch_bundle = build_launch_bundle(debate_id=debate_id, room_id=room_id)
     runtime.ensure_directory(debate_dir / "launch")
     runtime.write_json(debate_dir / "launch" / "launch-bundle.json", launch_bundle)
 
@@ -157,6 +164,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         "executor": args.executor,
         "debate_id": debate_id,
         "source_room_id": room_id,
+        "source_packet": packet_source,
         "provider_config": describe_executor(args),
         "prompt_call_dir": str(debate_dir / "prompt-calls"),
         "artifacts": {
@@ -275,18 +283,58 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
     return report
 
 
-def build_launch_bundle(*, debate_id: str, room_id: str) -> dict[str, Any]:
+def resolve_launch_bundle(args: argparse.Namespace) -> tuple[dict[str, Any], dict[str, Any]]:
+    if args.packet_json:
+        packet_path = Path(args.packet_json).expanduser().resolve()
+        launch_bundle, packet_acceptance = build_launch_bundle_from_packet(
+            packet_path=packet_path,
+            debate_id=args.debate_id,
+        )
+        return launch_bundle, {
+            "mode": "packet_json",
+            "packet_json": str(packet_path),
+            "packet_acceptance": packet_acceptance,
+        }
+
+    debate_id = args.debate_id or f"debate-e2e-{uuid.uuid4().hex[:8]}"
+    room_id = f"room-{debate_id}"
+    launch_bundle, packet_acceptance = build_canonical_launch_bundle(debate_id=debate_id, room_id=room_id)
+    return launch_bundle, {
+        "mode": "canonical_fixture",
+        "packet_json": str(runtime.ROOM_UPGRADE_FIXTURE),
+        "packet_acceptance": packet_acceptance,
+    }
+
+
+def build_canonical_launch_bundle(*, debate_id: str, room_id: str) -> tuple[dict[str, Any], dict[str, Any]]:
     fixture_payload = runtime.materialize_placeholders(runtime.load_json(runtime.ROOM_UPGRADE_FIXTURE), {"__ROOM_ID__": room_id})
     packet = runtime.unwrap_packet(fixture_payload)
     packet_acceptance = runtime.validate_packet_payload(fixture_payload)
     registry = runtime.packet_validator.load_registry()
-    return runtime.build_launch_bundle(
+    launch_bundle = runtime.build_launch_bundle(
         packet=packet,
         packet_acceptance=packet_acceptance,
         registry=registry,
         debate_id=debate_id,
         source_packet_path=str(runtime.ROOM_UPGRADE_FIXTURE),
     )
+    return launch_bundle, packet_acceptance
+
+
+def build_launch_bundle_from_packet(*, packet_path: Path, debate_id: str | None) -> tuple[dict[str, Any], dict[str, Any]]:
+    payload = runtime.load_json(packet_path)
+    packet = runtime.unwrap_packet(payload)
+    packet_acceptance = runtime.validate_packet_payload(payload)
+    registry = runtime.packet_validator.load_registry()
+    resolved_debate_id = debate_id or runtime.derive_debate_id(packet["source_room_id"])
+    launch_bundle = runtime.build_launch_bundle(
+        packet=packet,
+        packet_acceptance=packet_acceptance,
+        registry=registry,
+        debate_id=resolved_debate_id,
+        source_packet_path=str(packet_path),
+    )
+    return launch_bundle, packet_acceptance
 
 
 def build_prompt_executor(args: argparse.Namespace, *, debate_id: str, room_id: str):

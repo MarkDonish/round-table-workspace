@@ -11,6 +11,7 @@ It currently does 5 concrete jobs:
 - run one Chat Completions-compatible `/debate` prompt-host E2E validation flow against a local or external provider
 
 It still does not execute a live multi-agent `/debate` run by itself.
+The E2E runner can now start from either the canonical upgrade fixture or a persisted `/room` handoff packet.
 
 ## Main Entry
 
@@ -144,6 +145,16 @@ python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --state-root /tmp/round-table-debate-e2e-followup
 ```
 
+Run `/debate` E2E directly from a persisted `/room` packet:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor fixture \
+  --packet-json artifacts/runtime/rooms/<room_id>/handoff/packet-turn-002.json \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-debate-from-room-packet
+```
+
 Run the local mock-provider `/debate` E2E path:
 
 ```bash
@@ -168,6 +179,21 @@ python3 .codex/skills/room-skill/runtime/chat_completions_executor.py \
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --executor chat_completions \
   --env-file .env.debate \
+  --scenario reject_followup
+```
+
+Run the real `/room -> /debate` handoff path after `/room` produces a packet:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
+  --executor chat_completions \
+  --env-file .env.room \
+  --state-root /tmp/round-table-room-live
+
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor chat_completions \
+  --env-file .env.debate \
+  --packet-json /tmp/round-table-room-live/<room_run_id>/handoff/packet-turn-002.json \
   --scenario reject_followup
 ```
 
@@ -221,6 +247,7 @@ This runtime closes 3 specific gaps:
 - `/room` no longer relies on a plain-text grep over `debate-roundtable-skill/SKILL.md`
 - `/debate` now has a checked-in execution bridge for launch bundle -> roundtable record -> review packet -> review result -> followup record -> rereview packet -> final review result
 - `/debate` now has a checked-in prompt-host E2E runner plus a local mock provider for provider-backed regression
+- `/debate` can now replay a real `/room` handoff packet through that E2E runner instead of starting only from canonical packet material
 
 It does not close the final live gap:
 

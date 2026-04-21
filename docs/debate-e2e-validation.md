@@ -21,6 +21,9 @@ This file is source validation guidance, not a historical report.
 
 Use the checked-in runner in `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py`.
 
+By default it starts from the checked-in canonical `/room` upgrade fixture.
+If you already have a persisted `/room` handoff packet, pass `--packet-json` to validate the real handoff directly.
+
 Fixture-backed smoke path:
 
 ```bash
@@ -54,6 +57,23 @@ python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
 This path proves the checked-in Chat Completions-compatible `/debate` prompt-call chain.
 It still does not count as a real external provider pass.
 
+Real `/room -> /debate` handoff path:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
+  --executor chat_completions \
+  --env-file .env.room \
+  --state-root /tmp/round-table-room-live
+
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor chat_completions \
+  --env-file .env.debate \
+  --packet-json /tmp/round-table-room-live/<room_run_id>/handoff/packet-turn-002.json \
+  --scenario reject_followup
+```
+
+This is the first checked-in path that can consume a real `/room` packet instead of reusing only canonical packet material.
+
 Real provider path:
 
 ```bash
@@ -78,6 +98,11 @@ Prove that the following `/debate` chains work on a portable host setup:
 
 1. handoff packet -> launch bundle -> roundtable -> reviewer allow
 2. handoff packet -> launch bundle -> roundtable -> reviewer reject -> followup -> rereview allow
+
+The handoff packet may come from either:
+
+- the checked-in canonical `/room` upgrade fixture
+- a persisted `/room` runtime packet passed through `--packet-json`
 
 Success means `/debate` is no longer only bridge-complete.
 It means the checked-in prompt-call workflow is executable in practice.
@@ -132,6 +157,7 @@ Mark the validation as passed only if all of the following are true:
 This runner closes an important local gap:
 
 - `/debate` prompt calls can now be exercised through fixture replay or a local Chat Completions-compatible mock provider
+- `/debate` can now start directly from a persisted `/room` handoff packet, not only the canonical upgrade fixture
 
 It still does not prove:
 
