@@ -19,6 +19,7 @@
 ### 已完成的核心能力
 
 - `/debate` 的 skill 架构、角色边界、reviewer 协议、红旗规则、主 prompts 已经落地
+- `/debate` 已有 checked-in runtime bridge，可把 handoff packet 转成 launch bundle 与 review packet
 - `/room` 的状态模型、selection / chat / summary / upgrade 协议已经落地
 - `/room -> /debate` 的 handoff schema 已经落地
 - `docs/agent-registry.md` 已提供 runtime-facing 的 agent registry
@@ -176,7 +177,8 @@ round-table-workspace/
 ### `/debate`
 
 - skill：`.codex/skills/debate-roundtable-skill/SKILL.md`
-- runtime preflight：`.codex/skills/debate-roundtable-skill/runtime/README.md`
+- bridge contract：`docs/debate-runtime-bridge.md`
+- runtime bridge：`.codex/skills/debate-roundtable-skill/runtime/README.md`
 - 架构：`docs/debate-skill-architecture.md`
 - 角色边界：`docs/agent-role-map.md`
 - 审查协议：`docs/reviewer-protocol.md`

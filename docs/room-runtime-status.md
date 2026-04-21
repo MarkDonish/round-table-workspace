@@ -19,6 +19,7 @@ The current source-of-truth files for `/room` are:
 - `docs/room-runtime-bridge.md`
 - `docs/room-runtime-status.md`
 - `docs/room-e2e-validation.md`
+- `docs/debate-runtime-bridge.md`
 - `docs/DECISIONS-LOCKED.md`
 - `prompts/room-selection.md`
 - `prompts/room-summary.md`
@@ -33,7 +34,9 @@ The current source-of-truth files for `/room` are:
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py`
 - `.codex/skills/room-skill/runtime/README.md`
 - `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py`
+- `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`
 - `.codex/skills/debate-roundtable-skill/runtime/README.md`
+- `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/`
 - `.codex/skills/room-skill/runtime/fixtures/canonical/`
 - `.env.room.example`
 
@@ -55,6 +58,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in end-to-end validation guide in `docs/room-e2e-validation.md`
 - a checked-in host bridge implementation in `.codex/skills/room-skill/runtime/room_runtime.py`
 - a checked-in `/debate` packet preflight in `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py`
+- a checked-in `/debate` launch-bundle and review-packet bridge in `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`
 - a checked-in Chat Completions-compatible live prompt adapter in `.codex/skills/room-skill/runtime/chat_completions_executor.py`
 - a checked-in E2E validation runner in `.codex/skills/room-skill/runtime/room_e2e_validation.py`
 - a checked-in local mock Chat Completions provider in `.codex/skills/room-skill/runtime/mock_chat_completions_server.py`
@@ -81,7 +85,7 @@ The remaining gap is now narrower and sits in the real external live host integr
 
 1. the checked-in bridge, live adapter, E2E runner, and local mock provider are in repo, and the provider-backed code path is now locally provable without external credentials
 2. the first live `/room -> /summary -> /upgrade-to-debate` run with actual prompt execution still has not been completed
-3. debate handoff is now executable-preflight-validated, but still not yet proven by a live multi-agent `/debate` execution chain
+3. debate handoff is now executable-preflight-validated and has a checked-in debate-side bridge, but still not yet proven by a live multi-agent `/debate` execution chain
 
 In short:
 

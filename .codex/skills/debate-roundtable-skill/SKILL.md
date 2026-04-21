@@ -131,14 +131,18 @@ description: |
 仓库里有一个 checked-in 的 handoff packet 可执行预检入口：
 
 - `runtime/debate_packet_validator.py`
+- `runtime/debate_runtime.py`
 - `runtime/README.md`
 
-它用于做 `/room -> /debate` 交接前的结构校验与候选池平衡预检。
+它们分别用于：
+
+- 对 `/room -> /debate` packet 做结构校验与候选池平衡预检
+- 把 packet 变成 debate-side launch bundle 与 review packet bridge artifacts
 
 注意边界：
 
 - 这不是 live `/debate` 多 Agent 执行器
-- 它只负责验证 packet 是否足够让 `/debate` 正常接手
+- 它只负责把 packet 和 reviewer 输入整理到 host 可执行的程度
 
 ## Token 预算
 

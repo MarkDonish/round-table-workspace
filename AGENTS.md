@@ -78,6 +78,7 @@ On `/debate`, use:
 
 - Skill: `.codex/skills/debate-roundtable-skill/SKILL.md`
 - Supporting docs:
+  - `docs/debate-runtime-bridge.md`
   - `docs/debate-skill-architecture.md`
   - `docs/agent-role-map.md`
   - `docs/reviewer-protocol.md`

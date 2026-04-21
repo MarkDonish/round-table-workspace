@@ -1,14 +1,13 @@
-# /debate Runtime Preflight
+# /debate Runtime
 
-This directory contains the checked-in executable preflight for `/room -> /debate` handoff packets.
+This directory contains the checked-in debate-side runtime bridge.
 
-It does not execute a live multi-agent `/debate` run.
-Its job is narrower:
+It currently does 2 concrete jobs:
 
-- validate the `docs/room-to-debate-handoff.md` packet shape
-- validate the suggested candidate pool against `docs/agent-registry.md`
-- surface balance warnings that `/debate` must respect during reselection
-- provide a checked-in runtime acceptance artifact that `/room` can call before persisting a handoff
+- validate `/room -> /debate` handoff packets before `/room` persists acceptance
+- build debate launch bundles and reviewer-facing review-packet artifacts for host wiring
+
+It still does not execute a live multi-agent `/debate` run by itself.
 
 ## Main Entry
 
@@ -18,6 +17,10 @@ Run:
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py --help
 ```
 
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_runtime.py --help
+```
+
 Validate one persisted handoff packet:
 
 ```bash
@@ -25,9 +28,33 @@ python3 .codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py
   --packet-json artifacts/runtime/rooms/<room_id>/handoff/packet-turn-002.json
 ```
 
+Build a launch bundle from that packet:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_runtime.py \
+  build-launch-bundle \
+  --packet-json artifacts/runtime/rooms/<room_id>/handoff/packet-turn-002.json
+```
+
+Build a reviewer template from a launch bundle:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_runtime.py \
+  build-review-template \
+  --launch-bundle-json artifacts/runtime/debates/<debate_id>/launch/launch-bundle.json
+```
+
+Validate the checked-in canonical debate-side bridge:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_runtime.py \
+  validate-canonical \
+  --state-root /tmp/round-table-debate-runtime
+```
+
 ## Output Shape
 
-The validator prints a JSON acceptance object with:
+The packet validator prints a JSON acceptance object with:
 
 - `accepted`
 - `checked_against`
@@ -42,12 +69,25 @@ The validator prints a JSON acceptance object with:
 
 `artifacts/runtime/rooms/<room_id>/handoff/debate-acceptance.json`
 
+The debate runtime writes debate-side artifacts under:
+
+`artifacts/runtime/debates/<debate_id>/`
+
+Typical files:
+
+- `launch/launch-bundle.json`
+- `review/review-template.json`
+- `review/review-packet.validation.json`
+- `validation-report.json`
+
 ## Boundary
 
-This runtime closes one specific gap:
+This runtime closes 2 specific gaps:
 
 - `/room` no longer relies on a plain-text grep over `debate-roundtable-skill/SKILL.md`
+- `/debate` now has a checked-in launch-bundle and review-packet bridge instead of ad hoc debate-side packaging
 
 It does not close the final live gap:
 
-- a real multi-agent `/debate` execution chain is still a separate validation target
+- a real prompt host still must execute `prompts/debate-roundtable.md`
+- a real reviewer still must pass or reject live debate outputs

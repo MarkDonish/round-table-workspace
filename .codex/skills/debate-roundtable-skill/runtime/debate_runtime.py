@@ -1,0 +1,819 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import copy
+import hashlib
+import itertools
+import json
+import sys
+from pathlib import Path
+from typing import Any
+
+import debate_packet_validator as packet_validator
+
+
+REPO_ROOT = Path(__file__).resolve().parents[4]
+DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "debates"
+ROOM_UPGRADE_FIXTURE = (
+    REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "fixtures" / "canonical" / "upgrade.json"
+)
+CANONICAL_REVIEW_PACKET = (
+    REPO_ROOT
+    / ".codex"
+    / "skills"
+    / "debate-roundtable-skill"
+    / "runtime"
+    / "fixtures"
+    / "canonical"
+    / "review_packet.json"
+)
+
+TASK_LABELS = {
+    "startup": "创业方向",
+    "product": "产品方案",
+    "learning": "学习路径",
+    "content": "内容策略",
+    "risk": "风险审查",
+    "planning": "阶段规划",
+    "strategy": "战略判断",
+    "writing": "写作任务",
+}
+VALID_CONFIDENCE = {"high", "medium", "low", "高", "中", "低"}
+
+
+class DebateRuntimeError(Exception):
+    pass
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+    try:
+        if args.command == "build-launch-bundle":
+            result = command_build_launch_bundle(args)
+        elif args.command == "build-review-template":
+            result = command_build_review_template(args)
+        elif args.command == "validate-review-packet":
+            result = command_validate_review_packet(args)
+        elif args.command == "validate-canonical":
+            result = command_validate_canonical(args)
+        else:
+            raise DebateRuntimeError(f"Unsupported command: {args.command}")
+    except DebateRuntimeError as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2))
+        return 1
+
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Checked-in /debate runtime bridge for launch bundles and reviewer packets."
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    launch_parser = subparsers.add_parser(
+        "build-launch-bundle",
+        help="Consume a validated handoff packet and build the checked-in debate launch bundle.",
+    )
+    launch_parser.add_argument("--packet-json", required=True, help="Path to a handoff packet JSON file.")
+    launch_parser.add_argument("--debate-id", help="Optional stable debate id.")
+    launch_parser.add_argument(
+        "--state-root",
+        default=str(DEFAULT_STATE_ROOT),
+        help="Directory for persisted debate runtime artifacts.",
+    )
+
+    template_parser = subparsers.add_parser(
+        "build-review-template",
+        help="Build a reviewer-facing template from a debate launch bundle.",
+    )
+    template_parser.add_argument("--launch-bundle-json", required=True)
+    template_parser.add_argument("--output-json", help="Optional explicit output path.")
+
+    review_parser = subparsers.add_parser(
+        "validate-review-packet",
+        help="Validate a reviewer packet against the checked-in reviewer protocol contract.",
+    )
+    review_parser.add_argument("--review-packet-json", required=True)
+
+    canonical_parser = subparsers.add_parser(
+        "validate-canonical",
+        help="Replay the checked-in canonical handoff into a debate launch bundle and reviewer packet validation.",
+    )
+    canonical_parser.add_argument(
+        "--state-root",
+        default=str(DEFAULT_STATE_ROOT),
+        help="Directory for persisted debate runtime artifacts.",
+    )
+
+    return parser
+
+
+def command_build_launch_bundle(args: argparse.Namespace) -> dict[str, Any]:
+    state_root = Path(args.state_root).expanduser().resolve()
+    payload = load_json(Path(args.packet_json))
+    packet = unwrap_packet(payload)
+    packet_acceptance = validate_packet_payload(payload)
+    registry = packet_validator.load_registry()
+    debate_id = args.debate_id or derive_debate_id(packet["source_room_id"])
+    launch_bundle = build_launch_bundle(
+        packet=packet,
+        packet_acceptance=packet_acceptance,
+        registry=registry,
+        debate_id=debate_id,
+        source_packet_path=str(Path(args.packet_json).expanduser().resolve()),
+    )
+
+    debate_dir = get_debate_dir(state_root, debate_id)
+    ensure_directory(debate_dir / "launch")
+    launch_path = debate_dir / "launch" / "launch-bundle.json"
+    write_json(launch_path, launch_bundle)
+
+    return {
+        "ok": True,
+        "action": "build-launch-bundle",
+        "debate_id": debate_id,
+        "launch_bundle_path": str(launch_path),
+        "selected_agents": launch_bundle["candidate_pool"]["final_agents"],
+        "speaker_order": launch_bundle["speaker_order"],
+        "balance_after_reselection": launch_bundle["candidate_pool"]["balance_after_reselection"],
+    }
+
+
+def command_build_review_template(args: argparse.Namespace) -> dict[str, Any]:
+    launch_bundle_path = Path(args.launch_bundle_json).expanduser().resolve()
+    launch_bundle = load_json(launch_bundle_path)
+    validate_launch_bundle(launch_bundle)
+    template = build_review_template(launch_bundle, source_launch_bundle=str(launch_bundle_path))
+
+    if args.output_json:
+        output_path = Path(args.output_json).expanduser().resolve()
+    else:
+        output_path = launch_bundle_path.parent.parent / "review" / "review-template.json"
+    ensure_directory(output_path.parent)
+    write_json(output_path, template)
+
+    return {
+        "ok": True,
+        "action": "build-review-template",
+        "review_template_path": str(output_path),
+        "participant_count": len(template["participants"]),
+        "quick_mode": template["quick_mode"],
+    }
+
+
+def command_validate_review_packet(args: argparse.Namespace) -> dict[str, Any]:
+    payload = load_json(Path(args.review_packet_json))
+    result = validate_review_packet(payload)
+    return {"ok": True, "action": "validate-review-packet", "validation": result}
+
+
+def command_validate_canonical(args: argparse.Namespace) -> dict[str, Any]:
+    state_root = Path(args.state_root).expanduser().resolve()
+    debate_id = "debate-canonical-bridge"
+    room_id = "room-canonical-debate"
+
+    fixture_payload = materialize_placeholders(load_json(ROOM_UPGRADE_FIXTURE), {"__ROOM_ID__": room_id})
+    packet = unwrap_packet(fixture_payload)
+    packet_acceptance = validate_packet_payload(fixture_payload)
+    registry = packet_validator.load_registry()
+    launch_bundle = build_launch_bundle(
+        packet=packet,
+        packet_acceptance=packet_acceptance,
+        registry=registry,
+        debate_id=debate_id,
+        source_packet_path=str(ROOM_UPGRADE_FIXTURE),
+    )
+
+    review_packet = materialize_placeholders(load_json(CANONICAL_REVIEW_PACKET), {"__ROOM_ID__": room_id})
+    review_validation = validate_review_packet(review_packet)
+
+    debate_dir = get_debate_dir(state_root, debate_id)
+    ensure_directory(debate_dir / "launch")
+    ensure_directory(debate_dir / "review")
+    write_json(debate_dir / "launch" / "launch-bundle.json", launch_bundle)
+    write_json(debate_dir / "review" / "canonical-review-packet.json", review_packet)
+    write_json(debate_dir / "review" / "review-packet.validation.json", review_validation)
+
+    report = {
+        "ok": True,
+        "action": "validate-canonical",
+        "debate_id": debate_id,
+        "source_room_id": room_id,
+        "artifacts": {
+            "debate_dir": str(debate_dir),
+            "launch_bundle": str(debate_dir / "launch" / "launch-bundle.json"),
+            "review_packet": str(debate_dir / "review" / "canonical-review-packet.json"),
+            "review_validation": str(debate_dir / "review" / "review-packet.validation.json"),
+        },
+        "launch_summary": {
+            "selected_agents": launch_bundle["candidate_pool"]["final_agents"],
+            "speaker_order": launch_bundle["speaker_order"],
+            "actual_overlap": launch_bundle["candidate_pool"]["actual_overlap"],
+            "minimum_overlap_target": launch_bundle["candidate_pool"]["minimum_overlap_target"],
+            "balance_after_reselection": launch_bundle["candidate_pool"]["balance_after_reselection"],
+        },
+        "review_validation": review_validation,
+        "pass_criteria": {
+            "launch_bundle_persisted": bool((debate_dir / "launch" / "launch-bundle.json").exists()),
+            "minimum_overlap_respected": (
+                launch_bundle["candidate_pool"]["actual_overlap"]
+                >= launch_bundle["candidate_pool"]["minimum_overlap_target"]
+            ),
+            "selection_balanced": launch_bundle["candidate_pool"]["balance_after_reselection"]["passes_debate_balance"],
+            "review_packet_accepted": review_validation["accepted"],
+        },
+    }
+    write_json(debate_dir / "validation-report.json", report)
+    return report
+
+
+def build_launch_bundle(
+    *,
+    packet: dict[str, Any],
+    packet_acceptance: dict[str, Any],
+    registry: dict[str, dict[str, Any]],
+    debate_id: str,
+    source_packet_path: str,
+) -> dict[str, Any]:
+    primary_type = packet["field_03_type"]["primary"]
+    secondary_type = packet["field_03_type"].get("secondary")
+    suggested_agents = packet["field_11_suggested_agents"]
+    defaults_primary = packet_validator.DEFAULT_AGENT_COMBINATIONS[primary_type]
+    defaults_secondary = (
+        packet_validator.DEFAULT_AGENT_COMBINATIONS[secondary_type] if secondary_type is not None else []
+    )
+    candidate_pool = build_candidate_pool(
+        suggested_agents=suggested_agents,
+        defaults_primary=defaults_primary,
+        defaults_secondary=defaults_secondary,
+        registry=registry,
+    )
+    scores = score_candidates(
+        packet=packet,
+        candidate_pool=candidate_pool,
+        defaults_primary=defaults_primary,
+        defaults_secondary=defaults_secondary,
+        registry=registry,
+    )
+    final_agents, final_balance = choose_final_agents(
+        candidate_pool=candidate_pool,
+        suggested_agents=suggested_agents,
+        scores=scores,
+        registry=registry,
+    )
+    speaker_order = build_speaker_order(final_agents, seed_text=f"{packet['source_room_id']}:{debate_id}")
+
+    participants = build_participants(
+        final_agents=final_agents,
+        packet=packet,
+        defaults_primary=defaults_primary,
+        defaults_secondary=defaults_secondary,
+        registry=registry,
+    )
+
+    removed = [agent_id for agent_id in suggested_agents if agent_id not in final_agents]
+    added = [agent_id for agent_id in final_agents if agent_id not in suggested_agents]
+    minimum_overlap_target = min(2, len(suggested_agents))
+    actual_overlap = sum(1 for agent_id in final_agents if agent_id in suggested_agents)
+    notes: list[str] = []
+    if removed:
+        notes.append("reselection_removed_some_room_suggested_agents")
+    if added:
+        notes.append("reselection_added_debate_side_agents")
+    if not final_balance["passes_debate_balance"]:
+        notes.append("final_selection_still_unbalanced")
+    if actual_overlap < minimum_overlap_target:
+        notes.append("minimum_overlap_target_not_met")
+
+    return {
+        "schema_version": "v0.1",
+        "mode": "debate_launch",
+        "source_kind": "room_handoff",
+        "debate_id": debate_id,
+        "source_room_id": packet["source_room_id"],
+        "source_packet_path": source_packet_path,
+        "topic": packet["field_01_original_topic"],
+        "room_title": packet["field_02_room_title"],
+        "primary_type": primary_type,
+        "secondary_type": secondary_type,
+        "packet_acceptance": packet_acceptance,
+        "packet_materials": {
+            "sub_problems": packet["field_04_sub_problems"],
+            "consensus_points": packet["field_05_consensus_points"],
+            "tension_points": packet["field_06_tension_points"],
+            "open_questions": packet["field_07_open_questions"],
+            "candidate_solutions": packet["field_08_candidate_solutions"],
+            "factual_claims": packet["field_09_factual_claims"],
+            "uncertainty_points": packet["field_10_uncertainty_points"],
+            "upgrade_reason": packet["field_13_upgrade_reason"],
+        },
+        "candidate_pool": {
+            "starting_agents": suggested_agents,
+            "defaults_primary": defaults_primary,
+            "defaults_secondary": defaults_secondary,
+            "candidate_pool": candidate_pool,
+            "final_agents": final_agents,
+            "removed_from_suggested": removed,
+            "added_beyond_suggested": added,
+            "minimum_overlap_target": minimum_overlap_target,
+            "actual_overlap": actual_overlap,
+            "balance_after_reselection": final_balance,
+            "notes": notes,
+        },
+        "participants": participants,
+        "moderator": {
+            "agent_id": "debate-dispatcher",
+            "role": "主持人",
+            "responsibility": "组织 debate 8 步流程、汇总冲突与共识、提交审查包。",
+        },
+        "reviewer": {
+            "agent_id": "debate-reviewer",
+            "role": "审查 Agent",
+            "review_required": True,
+            "review_only_visible_outputs": True,
+            "followup_cap": 1,
+        },
+        "speaker_order": speaker_order,
+        "prompt_inputs": {
+            "roundtable": {
+                "topic": packet["field_01_original_topic"],
+                "primary_type": primary_type,
+                "secondary_type": secondary_type,
+                "quick_mode": False,
+                "packet_is_authoritative": True,
+                "selected_agents": final_agents,
+                "speaker_order": speaker_order,
+                "starting_materials": {
+                    "consensus_points": packet["field_05_consensus_points"],
+                    "tension_points": packet["field_06_tension_points"],
+                    "open_questions": packet["field_07_open_questions"],
+                    "candidate_solutions": packet["field_08_candidate_solutions"],
+                    "uncertainty_points": packet["field_10_uncertainty_points"],
+                },
+            },
+            "reviewer": {
+                "quick_mode": False,
+                "review_required": True,
+                "conversation_log_reviewable": False,
+                "review_only_visible_outputs": True,
+                "followup_cap": 1,
+            },
+            "followup": {
+                "trigger": "reviewer_reject_only",
+                "max_followup_rounds": 1,
+            },
+        },
+    }
+
+
+def build_review_template(launch_bundle: dict[str, Any], *, source_launch_bundle: str) -> dict[str, Any]:
+    participants = [
+        {
+            "agent_id": item["agent_id"],
+            "short_name": item["short_name"],
+            "responsibility": item["responsibility"],
+        }
+        for item in launch_bundle["participants"]
+    ]
+    return {
+        "schema_version": "v0.1",
+        "source_kind": launch_bundle["source_kind"],
+        "source_room_id": launch_bundle["source_room_id"],
+        "source_launch_bundle": source_launch_bundle,
+        "topic_restatement": "",
+        "primary_type": launch_bundle["primary_type"],
+        "secondary_type": launch_bundle.get("secondary_type"),
+        "quick_mode": False,
+        "participants": participants,
+        "agent_outputs": [
+            {
+                "agent_id": item["agent_id"],
+                "role_duty": item["responsibility"],
+                "core_conclusion": "",
+                "evidence": [],
+                "biggest_problem": "",
+                "opposed_misjudgment": "",
+                "concrete_recommendation": "",
+                "confidence": "",
+                "uncertainties": [],
+            }
+            for item in participants
+        ],
+        "moderator_summary": {
+            "topic_restatement": "",
+            "participants_and_roles": participants,
+            "consensus_points": [],
+            "core_conflicts": [],
+            "hidden_assumptions": [],
+            "preliminary_recommendation": "",
+            "review_focus": [],
+        },
+        "evidence_buckets": {
+            "facts": [],
+            "inferences": [],
+            "uncertainties": [],
+            "recommendations": [],
+        },
+        "review_boundaries": {
+            "conversation_log_reviewable": False,
+            "review_only_visible_outputs": True,
+            "followup_cap": 1,
+        },
+    }
+
+
+def validate_review_packet(payload: dict[str, Any]) -> dict[str, Any]:
+    registry = packet_validator.load_registry()
+    require(payload.get("schema_version") == "v0.1", "review packet schema_version must be v0.1.")
+    require(payload.get("source_kind") in {"room_handoff", "direct_debate"}, "review packet source_kind is invalid.")
+    require(
+        isinstance(payload.get("topic_restatement"), str) and bool(payload["topic_restatement"].strip()),
+        "review packet topic_restatement must be non-empty.",
+    )
+    require(payload.get("primary_type") in packet_validator.VALID_TASK_TYPES, "review packet primary_type is invalid.")
+    secondary_type = payload.get("secondary_type")
+    require(
+        secondary_type is None or secondary_type in packet_validator.VALID_TASK_TYPES,
+        "review packet secondary_type is invalid.",
+    )
+    require(isinstance(payload.get("quick_mode"), bool), "review packet quick_mode must be a boolean.")
+
+    participants = payload.get("participants")
+    require(isinstance(participants, list) and 3 <= len(participants) <= 5, "review packet must contain 3-5 participants.")
+    participant_ids: list[str] = []
+    for item in participants:
+        require(isinstance(item, dict), "review packet participants must be objects.")
+        agent_id = item.get("agent_id")
+        require(agent_id in registry, f"review packet participant is not registered: {agent_id}")
+        require(agent_id not in participant_ids, f"duplicate review packet participant: {agent_id}")
+        participant_ids.append(agent_id)
+        require(isinstance(item.get("short_name"), str) and bool(item["short_name"].strip()), "participant short_name must be non-empty.")
+        require(
+            isinstance(item.get("responsibility"), str) and bool(item["responsibility"].strip()),
+            f"participant responsibility must be non-empty for {agent_id}.",
+        )
+
+    if payload["quick_mode"]:
+        return {
+            "accepted": True,
+            "checked_against": str(Path(__file__).resolve()),
+            "review_applicable": False,
+            "reason": "quick mode review packet is structurally valid and correctly marked as reviewer-skipped.",
+            "participant_count": len(participant_ids),
+        }
+
+    outputs = payload.get("agent_outputs")
+    require(isinstance(outputs, list) and len(outputs) == len(participant_ids), "agent_outputs must align with participants.")
+    seen_outputs: set[str] = set()
+    for item in outputs:
+        require(isinstance(item, dict), "agent_outputs items must be objects.")
+        agent_id = item.get("agent_id")
+        require(agent_id in participant_ids, f"agent_outputs contains unknown participant: {agent_id}")
+        require(agent_id not in seen_outputs, f"duplicate agent output: {agent_id}")
+        seen_outputs.add(agent_id)
+        require(isinstance(item.get("role_duty"), str) and bool(item["role_duty"].strip()), f"role_duty missing for {agent_id}.")
+        require(
+            isinstance(item.get("core_conclusion"), str) and bool(item["core_conclusion"].strip()),
+            f"core_conclusion missing for {agent_id}.",
+        )
+        evidence = item.get("evidence")
+        require(isinstance(evidence, list) and len(evidence) >= 1, f"evidence list missing for {agent_id}.")
+        require(all(isinstance(entry, str) and bool(entry.strip()) for entry in evidence), f"evidence entries invalid for {agent_id}.")
+        require(
+            isinstance(item.get("biggest_problem"), str) and bool(item["biggest_problem"].strip()),
+            f"biggest_problem missing for {agent_id}.",
+        )
+        require(
+            isinstance(item.get("opposed_misjudgment"), str) and bool(item["opposed_misjudgment"].strip()),
+            f"opposed_misjudgment missing for {agent_id}.",
+        )
+        require(
+            isinstance(item.get("concrete_recommendation"), str) and bool(item["concrete_recommendation"].strip()),
+            f"concrete_recommendation missing for {agent_id}.",
+        )
+        require(item.get("confidence") in VALID_CONFIDENCE, f"confidence is invalid for {agent_id}.")
+        uncertainties = item.get("uncertainties")
+        require(isinstance(uncertainties, list), f"uncertainties must be a list for {agent_id}.")
+        require(
+            all(isinstance(entry, str) and bool(entry.strip()) for entry in uncertainties),
+            f"uncertainties entries invalid for {agent_id}.",
+        )
+
+    moderator_summary = payload.get("moderator_summary")
+    require(isinstance(moderator_summary, dict), "moderator_summary must be an object.")
+    require(
+        isinstance(moderator_summary.get("topic_restatement"), str)
+        and bool(moderator_summary["topic_restatement"].strip()),
+        "moderator_summary.topic_restatement must be non-empty.",
+    )
+    participant_roles = moderator_summary.get("participants_and_roles")
+    require(isinstance(participant_roles, list) and len(participant_roles) == len(participant_ids), "participants_and_roles must align with participants.")
+    summary_ids = []
+    for item in participant_roles:
+        require(isinstance(item, dict), "participants_and_roles entries must be objects.")
+        require(item.get("agent_id") in participant_ids, "participants_and_roles contains unknown participant.")
+        summary_ids.append(item["agent_id"])
+        require(isinstance(item.get("responsibility"), str) and bool(item["responsibility"].strip()), "participants_and_roles responsibility must be non-empty.")
+    require(set(summary_ids) == set(participant_ids), "participants_and_roles must cover the same participant set.")
+    validate_non_empty_string_list(moderator_summary.get("consensus_points"), "moderator_summary.consensus_points")
+    require(isinstance(moderator_summary.get("core_conflicts"), list), "moderator_summary.core_conflicts must be a list.")
+    require(isinstance(moderator_summary.get("hidden_assumptions"), list), "moderator_summary.hidden_assumptions must be a list.")
+    require(
+        isinstance(moderator_summary.get("preliminary_recommendation"), str)
+        and bool(moderator_summary["preliminary_recommendation"].strip()),
+        "moderator_summary.preliminary_recommendation must be non-empty.",
+    )
+    validate_non_empty_string_list(moderator_summary.get("review_focus"), "moderator_summary.review_focus")
+
+    evidence_buckets = payload.get("evidence_buckets")
+    require(isinstance(evidence_buckets, dict), "evidence_buckets must be an object.")
+    validate_non_empty_string_list(evidence_buckets.get("facts"), "evidence_buckets.facts")
+    validate_non_empty_string_list(evidence_buckets.get("inferences"), "evidence_buckets.inferences")
+    require(isinstance(evidence_buckets.get("uncertainties"), list), "evidence_buckets.uncertainties must be a list.")
+    validate_non_empty_string_list(evidence_buckets.get("recommendations"), "evidence_buckets.recommendations")
+
+    review_boundaries = payload.get("review_boundaries")
+    require(isinstance(review_boundaries, dict), "review_boundaries must be an object.")
+    require(review_boundaries.get("conversation_log_reviewable") is False, "conversation_log_reviewable must be false.")
+    require(review_boundaries.get("review_only_visible_outputs") is True, "review_only_visible_outputs must be true.")
+    require(review_boundaries.get("followup_cap") == 1, "followup_cap must be 1 for full mode.")
+
+    return {
+        "accepted": True,
+        "checked_against": str(Path(__file__).resolve()),
+        "review_applicable": True,
+        "reason": "review packet satisfies the checked-in reviewer protocol contract for full-mode /debate review.",
+        "participant_count": len(participant_ids),
+    }
+
+
+def validate_launch_bundle(payload: dict[str, Any]) -> None:
+    require(payload.get("schema_version") == "v0.1", "launch bundle schema_version must be v0.1.")
+    require(payload.get("mode") == "debate_launch", "launch bundle mode must be debate_launch.")
+    require(payload.get("source_kind") == "room_handoff", "launch bundle source_kind must be room_handoff.")
+    require(isinstance(payload.get("participants"), list) and 3 <= len(payload["participants"]) <= 5, "launch bundle participants must contain 3-5 agents.")
+
+
+def validate_packet_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    try:
+        return packet_validator.validate_handoff_packet(payload)
+    except Exception as exc:
+        raise DebateRuntimeError(f"handoff packet failed debate preflight: {exc}") from exc
+
+
+def unwrap_packet(payload: dict[str, Any]) -> dict[str, Any]:
+    packet = payload.get("handoff_packet") if "handoff_packet" in payload else payload
+    require(isinstance(packet, dict), "handoff packet payload must be an object.")
+    return packet
+
+
+def build_candidate_pool(
+    *,
+    suggested_agents: list[str],
+    defaults_primary: list[str],
+    defaults_secondary: list[str],
+    registry: dict[str, dict[str, Any]],
+) -> list[str]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for agent_id in suggested_agents + defaults_primary + defaults_secondary:
+        if agent_id in seen:
+            continue
+        if registry[agent_id]["default_excluded"] and agent_id not in suggested_agents:
+            continue
+        seen.add(agent_id)
+        ordered.append(agent_id)
+    return ordered
+
+
+def score_candidates(
+    *,
+    packet: dict[str, Any],
+    candidate_pool: list[str],
+    defaults_primary: list[str],
+    defaults_secondary: list[str],
+    registry: dict[str, dict[str, Any]],
+) -> dict[str, int]:
+    suggested_agents = packet["field_11_suggested_agents"]
+    suggested_ranks = {agent_id: index for index, agent_id in enumerate(suggested_agents)}
+    discussed_agents = collect_discussed_agents(packet)
+    scores: dict[str, int] = {}
+    for agent_id in candidate_pool:
+        entry = registry[agent_id]
+        score = 0
+        if agent_id in suggested_ranks:
+            score += 100 - suggested_ranks[agent_id] * 5
+        if agent_id in defaults_primary:
+            score += 30
+        if agent_id in defaults_secondary:
+            score += 12
+        if agent_id in discussed_agents:
+            score += 10
+        if agent_id in packet["field_12_suggested_agent_roles"]:
+            score += 6
+        if entry["structural_role"] == "defensive":
+            score += 6
+        if entry["expression"] == "grounded":
+            score += 5
+        if entry["strength"] == "moderate":
+            score += 2
+        if entry["expression"] == "dramatic":
+            score -= 8
+        if entry["default_excluded"]:
+            score -= 20
+        scores[agent_id] = score
+    return scores
+
+
+def choose_final_agents(
+    *,
+    candidate_pool: list[str],
+    suggested_agents: list[str],
+    scores: dict[str, int],
+    registry: dict[str, dict[str, Any]],
+) -> tuple[list[str], dict[str, Any]]:
+    suggested_set = set(suggested_agents)
+    minimum_overlap_target = min(2, len(suggested_agents))
+    target_count = max(3, min(5, len(suggested_agents)))
+    max_count = min(5, len(candidate_pool))
+
+    best_combo: tuple[str, ...] | None = None
+    best_rank: tuple[Any, ...] | None = None
+    for count in range(target_count, max_count + 1):
+        for combo in itertools.combinations(candidate_pool, count):
+            combo_set = set(combo)
+            overlap = len(combo_set & suggested_set)
+            balance = packet_validator.summarize_balance(list(combo), registry)
+            rank = (
+                1 if balance["passes_debate_balance"] else 0,
+                1 if overlap >= minimum_overlap_target else 0,
+                overlap,
+                -abs(count - target_count),
+                sum(scores[agent_id] for agent_id in combo),
+                balance["defensive_count"],
+                balance["grounded_count"],
+                -balance["dominant_ratio"],
+            )
+            if best_rank is None or rank > best_rank:
+                best_rank = rank
+                best_combo = combo
+
+    require(best_combo is not None, "failed to select a debate roster from the candidate pool.")
+    ordered = sorted(
+        best_combo,
+        key=lambda agent_id: (-scores[agent_id], candidate_pool.index(agent_id)),
+    )
+    return ordered, packet_validator.summarize_balance(ordered, registry)
+
+
+def build_speaker_order(agent_ids: list[str], *, seed_text: str) -> list[str]:
+    ordered = sorted(
+        agent_ids,
+        key=lambda agent_id: stable_int(f"{seed_text}:{agent_id}"),
+    )
+    return ordered
+
+
+def build_participants(
+    *,
+    final_agents: list[str],
+    packet: dict[str, Any],
+    defaults_primary: list[str],
+    defaults_secondary: list[str],
+    registry: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    participants: list[dict[str, Any]] = []
+    for agent_id in final_agents:
+        entry = registry[agent_id]
+        responsibility = packet["field_12_suggested_agent_roles"].get(agent_id) or fallback_role(
+            agent_id=agent_id,
+            entry=entry,
+            primary_type=packet["field_03_type"]["primary"],
+        )
+        why_selected = build_selection_reason(
+            agent_id=agent_id,
+            in_suggested=agent_id in packet["field_11_suggested_agents"],
+            in_primary=agent_id in defaults_primary,
+            in_secondary=agent_id in defaults_secondary,
+        )
+        participants.append(
+            {
+                "agent_id": agent_id,
+                "short_name": entry["short_name"],
+                "local_skill": f"{agent_id}-skill",
+                "responsibility": responsibility,
+                "why_selected": why_selected,
+                "should_not_do": build_guardrail(entry),
+            }
+        )
+    return participants
+
+
+def fallback_role(*, agent_id: str, entry: dict[str, Any], primary_type: str) -> str:
+    focus_tags = entry.get("sub_problem_tags", "").split(",")
+    focus_bits = [tag.strip() for tag in focus_tags if tag.strip()][:2]
+    focus_label = " / ".join(focus_bits) if focus_bits else "关键判断"
+    return (
+        f"围绕{TASK_LABELS[primary_type]}，重点从 {focus_label} 角度补齐正式审议中的"
+        f"{entry['structural_role']} 视角缺口。"
+    )
+
+
+def build_selection_reason(*, agent_id: str, in_suggested: bool, in_primary: bool, in_secondary: bool) -> str:
+    reasons: list[str] = []
+    if in_suggested:
+        reasons.append("保留 room 升级上下文")
+    if in_primary:
+        reasons.append("符合主分类默认组合")
+    if in_secondary:
+        reasons.append("补副分类缺口")
+    if not reasons:
+        reasons.append("用于完成 debate 结构平衡")
+    return "，".join(reasons) + f" ({agent_id})。"
+
+
+def build_guardrail(entry: dict[str, Any]) -> str:
+    if entry["expression"] == "dramatic":
+        return "不要用戏剧化叙事替代依据，必须把强判断压回可检验假设。"
+    if entry["structural_role"] == "offensive":
+        return "不要把方向判断扩成压倒性结论，必须回应约束与下行。"
+    if entry["structural_role"] == "defensive":
+        return "不要只是否定，必须把风险翻译成门槛、动作或停止条件。"
+    return "不要重复别人的判断，优先补机制、解释或连接层缺口。"
+
+
+def collect_discussed_agents(packet: dict[str, Any]) -> set[str]:
+    discussed: set[str] = set()
+    for solution in packet["field_08_candidate_solutions"]:
+        for agent_id in solution["proposed_by"]:
+            discussed.add(agent_id)
+    for claim in packet["field_09_factual_claims"]:
+        for agent_id in claim["cited_by"]:
+            discussed.add(agent_id)
+    return discussed
+
+
+def derive_debate_id(source_room_id: str) -> str:
+    suffix = stable_hex(source_room_id)[:8]
+    return f"debate-{suffix}"
+
+
+def stable_int(value: str) -> int:
+    return int(hashlib.sha256(value.encode("utf-8")).hexdigest()[:12], 16)
+
+
+def stable_hex(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def materialize_placeholders(value: Any, replacements: dict[str, str]) -> Any:
+    if isinstance(value, dict):
+        return {key: materialize_placeholders(subvalue, replacements) for key, subvalue in value.items()}
+    if isinstance(value, list):
+        return [materialize_placeholders(item, replacements) for item in value]
+    if isinstance(value, str):
+        result = value
+        for old, new in replacements.items():
+            result = result.replace(old, new)
+        return result
+    return copy.deepcopy(value)
+
+
+def get_debate_dir(state_root: Path, debate_id: str) -> Path:
+    return state_root / debate_id
+
+
+def ensure_directory(path: Path) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def load_json(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        raise DebateRuntimeError(f"JSON file does not exist: {path}")
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise DebateRuntimeError(f"Invalid JSON in {path}: {exc}") from exc
+
+
+def write_json(path: Path, payload: dict[str, Any]) -> None:
+    ensure_directory(path.parent)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def validate_non_empty_string_list(value: Any, field_name: str) -> None:
+    require(isinstance(value, list) and len(value) >= 1, f"{field_name} must be a non-empty list.")
+    require(all(isinstance(item, str) and bool(item.strip()) for item in value), f"{field_name} entries must be non-empty strings.")
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise DebateRuntimeError(message)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
