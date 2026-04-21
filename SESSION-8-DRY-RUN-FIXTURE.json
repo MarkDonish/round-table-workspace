@@ -1,0 +1,120 @@
+{
+  "id": "SESSION-8-dry-run-state-chain",
+  "dry_run_note": "Synthetic prompt outputs only. This fixture validates state plumbing, not LLM generation quality.",
+  "initial_room_state": {
+    "room_id": "room-session8-dry-run",
+    "title": "AI tool all-in decision",
+    "mode": "standard",
+    "original_topic": "Evaluate whether to all-in on an AI tool for indie developers",
+    "primary_type": "startup",
+    "secondary_type": "strategy",
+    "active_focus": "validate user pain",
+    "sub_problems": [
+      "whether the wedge is painful enough",
+      "whether to all-in or run a small test first"
+    ],
+    "agents": [
+      { "id": "justin-sun", "short_name": "Sun", "structural_role": "offensive", "long_role": "speed and market structure" },
+      { "id": "paul-graham", "short_name": "PG", "structural_role": "moderate", "long_role": "user need validation" },
+      { "id": "munger", "short_name": "Munger", "structural_role": "defensive", "long_role": "opportunity cost and inversion" }
+    ],
+    "agent_roles": {
+      "justin-sun": "speed and market structure",
+      "paul-graham": "user need validation",
+      "munger": "opportunity cost and inversion"
+    },
+    "conversation_log": [],
+    "consensus_points": [],
+    "open_questions": [],
+    "tension_points": [],
+    "recommended_next_step": null,
+    "previous_summary": {
+      "consensus_points": [],
+      "open_questions": [],
+      "tension_points": [],
+      "recommended_next_step": null,
+      "last_summary_turn": null
+    },
+    "silent_rounds": {
+      "justin-sun": 0,
+      "paul-graham": 0,
+      "munger": 0
+    },
+    "turn_count": 0,
+    "last_stage": "explore",
+    "recent_log": ""
+  },
+  "chat_steps": [
+    {
+      "user_input": "Is this worth all-in?",
+      "selected_speakers": [
+        { "id": "justin-sun", "short_name": "Sun", "turn_role": "primary", "total_score": 44 },
+        { "id": "paul-graham", "short_name": "PG", "turn_role": "support", "total_score": 41 }
+      ],
+      "synthetic_turn": {
+        "turn_id": 1,
+        "timestamp": "2026-04-12T00:01:00Z",
+        "stage": "explore",
+        "active_focus": "validate user pain",
+        "user_input": "Is this worth all-in?",
+        "speakers": [
+          { "agent_id": "justin-sun", "short_name": "Sun", "role": "primary", "content": "Speed matters only if the market structure compounds into distribution." },
+          { "agent_id": "paul-graham", "short_name": "PG", "role": "support", "content": "The wedge must be narrower and validated with payment before all-in." }
+        ],
+        "cited_agents": [],
+        "tokens_used": 360,
+        "forced_rebalance": null
+      }
+    },
+    {
+      "user_input": "What would make this too risky?",
+      "selected_speakers": [
+        { "id": "munger", "short_name": "Munger", "turn_role": "challenge", "total_score": 39 },
+        { "id": "paul-graham", "short_name": "PG", "turn_role": "synthesizer", "total_score": 37 }
+      ],
+      "synthetic_turn": {
+        "turn_id": 2,
+        "timestamp": "2026-04-12T00:02:00Z",
+        "stage": "explore",
+        "active_focus": "validate user pain",
+        "user_input": "What would make this too risky?",
+        "speakers": [
+          { "agent_id": "munger", "short_name": "Munger", "role": "challenge", "content": "Low switching cost makes all-in fragile unless willingness to pay is proven." },
+          { "agent_id": "paul-graham", "short_name": "PG", "role": "synthesizer", "content": "Interview 15 users and ask for payment before building wider." }
+        ],
+        "cited_agents": [],
+        "tokens_used": 340,
+        "forced_rebalance": null
+      }
+    }
+  ],
+  "summary_step": {
+    "trigger": "user_request",
+    "synthetic_summary": {
+      "summary_update": {
+        "consensus_points": [
+          "Start from one narrow high-frequency workflow"
+        ],
+        "open_questions": [
+          "Will users pay before a polished product exists?"
+        ],
+        "tension_points": [
+          "Speed-first launch conflicts with risk-controlled validation"
+        ],
+        "recommended_next_step": "Run 15 interviews before deciding whether to all-in"
+      },
+      "meta": {
+        "generated_at_turn": 2,
+        "trigger": "user_request"
+      }
+    }
+  },
+  "upgrade_step": {
+    "trigger": "user_explicit",
+    "upgrade_signal": {
+      "reason_code": "user_explicit_request",
+      "triggered_by": "user_explicit",
+      "confidence": 0.72
+    }
+  }
+}

@@ -1,0 +1,60 @@
+﻿{
+  "id": "SESSION-25-room-turn-local-runtime",
+  "note": "Local runtime fixture for one /room turn. Uses deterministic current-agent speaker outputs; no provider/API dependency.",
+  "initial_room_state": {
+    "room_id": "room-session25-local-runtime",
+    "title": "AI tool all-in decision",
+    "mode": "standard",
+    "original_topic": "Evaluate whether to all-in on an AI tool for indie developers",
+    "primary_type": "startup",
+    "secondary_type": "strategy",
+    "active_focus": "validate user pain",
+    "agents": [
+      { "id": "justin-sun", "short_name": "Sun", "structural_role": "offensive", "long_role": "speed and market structure" },
+      { "id": "paul-graham", "short_name": "PG", "structural_role": "moderate", "long_role": "user need validation" },
+      { "id": "munger", "short_name": "Munger", "structural_role": "defensive", "long_role": "opportunity cost and inversion" }
+    ],
+    "agent_roles": {
+      "justin-sun": "speed and market structure",
+      "paul-graham": "user need validation",
+      "munger": "opportunity cost and inversion"
+    },
+    "conversation_log": [],
+    "consensus_points": [],
+    "open_questions": [],
+    "tension_points": [],
+    "recommended_next_step": null,
+    "previous_summary": {
+      "consensus_points": [],
+      "open_questions": [],
+      "tension_points": [],
+      "recommended_next_step": null,
+      "last_summary_turn": null
+    },
+    "silent_rounds": {
+      "justin-sun": 0,
+      "paul-graham": 0,
+      "munger": 2
+    },
+    "turn_count": 0,
+    "last_stage": "explore",
+    "recent_log": ""
+  },
+  "user_input": "Is this worth all-in?",
+  "stage": "explore",
+  "selected_speakers": [
+    { "id": "justin-sun", "short_name": "Sun", "total_score": 44 },
+    { "id": "paul-graham", "short_name": "PG", "total_score": 41 }
+  ],
+  "speaker_outputs": {
+    "justin-sun": {
+      "status": "DONE_WITH_CONCERNS",
+      "content": "Sun local runtime content: speed helps only if distribution compounds.",
+      "warnings": ["distribution_uncertain"]
+    },
+    "paul-graham": {
+      "status": "BLOCKED",
+      "warnings": ["needs_payment_signal"]
+    }
+  }
+}

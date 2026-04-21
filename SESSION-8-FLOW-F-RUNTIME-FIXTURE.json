@@ -1,0 +1,68 @@
+{
+  "id": "FLOW-F-user-forced-early-upgrade",
+  "runtime_available": false,
+  "runtime_substitute": "harness validates prechecks and the saved handoff packet shape without invoking an LLM runtime",
+  "packet_path": "D:/\u5706\u684c\u4f1a\u8bae/SESSION-8-FLOW-F-VALIDATION-PACKET.json",
+  "input": {
+    "upgrade_signal": {
+      "reason_code": "user_explicit_request",
+      "triggered_by": "user_explicit",
+      "confidence": 0.72
+    },
+    "room_state": {
+      "room_id": "room-session8-flow-f-runtime-fixture",
+      "original_topic": "Evaluate whether to all-in on an AI tool for indie developers",
+      "title": "AI tool all-in decision for indie developers",
+      "stage": "explore",
+      "turn_count": 2,
+      "sub_problems": [
+        "whether the wedge is painful enough",
+        "whether to all-in or run a small test first"
+      ],
+      "consensus_points": [
+        "start from a narrow high-frequency workflow",
+        "validate painkiller versus vitamin with 15 interviews",
+        "use willingness to pay as the hard gate"
+      ],
+      "tension_points": [
+        "speed-first all-in versus risk-controlled validation",
+        "moat from speed versus low switching cost",
+        "market timing versus opportunity cost"
+      ],
+      "open_questions": [
+        "which exact workflow should be the wedge",
+        "will users pay during the interview period",
+        "can retention survive subsidized competitors"
+      ],
+      "recommended_next_step": "run 15 interviews over two weeks and decide all-in only if users commit to pay"
+    },
+    "conversation_log": [
+      {
+        "turn": 1,
+        "speaker": "justin-sun",
+        "summary": "argued for speed and market structure"
+      },
+      {
+        "turn": 2,
+        "speaker": "paul-graham",
+        "summary": "argued for user validation before all-in"
+      }
+    ],
+    "previous_summary_meta": {
+      "sub_problems": [
+        "whether the wedge is painful enough",
+        "whether to all-in or run a small test first"
+      ],
+      "consensus_points": [
+        "start from a narrow high-frequency workflow"
+      ],
+      "tension_points": [
+        "speed-first all-in versus risk-controlled validation"
+      ],
+      "open_questions": [
+        "which exact workflow should be the wedge"
+      ]
+    },
+    "current_turn": 2
+  }
+}

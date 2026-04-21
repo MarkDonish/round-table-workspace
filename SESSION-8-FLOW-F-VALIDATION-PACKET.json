@@ -1,0 +1,121 @@
+{
+    "mode":  "room_upgrade",
+    "handoff_packet":  {
+                           "schema_version":  "v0.1",
+                           "generated_at_turn":  2,
+                           "source_room_id":  "room-session7-validation-fixture",
+                           "field_01_original_topic":  "我想做一个面向独立开发者的 AI 工具,这个方向值不值得 All in?",
+                           "field_02_room_title":  "独立开发者 AI 工具 All in 决策",
+                           "field_03_type":  {
+                                                 "primary":  "startup",
+                                                 "secondary":  "strategy"
+                                             },
+                           "field_04_sub_problems":  [
+                                                         {
+                                                             "text":  "这个切口值不值得做",
+                                                             "tags":  [
+                                                                          "value_proposition",
+                                                                          "market_sizing"
+                                                                      ],
+                                                             "discussed_in_turns":  [
+                                                                                        1,
+                                                                                        2
+                                                                                    ],
+                                                             "status":  "converged"
+                                                         },
+                                                         {
+                                                             "text":  "All in 还是小步试",
+                                                             "tags":  [
+                                                                          "resource_allocation",
+                                                                          "market_timing"
+                                                                      ],
+                                                             "discussed_in_turns":  [
+                                                                                        1,
+                                                                                        2
+                                                                                    ],
+                                                             "status":  "open"
+                                                         }
+                                                     ],
+                           "field_05_consensus_points":  [
+                                                             "起点应该是单点打穿一个最窄的高频场景",
+                                                             "All in 的前置条件是先用 15 人深访验证 painkiller vs vitamin",
+                                                             "切换成本是否存在,必须由用户是否当场愿意付钱来证伪"
+                                                         ],
+                           "field_06_tension_points":  [
+                                                           "Sun 的 winner-takes-all 登山式 All in vs Munger 的火山口盖房子",
+                                                           "Sun 的「速度即护城河」vs Munger 的「独立开发者换工具像换咖啡」",
+                                                           "Sun 速度优先 vs PG 深访验证 vs Munger 市场结构证伪"
+                                                       ],
+                           "field_07_open_questions":  [
+                                                           "painkiller vs vitamin 尚未被付费行为验证",
+                                                           "第 91 天竞争对手补贴是否会击穿留存",
+                                                           "心智护城河是否真实存在",
+                                                           "最窄高频场景应该选哪个",
+                                                           "如果验证结果是 vitamin,何时退出或转向"
+                                                       ],
+                           "field_08_candidate_solutions":  [
+                                                                {
+                                                                    "solution_text":  "用 2 周完成 15 人深访,锁定上线第一周冷启动场景,以用户是否当场付钱为硬门槛,再决定 All in 或退出/转向。",
+                                                                    "proposed_by":  [
+                                                                                        "paul-graham",
+                                                                                        "steve-jobs",
+                                                                                        "munger"
+                                                                                    ],
+                                                                    "support_level":  "medium",
+                                                                    "unresolved_concerns":  [
+                                                                                                "Sun 的速度优先与 Munger 的零切换成本警告仍未完全收敛"
+                                                                                            ]
+                                                                }
+                                                            ],
+                           "field_09_factual_claims":  [
+
+                                                       ],
+                           "field_10_uncertainty_points":  [
+                                                               "PG 不确定该方向到底是 painkiller 还是 vitamin",
+                                                               "Munger 不确定心智护城河是否能抵御第 91 天补贴冲击",
+                                                               "Sun 不确定速度优先能否真正转化为切换成本"
+                                                           ],
+                           "field_11_suggested_agents":  [
+                                                             "justin-sun",
+                                                             "paul-graham",
+                                                             "munger",
+                                                             "steve-jobs"
+                                                         ],
+                           "field_12_suggested_agent_roles":  {
+                                                                  "justin-sun":  "在 /debate 中继续承担 All in 与市场结构主张位,需要显式量化速度优先如何形成护城河。",
+                                                                  "paul-graham":  "在 /debate 中承担切口真假与用户需求验证位,把 15 人深访和付费门槛变成可执行判断。",
+                                                                  "munger":  "在 /debate 中承担机会成本与自欺审查位,继续检验零切换成本和补贴冲击是否会击穿方案。",
+                                                                  "steve-jobs":  "在 /debate 中承担产品焦点与体验收敛位,把发散讨论压回最窄高频场景和用户付费行为。"
+                                                              },
+                           "field_13_upgrade_reason":  {
+                                                           "reason_code":  "user_explicit_request",
+                                                           "reason_text":  "用户主动请求升级(/upgrade-to-debate),当前 stage=explore,turn_count=2,但 summary 已形成共识、张力、开放问题和候选行动。",
+                                                           "triggered_by":  "user_explicit",
+                                                           "confidence":  0.72,
+                                                           "warning_flags":  [
+                                                                                 "user_forced_early_upgrade"
+                                                                             ]
+                                                       }
+                       },
+    "packaging_meta":  {
+                           "turns_scanned":  2,
+                           "solutions_extracted":  1,
+                           "claims_extracted":  0,
+                           "agents_filtered_out":  [
+
+                                                   ],
+                           "agents_upgraded_in":  [
+                                                      "steve-jobs"
+                                                  ],
+                           "warnings":  [
+                                            "user_forced_early_upgrade",
+                                            "low_factual_claim_density_strategy_topic",
+                                            "validation_fixture_not_live_runtime_output"
+                                        ]
+                       },
+    "meta":  {
+                 "generated_at_turn":  2,
+                 "prompt_version":  "room-upgrade v0.1.3-p1",
+                 "next_action":  "pass_packet_to_debate_skill"
+             }
+}

@@ -1,0 +1,76 @@
+﻿{
+  "id": "SESSION-28-selection-to-local-runtime",
+  "note": "Selection output to local runtime fixture. Uses P3 selection case plus deterministic current-agent speaker outputs; no provider/API dependency.",
+  "selection_fixture_path": "D:\\圆桌会议\\SESSION-8-P3-LIVE-RERUN-FIXTURES.json",
+  "selection_case_id": "P3-B-mention-jobs-protected",
+  "initial_room_state": {
+    "room_id": "room-session28-selection-runtime",
+    "title": "AI tool all-in decision",
+    "mode": "standard",
+    "original_topic": "Evaluate whether to all-in on an AI tool for indie developers",
+    "primary_type": "startup",
+    "secondary_type": "strategy",
+    "active_focus": "validate user pain",
+    "agents": [
+      { "id": "justin-sun", "short_name": "Sun", "structural_role": "offensive", "long_role": "speed and market structure" },
+      { "id": "paul-graham", "short_name": "PG", "structural_role": "offensive", "long_role": "user need validation" },
+      { "id": "steve-jobs", "short_name": "Jobs", "structural_role": "offensive", "long_role": "product focus and user experience" },
+      { "id": "karpathy", "short_name": "Karpathy", "structural_role": "moderate", "long_role": "technical feasibility and execution path" },
+      { "id": "munger", "short_name": "Munger", "structural_role": "defensive", "long_role": "opportunity cost and inversion" },
+      { "id": "taleb", "short_name": "Taleb", "structural_role": "defensive", "long_role": "tail risk and anti-fragility" }
+    ],
+    "agent_roles": {
+      "justin-sun": "speed and market structure",
+      "paul-graham": "user need validation",
+      "steve-jobs": "product focus and user experience",
+      "karpathy": "technical feasibility and execution path",
+      "munger": "opportunity cost and inversion",
+      "taleb": "tail risk and anti-fragility"
+    },
+    "conversation_log": [],
+    "consensus_points": [],
+    "open_questions": [],
+    "tension_points": [],
+    "recommended_next_step": null,
+    "previous_summary": {
+      "consensus_points": [],
+      "open_questions": [],
+      "tension_points": [],
+      "recommended_next_step": null,
+      "last_summary_turn": null
+    },
+    "silent_rounds": {
+      "justin-sun": 0,
+      "paul-graham": 0,
+      "steve-jobs": 1,
+      "karpathy": 0,
+      "munger": 3,
+      "taleb": 0
+    },
+    "turn_count": 0,
+    "last_stage": "simulate",
+    "recent_log": ""
+  },
+  "speaker_outputs": {
+    "justin-sun": {
+      "status": "DONE",
+      "content": "Sun selection-runtime content: speed matters if distribution compounds.",
+      "warnings": []
+    },
+    "paul-graham": {
+      "status": "DONE",
+      "content": "PG selection-runtime content: validate demand before all-in.",
+      "warnings": []
+    },
+    "steve-jobs": {
+      "status": "DONE_WITH_CONCERNS",
+      "content": "Jobs selection-runtime content: narrow the product until the next step is obvious.",
+      "warnings": ["jobs_protected_path"]
+    },
+    "karpathy": {
+      "status": "DONE",
+      "content": "Karpathy selection-runtime content: execution bottlenecks still need measurement.",
+      "warnings": []
+    }
+  }
+}

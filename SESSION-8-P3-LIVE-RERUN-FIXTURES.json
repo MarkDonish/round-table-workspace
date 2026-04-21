@@ -1,0 +1,240 @@
+﻿{
+    "generated_at":  "2026-04-12",
+    "scope":  "P3 §12 forced rebalance and @agent mention prompt-level live rerun",
+    "runtime_probe":  {
+                          "executable_orchestrator_found":  false,
+                          "searched_roots":  [
+                                                 "C:\\Users\\CLH\\docs",
+                                                 "C:\\Users\\CLH\\prompts",
+                                                 "C:\\Users\\CLH\\.codex\\skills\\room-skill",
+                                                 "C:\\Users\\CLH\\agent-registry",
+                                                 "D:\\圆桌会议"
+                                             ],
+                          "executable_note":  "Only markdown prompt/protocol artifacts were found in the scoped project roots; no runnable /room orchestrator implementation was available."
+                      },
+    "roster":  [
+                   {
+                       "short_name":  "Sun",
+                       "structural_role":  "offensive",
+                       "expression":  "dramatic",
+                       "base_score":  60
+                   },
+                   {
+                       "short_name":  "PG",
+                       "structural_role":  "offensive",
+                       "expression":  "abstract",
+                       "base_score":  55
+                   },
+                   {
+                       "short_name":  "Jobs",
+                       "structural_role":  "offensive",
+                       "expression":  "grounded",
+                       "base_score":  50
+                   },
+                   {
+                       "short_name":  "Karpathy",
+                       "structural_role":  "moderate",
+                       "expression":  "grounded",
+                       "base_score":  45
+                   },
+                   {
+                       "short_name":  "Munger",
+                       "structural_role":  "defensive",
+                       "expression":  "grounded",
+                       "base_score":  40
+                   },
+                   {
+                       "short_name":  "Taleb",
+                       "structural_role":  "defensive",
+                       "expression":  "abstract",
+                       "base_score":  42
+                   }
+               ],
+    "cases":  [
+                  {
+                      "id":  "P3-A-no-mention-forced-rebalance",
+                      "mode":  "room_turn",
+                      "topic":  "具体到下一步怎么做?",
+                      "user_constraints":  {
+                                               "with":  [
+
+                                                        ],
+                                               "without":  [
+
+                                                           ],
+                                               "mentions":  [
+
+                                                            ],
+                                               "topic_hint":  null
+                                           },
+                      "current_state":  {
+                                            "roster":  [
+                                                           "Sun",
+                                                           "PG",
+                                                           "Jobs",
+                                                           "Karpathy",
+                                                           "Munger",
+                                                           "Taleb"
+                                                       ],
+                                            "last_stage":  "simulate",
+                                            "recent_log":  [
+                                                               "Sun/PG/Jobs 连续主导执行路径讨论; Munger 已连续沉默。"
+                                                           ],
+                                            "silent_rounds":  {
+                                                                  "Sun":  0,
+                                                                  "PG":  0,
+                                                                  "Jobs":  0,
+                                                                  "Karpathy":  1,
+                                                                  "Munger":  3,
+                                                                  "Taleb":  1
+                                                              }
+                                        },
+                      "regular_top4_before_p3":  [
+                                                     "Sun",
+                                                     "PG",
+                                                     "Jobs",
+                                                     "Karpathy"
+                                                 ],
+                      "protected_speakers":  [
+
+                                             ],
+                      "expected":  {
+                                       "forced_rebalance":  {
+                                                                "agent":  "Munger",
+                                                                "reason":  "silent 3 rounds",
+                                                                "replaced":  "Jobs"
+                                                            },
+                                       "speakers_must_include":  [
+                                                                     "Munger"
+                                                                 ],
+                                       "speakers_must_exclude":  [
+                                                                     "Jobs"
+                                                                 ],
+                                       "invariant":  "silent_rounds.Munger \u003e= 3 and no protected_speakers: force Munger in, replace lowest offensive Jobs."
+                                   }
+                  },
+                  {
+                      "id":  "P3-B-mention-jobs-protected",
+                      "mode":  "room_turn",
+                      "topic":  "@Jobs 具体到下一步怎么做?",
+                      "user_constraints":  {
+                                               "with":  [
+
+                                                        ],
+                                               "without":  [
+
+                                                           ],
+                                               "mentions":  [
+                                                                "Jobs"
+                                                            ],
+                                               "topic_hint":  null
+                                           },
+                      "current_state":  {
+                                            "roster":  [
+                                                           "Sun",
+                                                           "PG",
+                                                           "Jobs",
+                                                           "Karpathy",
+                                                           "Munger",
+                                                           "Taleb"
+                                                       ],
+                                            "last_stage":  "simulate",
+                                            "recent_log":  [
+                                                               "Sun/PG/Karpathy/Taleb 在执行路径上发言; Jobs 被用户点名; Munger 已连续沉默。"
+                                                           ],
+                                            "silent_rounds":  {
+                                                                  "Sun":  0,
+                                                                  "PG":  0,
+                                                                  "Jobs":  1,
+                                                                  "Karpathy":  0,
+                                                                  "Munger":  3,
+                                                                  "Taleb":  0
+                                                              }
+                                        },
+                      "regular_top4_before_p3":  [
+                                                     "Sun",
+                                                     "PG",
+                                                     "Karpathy",
+                                                     "Taleb"
+                                                 ],
+                      "protected_speakers":  [
+                                                 "Jobs"
+                                             ],
+                      "expected":  {
+                                       "protected_replacement":  {
+                                                                     "agent":  "Jobs",
+                                                                     "replaces_lowest_non_protected":  "Taleb"
+                                                                 },
+                                       "forced_rebalance":  null,
+                                       "forced_skip_reason":  "explicit_mention_elsewhere",
+                                       "speakers_must_include":  [
+                                                                     "Jobs"
+                                                                 ],
+                                       "speakers_must_exclude":  [
+                                                                     "Munger"
+                                                                 ],
+                                       "invariant":  "@Jobs is protected; unmentioned Munger forced rebalance is skipped this turn and must not displace Jobs."
+                                   }
+                  },
+                  {
+                      "id":  "P3-C-mention-munger-already-included",
+                      "mode":  "room_turn",
+                      "topic":  "@Munger 你来审一下风险",
+                      "user_constraints":  {
+                                               "with":  [
+
+                                                        ],
+                                               "without":  [
+
+                                                           ],
+                                               "mentions":  [
+                                                                "Munger"
+                                                            ],
+                                               "topic_hint":  null
+                                           },
+                      "current_state":  {
+                                            "roster":  [
+                                                           "Sun",
+                                                           "PG",
+                                                           "Jobs",
+                                                           "Karpathy",
+                                                           "Munger",
+                                                           "Taleb"
+                                                       ],
+                                            "last_stage":  "simulate",
+                                            "recent_log":  [
+                                                               "执行路径讨论偏进攻; Munger 被用户点名。"
+                                                           ],
+                                            "silent_rounds":  {
+                                                                  "Sun":  0,
+                                                                  "PG":  0,
+                                                                  "Jobs":  0,
+                                                                  "Karpathy":  1,
+                                                                  "Munger":  3,
+                                                                  "Taleb":  1
+                                                              }
+                                        },
+                      "regular_top4_before_p3":  [
+                                                     "Sun",
+                                                     "PG",
+                                                     "Jobs",
+                                                     "Karpathy"
+                                                 ],
+                      "protected_speakers":  [
+                                                 "Munger"
+                                             ],
+                      "expected":  {
+                                       "protected_replacement":  {
+                                                                     "agent":  "Munger",
+                                                                     "replaces_lowest_non_protected":  "Karpathy"
+                                                                 },
+                                       "forced_rebalance":  null,
+                                       "forced_skip_reason":  "agent_was_auto_included",
+                                       "speakers_must_include":  [
+                                                                     "Munger"
+                                                                 ],
+                                       "invariant":  "@Munger is protected and included; §12 must not duplicate forced rebalance for the same agent."
+                                   }
+                  }
+              ]
+}
