@@ -26,13 +26,14 @@
 - `docs/room-runtime-bridge.md` 已把缺失的 runtime bridge 责任边界锁成真源
 - `.codex/skills/room-skill/runtime/room_runtime.py` 已把 `/room` 的 host-side bridge 代码正式入仓
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
+- `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 provider-backed 链路
 - `.codex/skills/room-skill/runtime/fixtures/canonical/` 已提供 checked-in 的首轮验证 fixture
 
 ### 还没完成的核心能力
 
-- `/room` 的 provider-backed live host integration 还没和真实模型调用链完全接上线，但仓库里已经有 `.env` + Chat Completions-compatible adapter + checked-in E2E validation runner
+- `/room` 的 provider-backed live host integration 还没和真实模型调用链完全接上线，但仓库里已经有 `.env` + Chat Completions-compatible adapter + checked-in E2E validation runner + 本地 mock provider
 - 还没有完成一轮带真实 prompt 调用的 `/room -> /summary -> /upgrade-to-debate` live run
-- 当前已完成的是 fixture-driven 的本地 bridge / E2E runner 验证，不应误报成所有宿主都已 100% 实战验证
+- 当前已完成的是 fixture-driven 验证 + mock provider-backed 验证，不应误报成所有宿主都已 100% 实战验证
 
 简化结论：
 
@@ -166,6 +167,7 @@ round-table-workspace/
 - 当前边界：`docs/room-runtime-status.md`
 - runtime bridge：`.codex/skills/room-skill/runtime/README.md`
 - runtime validation：`.codex/skills/room-skill/runtime/room_e2e_validation.py`
+- mock provider：`.codex/skills/room-skill/runtime/mock_chat_completions_server.py`
 - live provider sample：`.env.room.example`
 - examples：`examples/room-examples.md`
 

@@ -180,6 +180,7 @@ description: |
 - `.codex/skills/room-skill/WORKFLOW.md` 已提供 checked-in 的 runtime playbook
 - `.codex/skills/room-skill/runtime/room_runtime.py` 已提供 checked-in 的 host-side bridge
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 E2E validation runner
+- `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 mock provider，用于验证 Chat Completions 路径
 - canonical fixture 已可在 Mac 本地跑通 `/room -> /summary -> /upgrade-to-debate`
 - 但真实模型调用链上的 live host validation 仍未证明完成
 
@@ -190,6 +191,7 @@ description: |
 - `bridge-checked-in`
 - `e2e-runner-checked-in`
 - `fixture-validated-on-mac`
+- `mock-provider-validated-on-mac`
 - `provider-live-not-yet-validated`
 
 而不是“已经 100% 可运行”。

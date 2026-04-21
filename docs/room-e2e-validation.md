@@ -44,6 +44,21 @@ python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
 The fixture path validates the checked-in orchestration and writeback chain.
 It does not count as a live provider pass.
 
+Local mock provider path:
+
+```bash
+python3 .codex/skills/room-skill/runtime/mock_chat_completions_server.py --port 32123
+
+ROOM_CHAT_COMPLETIONS_URL=http://127.0.0.1:32123/v1/chat/completions \
+ROOM_CHAT_COMPLETIONS_MODEL=mock-room-model \
+python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
+  --executor chat_completions \
+  --state-root /tmp/round-table-room-mock-provider
+```
+
+This path proves the checked-in Chat Completions-compatible execution chain.
+It still does not count as a real external provider pass.
+
 ---
 
 ## Validation Goal
@@ -263,7 +278,7 @@ Examples:
 
 As of 2026-04-21, the main blockers before this validation can fully pass are:
 
-- the checked-in E2E runner now exists, but `--executor chat_completions` still depends on a real local `.env.room` and reachable provider
+- the checked-in E2E runner and mock provider now exist, but a real external `--executor chat_completions --env-file .env.room` run is still missing
 - `/debate` handoff is still validated by checked-in contract acceptance, not by a real live `/debate` execution chain
 - local terminal Git access on this Mac still depends on GitHub trust for the generated SSH key
 
