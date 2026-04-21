@@ -25,6 +25,7 @@ The current source-of-truth files for `/room` in this repository are:
 - `prompts/room-chat.md`
 - `examples/room-examples.md`
 - `.codex/skills/room-skill/SKILL.md`
+- `.codex/skills/room-skill/WORKFLOW.md`
 
 If a report or session note conflicts with the files above, the files above win.
 
@@ -43,6 +44,7 @@ The repository already contains a largely complete protocol layer for `/room`:
 - a clean fallback contract for chat in `docs/room-chat-contract.md`
 - a rebuilt and readable `prompts/room-chat.md`
 - a checked-in `/room` source entry aligned with the registry and bridge contract in `.codex/skills/room-skill/SKILL.md`
+- a checked-in runtime workflow playbook in `.codex/skills/room-skill/WORKFLOW.md`
 - repository-level entrypoints now aligned so `/room` is first-class in `README.md`, `AGENTS.md`, and `examples/room-examples.md`
 - architecture decisions confirming the dual-mode product (`/room` + `/debate`) in `docs/DECISIONS-LOCKED.md`
 
@@ -52,17 +54,17 @@ The `/debate` side is also structurally complete enough to be treated as an impl
 
 ## What Is Not Yet Completed In This Repo
 
-The final incomplete part is not the `/room` protocol itself. It is the checked-in runtime bridge implementation and Mac-ready execution layer.
+The final incomplete part is no longer the `/room` workflow description. It is the host-side portable execution and live validation layer.
 
 The main gaps are:
 
-1. `docs/room-runtime-bridge.md` now defines the bridge contract, but the actual orchestrator/runtime entry behind `.codex/skills/room-skill/SKILL.md` is still not present as checked-in source.
+1. The checked-in runtime playbook now exists, but the host-side state persistence and execution path still have not been proven end to end on Mac.
 2. Some active prompt files still contain Windows-local absolute links in legacy header references, especially `prompts/room-selection.md`, `prompts/room-summary.md`, and `prompts/room-upgrade.md`.
-3. The `/room` prompt layer is now structurally usable, but it still needs runtime-level integration and live validation before production use.
+3. The `/room` flow still needs a real `/room -> /summary -> /upgrade-to-debate` validation run before production use.
 
 In short:
 
-`/room` is protocol-complete, bridge-specified, entry-aligned, but not yet runtime-complete as a portable runnable feature.
+`/room` is protocol-complete, workflow-checked-in, entry-aligned, but not yet host-validated as a portable runnable feature.
 
 ---
 
@@ -90,7 +92,7 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 ## Current Risks
 
 - Windows-local absolute links still remain in a few active prompt headers, which can create cross-machine confusion even when the underlying protocol is correct.
-- The runtime bridge behind `/room` is now specified, but still not implemented as checked-in orchestrator code.
+- The host-side `/room` execution path is now specified, but still not live-validated on this Mac.
 - Reports still reference external Windows runtime paths that are not present in this repository, which can create a false impression that the runtime is already checked in.
 
 ---
@@ -100,7 +102,7 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 The most reasonable continuation path is:
 
 1. finish normalizing the remaining Windows-local links in active `/room` prompts
-2. implement the runtime bridge behind `.codex/skills/room-skill/SKILL.md` using `docs/agent-registry.md` + `docs/room-runtime-bridge.md` + `prompts/`
+2. connect the host-side `/room` execution path to the checked-in `WORKFLOW.md`
 3. run a first end-to-end `/room -> /summary -> /upgrade-to-debate` validation flow
 4. only after that, continue deeper runtime-level implementation
 
