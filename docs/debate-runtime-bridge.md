@@ -53,6 +53,7 @@ The bridge is not responsible for:
 The debate bridge should consume only these checked-in sources:
 
 - `AGENTS.md`
+- `docs/debate-e2e-validation.md`
 - `docs/debate-runtime-bridge.md`
 - `docs/debate-skill-architecture.md`
 - `docs/reviewer-protocol.md`
@@ -65,6 +66,8 @@ The debate bridge should consume only these checked-in sources:
 - `.codex/skills/debate-roundtable-skill/SKILL.md`
 - `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py`
 - `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`
+- `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py`
+- `.codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py`
 - `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/`
 
 If a report or generated artifact disagrees with the files above, the checked-in files above win.
@@ -305,3 +308,6 @@ It still does not prove:
 - a real follow-up loop has completed end to end through an external model host
 
 Those remain separate live validation steps.
+
+The checked-in E2E runner and local mock provider now prove the prompt-call wiring locally.
+They do not change the external live-validation boundary above.

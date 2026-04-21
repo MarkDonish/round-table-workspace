@@ -1,7 +1,7 @@
 # Room Runtime Status
 
 > Purpose: lock the real `/room` implementation boundary after the Windows-to-GitHub migration, so Mac-side continuation uses checked-in source instead of historical reports.
-> Last reviewed: 2026-04-21
+> Last reviewed: 2026-04-22
 
 ---
 
@@ -19,6 +19,7 @@ The current source-of-truth files for `/room` are:
 - `docs/room-runtime-bridge.md`
 - `docs/room-runtime-status.md`
 - `docs/room-e2e-validation.md`
+- `docs/debate-e2e-validation.md`
 - `docs/debate-runtime-bridge.md`
 - `docs/DECISIONS-LOCKED.md`
 - `prompts/room-selection.md`
@@ -35,6 +36,8 @@ The current source-of-truth files for `/room` are:
 - `.codex/skills/room-skill/runtime/README.md`
 - `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py`
 - `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`
+- `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py`
+- `.codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py`
 - `.codex/skills/debate-roundtable-skill/runtime/README.md`
 - `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/`
 - `.codex/skills/room-skill/runtime/fixtures/canonical/`
@@ -59,6 +62,8 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in host bridge implementation in `.codex/skills/room-skill/runtime/room_runtime.py`
 - a checked-in `/debate` packet preflight in `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py`
 - a checked-in `/debate` execution bridge in `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`, including reject-followup-rereview validation
+- a checked-in `/debate` prompt-host E2E runner in `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py`
+- a checked-in local `/debate` mock Chat Completions provider in `.codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py`
 - a checked-in `/debate` canonical fixture pack in `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/`
 - a checked-in Chat Completions-compatible live prompt adapter in `.codex/skills/room-skill/runtime/chat_completions_executor.py`
 - a checked-in E2E validation runner in `.codex/skills/room-skill/runtime/room_e2e_validation.py`
@@ -86,11 +91,11 @@ The remaining gap is now narrower and sits in the real external live host integr
 
 1. the checked-in bridge, live adapter, E2E runner, and local mock provider are in repo, and the provider-backed code path is now locally provable without external credentials
 2. the first live `/room -> /summary -> /upgrade-to-debate` run with actual prompt execution still has not been completed
-3. debate handoff is now executable-preflight-validated and has a checked-in debate-side execution plus reject-followup-rereview bridge, but still not yet proven by a live multi-agent `/debate` execution chain
+3. debate handoff is now executable-preflight-validated and has a checked-in debate-side execution plus reject-followup-rereview bridge, and that chain is now locally provable through fixture or mock-provider prompt execution, but still not yet proven by a real external `/debate` execution chain
 
 In short:
 
-`/room` is protocol-complete, prompt-cleaned, workflow-checked-in, bridge-checked-in, fixture-backed E2E-validated on Mac, and mock-provider-validated through the Chat Completions path, but not yet externally live-validated against a real prompt host.
+`/room` is protocol-complete, prompt-cleaned, workflow-checked-in, bridge-checked-in, fixture-backed E2E-validated on Mac, and mock-provider-validated through the Chat Completions path. `/debate` now matches that local confidence level for its prompt-host execution chain, but neither side is externally live-validated against a real provider yet.
 
 ---
 
@@ -118,7 +123,7 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 ## Current Risks
 
 - The host-side `/room` execution path now exists, and the provider-backed path can be locally exercised through a checked-in mock provider, but it still is not externally live-validated with actual prompt calls.
-- `/room -> /debate` handoff is no longer a plain-text contract grep, and `/debate` now has a checked-in reject-followup-rereview path, but the repo still lacks end-to-end proof from a real `/debate` execution chain.
+- `/room -> /debate` handoff is no longer a plain-text contract grep, and `/debate` now has a checked-in reject-followup-rereview path plus local mock-provider validation, but the repo still lacks end-to-end proof from a real external `/debate` execution chain.
 - Historical reports still reference old Windows runtime paths, which can mislead future continuation if read as implementation truth.
 - The generated room bundles under `artifacts/runtime/rooms/` are outputs and must not be treated as new source-of-truth files.
 
@@ -131,8 +136,9 @@ The most reasonable continuation path is:
 1. point the real prompt-calling host at `.codex/skills/room-skill/runtime/room_runtime.py`
 2. use `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` plus `.codex/skills/room-skill/runtime/room_e2e_validation.py --executor chat_completions` for local provider-path regression
 3. run `.codex/skills/room-skill/runtime/room_e2e_validation.py --executor chat_completions --env-file .env.room` against a real provider
-4. verify the resulting handoff packet is accepted by a real `/debate` execution, not only by executable preflight
-5. after the live host flow passes, treat `/room` as runtime-ready instead of only bridge-ready
+4. run `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py --executor chat_completions --env-file .env.room --scenario reject_followup` against a real provider
+5. verify a real `/room` handoff packet can feed a real `/debate` execution, not only canonical packet material
+6. after the live host flow passes, treat `/room` and `/debate` as runtime-ready instead of only locally validated
 
 This keeps the repository structure stable:
 

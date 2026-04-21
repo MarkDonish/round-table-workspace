@@ -1,0 +1,141 @@
+# Debate End-to-End Validation
+
+> Purpose: define the first production-style validation flow for `/debate`, so the project can move from bridge completeness to prompt-host execution confidence.
+> Last reviewed: 2026-04-22
+
+---
+
+## When To Use This
+
+Run this validation after:
+
+- `/debate` source files are aligned
+- the checked-in launch / review / followup bridge is stable
+- the prompt host can access checked-in prompt files
+
+This file is source validation guidance, not a historical report.
+
+---
+
+## Checked-In Entry
+
+Use the checked-in runner in `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py`.
+
+Fixture-backed smoke path:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor fixture \
+  --scenario allow \
+  --state-root /tmp/round-table-debate-e2e-allow
+
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor fixture \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-debate-e2e-followup
+```
+
+This path validates the checked-in orchestration and writeback chain.
+It does not count as a live provider pass.
+
+Local mock provider path:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py --port 32124
+
+ROOM_CHAT_COMPLETIONS_URL=http://127.0.0.1:32124/v1/chat/completions \
+ROOM_CHAT_COMPLETIONS_MODEL=mock-debate-model \
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor chat_completions \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-debate-mock-followup
+```
+
+This path proves the checked-in Chat Completions-compatible `/debate` prompt-call chain.
+It still does not count as a real external provider pass.
+
+Real provider path:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_executor.py \
+  --env-file .env.room \
+  --check-provider-config
+
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor chat_completions \
+  --env-file .env.room \
+  --scenario reject_followup
+```
+
+The current `/debate` runner reuses the checked-in Chat Completions adapter and provider env surface already used by `/room`.
+
+---
+
+## Validation Goal
+
+Prove that the following `/debate` chains work on a portable host setup:
+
+1. handoff packet -> launch bundle -> roundtable -> reviewer allow
+2. handoff packet -> launch bundle -> roundtable -> reviewer reject -> followup -> rereview allow
+
+Success means `/debate` is no longer only bridge-complete.
+It means the checked-in prompt-call workflow is executable in practice.
+
+---
+
+## Preconditions
+
+Before starting, confirm all of the following:
+
+- `README.md`, `AGENTS.md`, and `.codex/skills/debate-roundtable-skill/SKILL.md` agree on `/debate` semantics
+- `docs/debate-runtime-bridge.md` is treated as the bridge contract
+- `docs/reviewer-protocol.md` and `prompts/debate-followup.md` are aligned on the single allowed follow-up round
+- `prompts/debate-roundtable.md`, `prompts/debate-reviewer.md`, and `prompts/debate-followup.md` are available to the host
+- no step depends on `reports/` as runtime input
+- no step depends on Windows-local absolute paths
+
+If any of the above is false, stop and fix source before validation.
+
+---
+
+## Required Evidence
+
+A successful validation run should leave behind evidence that can be checked without hand-waving:
+
+- a persisted `launch-bundle.json`
+- a persisted `roundtable-record.json`
+- a persisted `review-packet.json`
+- a persisted reviewer result
+- for reject-followup scenario: a persisted `followup-record.json` and `rereview-packet.json`
+- prompt-call input/output snapshots under `prompt-calls/`
+
+If one of these is missing, the run is incomplete.
+
+---
+
+## Pass Criteria
+
+Mark the validation as passed only if all of the following are true:
+
+1. the launch bundle persists cleanly
+2. the roundtable record passes checked-in validation
+3. the review packet passes checked-in validation
+4. the reviewer result passes checked-in validation
+5. for reject-followup scenario, the follow-up record and re-review packet also pass checked-in validation
+6. no Windows-local path is required at any point
+
+---
+
+## Boundary
+
+This runner closes an important local gap:
+
+- `/debate` prompt calls can now be exercised through fixture replay or a local Chat Completions-compatible mock provider
+
+It still does not prove:
+
+- a real external provider has executed the prompt chain
+- a real host has passed user-provided live debate content through this chain
+- the reviewer quality itself is good enough for production use
+
+Those remain separate live validation steps.

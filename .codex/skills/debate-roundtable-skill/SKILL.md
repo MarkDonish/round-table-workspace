@@ -132,12 +132,16 @@ description: |
 
 - `runtime/debate_packet_validator.py`
 - `runtime/debate_runtime.py`
+- `runtime/debate_e2e_validation.py`
+- `runtime/mock_chat_completions_server.py`
 - `runtime/README.md`
 
 它们分别用于：
 
 - 对 `/room -> /debate` packet 做结构校验与候选池平衡预检
 - 把 packet 变成 debate-side launch bundle、review packet、followup / rereview bridge artifacts
+- 运行 fixture / provider-aware 的 `/debate` prompt-host E2E 验证
+- 通过本地 Chat Completions-compatible mock provider 回放 canonical debate outputs
 
 注意边界：
 

@@ -30,6 +30,8 @@
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 provider-backed 链路
 - `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py` 已提供 checked-in 的 `/debate` handoff packet 可执行预检
 - `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py` 已提供 checked-in 的 `/debate` execution bridge，包括 reject -> followup -> re-review validation chain
+- `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py` 已提供 checked-in 的 `/debate` prompt-host E2E 验证入口
+- `.codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 `/debate` provider-backed 链路
 - `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/` 已提供 checked-in 的 debate execution fixtures
 - `.codex/skills/room-skill/runtime/fixtures/canonical/` 已提供 checked-in 的首轮验证 fixture
 
@@ -37,12 +39,13 @@
 
 - `/room` 的 provider-backed live host integration 还没和真实模型调用链完全接上线，但仓库里已经有 `.env` + Chat Completions-compatible adapter + checked-in E2E validation runner + 本地 mock provider
 - 还没有完成一轮带真实 prompt 调用的 `/room -> /summary -> /upgrade-to-debate` live run
-- 当前已完成的是 fixture-driven 验证 + mock provider-backed 验证；`/debate` 也已有 checked-in reject-followup-rereview 验证链，但仍不应误报成所有宿主都已 100% 实战验证
+- `/debate` 还没有完成真实外部 provider 的 roundtable / reviewer / followup live run
+- 当前已完成的是 fixture-driven 验证 + mock provider-backed 验证；`/debate` 已有 checked-in reject-followup-rereview 验证链和 provider-backed 本地验证，但仍不应误报成所有宿主都已 100% 实战验证
 
 简化结论：
 
-- `/debate`：已可视为 checked-in bridge 完成，但不是外部 live host 已完成
-- `/room`：协议完成、bridge 已定义，但 runtime implementation 还差最后接线
+- `/debate`：checked-in bridge 完成，且本地 mock-provider prompt-host 已验证，但不是外部 live host 已完成
+- `/room`：协议完成、runtime implementation 已入仓并有 mock-provider 验证，但真实外部 live run 仍未完成
 
 ---
 
@@ -180,8 +183,11 @@ round-table-workspace/
 
 - skill：`.codex/skills/debate-roundtable-skill/SKILL.md`
 - bridge contract：`docs/debate-runtime-bridge.md`
+- runtime validation：`docs/debate-e2e-validation.md`
 - runtime bridge：`.codex/skills/debate-roundtable-skill/runtime/README.md`
 - runtime implementation：`.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`
+- runtime E2E runner：`.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py`
+- mock provider：`.codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py`
 - 架构：`docs/debate-skill-architecture.md`
 - 角色边界：`docs/agent-role-map.md`
 - 审查协议：`docs/reviewer-protocol.md`
