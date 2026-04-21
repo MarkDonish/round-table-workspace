@@ -137,7 +137,7 @@ description: |
 它们分别用于：
 
 - 对 `/room -> /debate` packet 做结构校验与候选池平衡预检
-- 把 packet 变成 debate-side launch bundle 与 review packet bridge artifacts
+- 把 packet 变成 debate-side launch bundle、review packet、followup / rereview bridge artifacts
 
 注意边界：
 

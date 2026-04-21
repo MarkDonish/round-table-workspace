@@ -2,10 +2,11 @@
 
 This directory contains the checked-in debate-side runtime bridge.
 
-It currently does 2 concrete jobs:
+It currently does 3 concrete jobs:
 
 - validate `/room -> /debate` handoff packets before `/room` persists acceptance
 - build debate launch bundles plus checked-in roundtable/reviewer artifacts for host wiring
+- validate one checked-in reject -> followup -> re-review loop for debate-side host wiring
 
 It still does not execute a live multi-agent `/debate` run by itself.
 
@@ -71,6 +72,26 @@ python3 .codex/skills/debate-roundtable-skill/runtime/debate_runtime.py \
   --review-packet-json artifacts/runtime/debates/<debate_id>/review/review-packet.json
 ```
 
+Validate one followup record against a rejected reviewer result:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_runtime.py \
+  validate-followup-record \
+  --followup-json artifacts/runtime/debates/<debate_id>/followup/followup-record.json \
+  --review-result-json artifacts/runtime/debates/<debate_id>/review/review-result.reject.json \
+  --review-packet-json artifacts/runtime/debates/<debate_id>/review/review-packet.json
+```
+
+Build a re-review packet after one checked-in followup round:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_runtime.py \
+  build-rereview-packet \
+  --followup-json artifacts/runtime/debates/<debate_id>/followup/followup-record.json \
+  --review-result-json artifacts/runtime/debates/<debate_id>/review/review-result.reject.json \
+  --review-packet-json artifacts/runtime/debates/<debate_id>/review/review-packet.json
+```
+
 Validate the checked-in canonical debate-side bridge:
 
 ```bash
@@ -85,6 +106,14 @@ Validate the checked-in canonical execution chain:
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_runtime.py \
   validate-canonical-execution \
   --state-root /tmp/round-table-debate-execution
+```
+
+Validate the checked-in canonical reject-followup-rereview chain:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_runtime.py \
+  validate-canonical-followup \
+  --state-root /tmp/round-table-debate-followup
 ```
 
 ## Output Shape
@@ -118,6 +147,13 @@ Typical files:
 - `review/review-packet.validation.json`
 - `review/review-result.json`
 - `review/review-result.validation.json`
+- `review/review-result.reject.json`
+- `followup/followup-record.json`
+- `followup/followup.validation.json`
+- `followup/rereview-packet.json`
+- `followup/rereview-packet.validation.json`
+- `followup/review-result.allow.json`
+- `followup/review-result.allow.validation.json`
 - `validation-report.json`
 
 ## Boundary
@@ -125,9 +161,10 @@ Typical files:
 This runtime closes 2 specific gaps:
 
 - `/room` no longer relies on a plain-text grep over `debate-roundtable-skill/SKILL.md`
-- `/debate` now has a checked-in execution bridge for launch bundle -> roundtable record -> review packet -> review result
+- `/debate` now has a checked-in execution bridge for launch bundle -> roundtable record -> review packet -> review result -> followup record -> rereview packet -> final review result
 
 It does not close the final live gap:
 
 - a real prompt host still must execute `prompts/debate-roundtable.md`
 - a real reviewer still must pass or reject live debate outputs
+- a real prompt host still must execute `prompts/debate-followup.md` and feed the second review back into a live reviewer

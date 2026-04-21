@@ -58,7 +58,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in end-to-end validation guide in `docs/room-e2e-validation.md`
 - a checked-in host bridge implementation in `.codex/skills/room-skill/runtime/room_runtime.py`
 - a checked-in `/debate` packet preflight in `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py`
-- a checked-in `/debate` execution bridge in `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`
+- a checked-in `/debate` execution bridge in `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`, including reject-followup-rereview validation
 - a checked-in `/debate` canonical fixture pack in `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/`
 - a checked-in Chat Completions-compatible live prompt adapter in `.codex/skills/room-skill/runtime/chat_completions_executor.py`
 - a checked-in E2E validation runner in `.codex/skills/room-skill/runtime/room_e2e_validation.py`
@@ -86,7 +86,7 @@ The remaining gap is now narrower and sits in the real external live host integr
 
 1. the checked-in bridge, live adapter, E2E runner, and local mock provider are in repo, and the provider-backed code path is now locally provable without external credentials
 2. the first live `/room -> /summary -> /upgrade-to-debate` run with actual prompt execution still has not been completed
-3. debate handoff is now executable-preflight-validated and has a checked-in debate-side execution bridge, but still not yet proven by a live multi-agent `/debate` execution chain
+3. debate handoff is now executable-preflight-validated and has a checked-in debate-side execution plus reject-followup-rereview bridge, but still not yet proven by a live multi-agent `/debate` execution chain
 
 In short:
 
@@ -118,7 +118,7 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 ## Current Risks
 
 - The host-side `/room` execution path now exists, and the provider-backed path can be locally exercised through a checked-in mock provider, but it still is not externally live-validated with actual prompt calls.
-- `/room -> /debate` handoff is no longer a plain-text contract grep, but the repo still lacks end-to-end proof from a real `/debate` execution chain.
+- `/room -> /debate` handoff is no longer a plain-text contract grep, and `/debate` now has a checked-in reject-followup-rereview path, but the repo still lacks end-to-end proof from a real `/debate` execution chain.
 - Historical reports still reference old Windows runtime paths, which can mislead future continuation if read as implementation truth.
 - The generated room bundles under `artifacts/runtime/rooms/` are outputs and must not be treated as new source-of-truth files.
 

@@ -48,6 +48,46 @@ CANONICAL_REVIEW_RESULT = (
     / "canonical"
     / "review_result.json"
 )
+CANONICAL_FOLLOWUP_REVIEW_RESULT_REJECT = (
+    REPO_ROOT
+    / ".codex"
+    / "skills"
+    / "debate-roundtable-skill"
+    / "runtime"
+    / "fixtures"
+    / "canonical"
+    / "followup_review_result_reject.json"
+)
+CANONICAL_FOLLOWUP_RECORD = (
+    REPO_ROOT
+    / ".codex"
+    / "skills"
+    / "debate-roundtable-skill"
+    / "runtime"
+    / "fixtures"
+    / "canonical"
+    / "followup_record.json"
+)
+CANONICAL_FOLLOWUP_REREVIEW_PACKET = (
+    REPO_ROOT
+    / ".codex"
+    / "skills"
+    / "debate-roundtable-skill"
+    / "runtime"
+    / "fixtures"
+    / "canonical"
+    / "followup_rereview_packet.json"
+)
+CANONICAL_FOLLOWUP_REVIEW_RESULT_ALLOW = (
+    REPO_ROOT
+    / ".codex"
+    / "skills"
+    / "debate-roundtable-skill"
+    / "runtime"
+    / "fixtures"
+    / "canonical"
+    / "followup_review_result_allow.json"
+)
 
 TASK_LABELS = {
     "startup": "创业方向",
@@ -82,10 +122,16 @@ def main() -> int:
             result = command_validate_review_packet(args)
         elif args.command == "validate-review-result":
             result = command_validate_review_result(args)
+        elif args.command == "validate-followup-record":
+            result = command_validate_followup_record(args)
+        elif args.command == "build-rereview-packet":
+            result = command_build_rereview_packet(args)
         elif args.command == "validate-canonical":
             result = command_validate_canonical(args)
         elif args.command == "validate-canonical-execution":
             result = command_validate_canonical_execution(args)
+        elif args.command == "validate-canonical-followup":
+            result = command_validate_canonical_followup(args)
         else:
             raise DebateRuntimeError(f"Unsupported command: {args.command}")
     except DebateRuntimeError as exc:
@@ -153,6 +199,23 @@ def build_parser() -> argparse.ArgumentParser:
     review_result_parser.add_argument("--review-result-json", required=True)
     review_result_parser.add_argument("--review-packet-json", required=True)
 
+    followup_parser = subparsers.add_parser(
+        "validate-followup-record",
+        help="Validate a debate followup record against a rejected reviewer result.",
+    )
+    followup_parser.add_argument("--followup-json", required=True)
+    followup_parser.add_argument("--review-result-json", required=True)
+    followup_parser.add_argument("--review-packet-json", required=True)
+
+    rereview_parser = subparsers.add_parser(
+        "build-rereview-packet",
+        help="Build a re-review packet from a rejected reviewer result plus a followup record.",
+    )
+    rereview_parser.add_argument("--followup-json", required=True)
+    rereview_parser.add_argument("--review-result-json", required=True)
+    rereview_parser.add_argument("--review-packet-json", required=True)
+    rereview_parser.add_argument("--output-json", help="Optional explicit output path.")
+
     canonical_parser = subparsers.add_parser(
         "validate-canonical",
         help="Replay the checked-in canonical handoff into a debate launch bundle and reviewer packet validation.",
@@ -168,6 +231,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Replay the checked-in canonical debate execution chain through roundtable and reviewer artifacts.",
     )
     canonical_execution_parser.add_argument(
+        "--state-root",
+        default=str(DEFAULT_STATE_ROOT),
+        help="Directory for persisted debate runtime artifacts.",
+    )
+
+    canonical_followup_parser = subparsers.add_parser(
+        "validate-canonical-followup",
+        help="Replay the checked-in canonical reject-followup-rereview debate chain.",
+    )
+    canonical_followup_parser.add_argument(
         "--state-root",
         default=str(DEFAULT_STATE_ROOT),
         help="Directory for persisted debate runtime artifacts.",
@@ -286,6 +359,59 @@ def command_validate_review_result(args: argparse.Namespace) -> dict[str, Any]:
     review_result = load_json(Path(args.review_result_json))
     validation = validate_review_result(review_result, review_packet)
     return {"ok": True, "action": "validate-review-result", "validation": validation}
+
+
+def command_validate_followup_record(args: argparse.Namespace) -> dict[str, Any]:
+    review_packet = load_json(Path(args.review_packet_json))
+    validate_review_packet(review_packet)
+
+    review_result = load_json(Path(args.review_result_json))
+    review_result_validation = validate_review_result(review_result, review_packet)
+    require(review_result["allow_final_decision"] is False, "followup record only applies to rejected reviewer results.")
+
+    followup_record = load_json(Path(args.followup_json))
+    followup_validation = validate_followup_record(followup_record, review_result, review_packet)
+    return {
+        "ok": True,
+        "action": "validate-followup-record",
+        "review_result_validation": review_result_validation,
+        "validation": followup_validation,
+    }
+
+
+def command_build_rereview_packet(args: argparse.Namespace) -> dict[str, Any]:
+    review_packet_path = Path(args.review_packet_json).expanduser().resolve()
+    review_packet = load_json(review_packet_path)
+    validate_review_packet(review_packet)
+
+    review_result = load_json(Path(args.review_result_json))
+    review_result_validation = validate_review_result(review_result, review_packet)
+    require(review_result["allow_final_decision"] is False, "re-review packet only applies to rejected reviewer results.")
+
+    followup_record = load_json(Path(args.followup_json))
+    followup_validation = validate_followup_record(followup_record, review_result, review_packet)
+    rereview_packet = build_rereview_packet(
+        review_packet=review_packet,
+        review_result=review_result,
+        followup_record=followup_record,
+    )
+    rereview_packet_validation = validate_review_packet(rereview_packet)
+
+    if args.output_json:
+        output_path = Path(args.output_json).expanduser().resolve()
+    else:
+        output_path = review_packet_path.parent.parent / "followup" / "rereview-packet.json"
+    ensure_directory(output_path.parent)
+    write_json(output_path, rereview_packet)
+
+    return {
+        "ok": True,
+        "action": "build-rereview-packet",
+        "rereview_packet_path": str(output_path),
+        "review_result_validation": review_result_validation,
+        "followup_validation": followup_validation,
+        "rereview_packet_validation": rereview_packet_validation,
+    }
 
 
 def command_validate_canonical(args: argparse.Namespace) -> dict[str, Any]:
@@ -429,6 +555,136 @@ def command_validate_canonical_execution(args: argparse.Namespace) -> dict[str, 
             "review_packet_matches_fixture": review_packet == expected_review_packet,
             "review_result_accepted": review_result_validation["accepted"],
             "allow_final_decision": review_result["allow_final_decision"],
+        },
+    }
+    write_json(debate_dir / "validation-report.json", report)
+    return report
+
+
+def command_validate_canonical_followup(args: argparse.Namespace) -> dict[str, Any]:
+    state_root = Path(args.state_root).expanduser().resolve()
+    debate_id = "debate-canonical-followup"
+    room_id = "room-canonical-debate"
+
+    fixture_payload = materialize_placeholders(load_json(ROOM_UPGRADE_FIXTURE), {"__ROOM_ID__": room_id})
+    packet = unwrap_packet(fixture_payload)
+    packet_acceptance = validate_packet_payload(fixture_payload)
+    registry = packet_validator.load_registry()
+    launch_bundle = build_launch_bundle(
+        packet=packet,
+        packet_acceptance=packet_acceptance,
+        registry=registry,
+        debate_id=debate_id,
+        source_packet_path=str(ROOM_UPGRADE_FIXTURE),
+    )
+
+    roundtable_record = materialize_placeholders(
+        load_json(CANONICAL_ROUNDTABLE_RECORD),
+        {"__ROOM_ID__": room_id, "__DEBATE_ID__": debate_id},
+    )
+    roundtable_validation = validate_roundtable_record(roundtable_record, launch_bundle)
+
+    review_packet = build_review_packet(
+        launch_bundle=launch_bundle,
+        roundtable_record=roundtable_record,
+        source_launch_bundle="canonical",
+    )
+    review_packet_validation = validate_review_packet(review_packet)
+    expected_review_packet = materialize_placeholders(load_json(CANONICAL_REVIEW_PACKET), {"__ROOM_ID__": room_id})
+    require(review_packet == expected_review_packet, "canonical followup review packet no longer matches fixture.")
+
+    reject_review_result = materialize_placeholders(
+        load_json(CANONICAL_FOLLOWUP_REVIEW_RESULT_REJECT),
+        {"__ROOM_ID__": room_id, "__DEBATE_ID__": debate_id},
+    )
+    reject_review_result_validation = validate_review_result(reject_review_result, review_packet)
+    require(
+        reject_review_result["allow_final_decision"] is False,
+        "canonical followup rejection fixture must reject final decision.",
+    )
+
+    followup_record = materialize_placeholders(
+        load_json(CANONICAL_FOLLOWUP_RECORD),
+        {"__ROOM_ID__": room_id, "__DEBATE_ID__": debate_id},
+    )
+    followup_validation = validate_followup_record(followup_record, reject_review_result, review_packet)
+
+    rereview_packet = build_rereview_packet(
+        review_packet=review_packet,
+        review_result=reject_review_result,
+        followup_record=followup_record,
+    )
+    rereview_packet_validation = validate_review_packet(rereview_packet)
+    expected_rereview_packet = materialize_placeholders(
+        load_json(CANONICAL_FOLLOWUP_REREVIEW_PACKET),
+        {"__ROOM_ID__": room_id},
+    )
+    require(rereview_packet == expected_rereview_packet, "canonical rereview packet no longer matches fixture.")
+
+    final_review_result = materialize_placeholders(
+        load_json(CANONICAL_FOLLOWUP_REVIEW_RESULT_ALLOW),
+        {"__ROOM_ID__": room_id, "__DEBATE_ID__": debate_id},
+    )
+    final_review_result_validation = validate_review_result(final_review_result, rereview_packet)
+    require(
+        final_review_result["allow_final_decision"] is True,
+        "canonical followup final review fixture must allow final decision.",
+    )
+
+    debate_dir = get_debate_dir(state_root, debate_id)
+    ensure_directory(debate_dir / "launch")
+    ensure_directory(debate_dir / "roundtable")
+    ensure_directory(debate_dir / "review")
+    ensure_directory(debate_dir / "followup")
+    write_json(debate_dir / "launch" / "launch-bundle.json", launch_bundle)
+    write_json(debate_dir / "roundtable" / "roundtable-record.json", roundtable_record)
+    write_json(debate_dir / "roundtable" / "roundtable.validation.json", roundtable_validation)
+    write_json(debate_dir / "review" / "review-packet.json", review_packet)
+    write_json(debate_dir / "review" / "review-packet.validation.json", review_packet_validation)
+    write_json(debate_dir / "review" / "review-result.reject.json", reject_review_result)
+    write_json(debate_dir / "review" / "review-result.reject.validation.json", reject_review_result_validation)
+    write_json(debate_dir / "followup" / "followup-record.json", followup_record)
+    write_json(debate_dir / "followup" / "followup.validation.json", followup_validation)
+    write_json(debate_dir / "followup" / "rereview-packet.json", rereview_packet)
+    write_json(debate_dir / "followup" / "rereview-packet.validation.json", rereview_packet_validation)
+    write_json(debate_dir / "followup" / "review-result.allow.json", final_review_result)
+    write_json(debate_dir / "followup" / "review-result.allow.validation.json", final_review_result_validation)
+
+    report = {
+        "ok": True,
+        "action": "validate-canonical-followup",
+        "debate_id": debate_id,
+        "source_room_id": room_id,
+        "artifacts": {
+            "debate_dir": str(debate_dir),
+            "launch_bundle": str(debate_dir / "launch" / "launch-bundle.json"),
+            "roundtable_record": str(debate_dir / "roundtable" / "roundtable-record.json"),
+            "review_packet": str(debate_dir / "review" / "review-packet.json"),
+            "reject_review_result": str(debate_dir / "review" / "review-result.reject.json"),
+            "followup_record": str(debate_dir / "followup" / "followup-record.json"),
+            "rereview_packet": str(debate_dir / "followup" / "rereview-packet.json"),
+            "final_review_result": str(debate_dir / "followup" / "review-result.allow.json"),
+        },
+        "launch_summary": {
+            "selected_agents": launch_bundle["candidate_pool"]["final_agents"],
+            "speaker_order": launch_bundle["speaker_order"],
+            "actual_overlap": launch_bundle["candidate_pool"]["actual_overlap"],
+            "minimum_overlap_target": launch_bundle["candidate_pool"]["minimum_overlap_target"],
+            "balance_after_reselection": launch_bundle["candidate_pool"]["balance_after_reselection"],
+        },
+        "roundtable_validation": roundtable_validation,
+        "review_packet_validation": review_packet_validation,
+        "reject_review_result_validation": reject_review_result_validation,
+        "followup_validation": followup_validation,
+        "rereview_packet_validation": rereview_packet_validation,
+        "final_review_result_validation": final_review_result_validation,
+        "pass_criteria": {
+            "initial_review_packet_matches_fixture": review_packet == expected_review_packet,
+            "initial_reject_accepted": reject_review_result_validation["accepted"],
+            "followup_record_accepted": followup_validation["accepted"],
+            "rereview_packet_matches_fixture": rereview_packet == expected_rereview_packet,
+            "final_review_result_accepted": final_review_result_validation["accepted"],
+            "allow_final_decision_after_followup": final_review_result["allow_final_decision"],
         },
     }
     write_json(debate_dir / "validation-report.json", report)
@@ -865,6 +1121,7 @@ def validate_review_packet(payload: dict[str, Any]) -> dict[str, Any]:
 def validate_review_result(payload: dict[str, Any], review_packet: dict[str, Any]) -> dict[str, Any]:
     participant_ids = [item["agent_id"] for item in review_packet["participants"]]
     participant_set = set(participant_ids)
+    allowed_followup_targets = participant_set | {"moderator"}
 
     require(payload.get("schema_version") == "v0.1", "review result schema_version must be v0.1.")
     require(payload.get("mode") == "debate_review_result", "review result mode must be debate_review_result.")
@@ -909,7 +1166,10 @@ def validate_review_result(payload: dict[str, Any], review_packet: dict[str, Any
     for item in required_followups:
         require(isinstance(item, dict), "required_followups entries must be objects.")
         agent_id = item.get("agent_id")
-        require(agent_id in participant_set, "required_followups.agent_id must be one of the debate participants.")
+        require(
+            agent_id in allowed_followup_targets,
+            "required_followups.agent_id must be a debate participant or moderator.",
+        )
         require(agent_id not in seen_followups, "required_followups must not repeat the same participant.")
         seen_followups.add(agent_id)
         require(
@@ -944,6 +1204,231 @@ def validate_review_result(payload: dict[str, Any], review_packet: dict[str, Any
         "reason": "review result satisfies the checked-in reviewer decision contract.",
         "allow_final_decision": payload["allow_final_decision"],
     }
+
+
+def validate_followup_record(
+    payload: dict[str, Any],
+    review_result: dict[str, Any],
+    review_packet: dict[str, Any],
+) -> dict[str, Any]:
+    require(review_packet["quick_mode"] is False, "followup records are only valid for full mode review packets.")
+    require(review_result["allow_final_decision"] is False, "followup records require a rejected reviewer result.")
+
+    participant_map = {item["agent_id"]: item for item in review_packet["participants"]}
+    required_map = {
+        item["agent_id"]: item["needs"]
+        for item in review_result["required_followups"]
+    }
+    require(len(required_map) >= 1, "followup records require at least one reviewer-requested followup target.")
+    participant_targets = {agent_id for agent_id in required_map if agent_id != "moderator"}
+    moderator_required = "moderator" in required_map
+
+    require(payload.get("schema_version") == "v0.1", "followup record schema_version must be v0.1.")
+    require(payload.get("mode") == "debate_followup_record", "followup record mode must be debate_followup_record.")
+    require(payload.get("source_kind") == review_packet["source_kind"], "followup record source_kind must match review packet.")
+    require(payload.get("debate_id") == review_result["debate_id"], "followup record debate_id must match rejected review result.")
+    require(
+        payload.get("source_room_id") == review_packet["source_room_id"],
+        "followup record source_room_id must match review packet.",
+    )
+    require(
+        isinstance(payload.get("topic_restatement"), str)
+        and payload["topic_restatement"] == review_packet["topic_restatement"],
+        "followup record topic_restatement must match review packet.",
+    )
+    require(
+        isinstance(payload.get("quick_mode"), bool) and payload["quick_mode"] is False,
+        "followup record quick_mode must be false.",
+    )
+    require(payload.get("followup_round") == 1, "followup record followup_round must be exactly 1.")
+
+    validate_non_empty_string_list(payload.get("rejection_summary"), "followup record rejection_summary")
+
+    required_followups = payload.get("required_followups")
+    require(isinstance(required_followups, list), "followup record required_followups must be a list.")
+    require(len(required_followups) == len(required_map), "followup record required_followups must mirror the reviewer result.")
+    seen_required: set[str] = set()
+    for item in required_followups:
+        require(isinstance(item, dict), "followup record required_followups entries must be objects.")
+        agent_id = item.get("agent_id")
+        require(agent_id in required_map, f"followup record includes unexpected followup target: {agent_id}")
+        require(agent_id not in seen_required, "followup record required_followups must not repeat targets.")
+        seen_required.add(agent_id)
+        require(
+            item.get("needs") == required_map[agent_id],
+            f"followup record required_followups.needs must match reviewer result for {agent_id}.",
+        )
+    require(seen_required == set(required_map), "followup record must cover every reviewer-requested followup target.")
+
+    agent_followups = payload.get("agent_followups")
+    require(isinstance(agent_followups, list), "followup record agent_followups must be a list.")
+    seen_agent_followups: set[str] = set()
+    for item in agent_followups:
+        require(isinstance(item, dict), "followup record agent_followups entries must be objects.")
+        agent_id = item.get("agent_id")
+        require(agent_id in participant_targets, f"followup record contains unexpected participant followup: {agent_id}")
+        require(agent_id not in seen_agent_followups, "followup record agent_followups must not repeat participants.")
+        seen_agent_followups.add(agent_id)
+        require(
+            item.get("role_duty") == participant_map[agent_id]["responsibility"],
+            f"followup record role_duty must match participant responsibility for {agent_id}.",
+        )
+        require(
+            item.get("needs") == required_map[agent_id],
+            f"followup record needs must match reviewer followup request for {agent_id}.",
+        )
+        validate_non_empty_string_list(item.get("supplemental_points"), f"followup record supplemental_points[{agent_id}]")
+        require(
+            isinstance(item.get("updated_recommendation"), str) and bool(item["updated_recommendation"].strip()),
+            f"followup record updated_recommendation must be non-empty for {agent_id}.",
+        )
+        validate_string_list_allow_empty(
+            item.get("remaining_uncertainties"),
+            f"followup record remaining_uncertainties[{agent_id}]",
+        )
+    require(
+        seen_agent_followups == participant_targets,
+        "followup record agent_followups must cover exactly the participant targets requested by the reviewer.",
+    )
+
+    moderator_followup = payload.get("moderator_followup")
+    if moderator_required:
+        require(isinstance(moderator_followup, dict), "followup record moderator_followup is required when reviewer targets moderator.")
+        require(
+            moderator_followup.get("needs") == required_map["moderator"],
+            "followup record moderator_followup.needs must match reviewer followup request for moderator.",
+        )
+        validate_non_empty_string_list(
+            moderator_followup.get("added_or_corrected_consensus"),
+            "followup record moderator_followup.added_or_corrected_consensus",
+        )
+        validate_non_empty_string_list(
+            moderator_followup.get("added_or_corrected_conflicts"),
+            "followup record moderator_followup.added_or_corrected_conflicts",
+        )
+        validate_non_empty_string_list(
+            moderator_followup.get("facts"),
+            "followup record moderator_followup.facts",
+        )
+        validate_non_empty_string_list(
+            moderator_followup.get("inferences"),
+            "followup record moderator_followup.inferences",
+        )
+        require(
+            isinstance(moderator_followup.get("updated_preliminary_recommendation"), str)
+            and bool(moderator_followup["updated_preliminary_recommendation"].strip()),
+            "followup record moderator_followup.updated_preliminary_recommendation must be non-empty.",
+        )
+        validate_non_empty_string_list(
+            moderator_followup.get("updated_stop_conditions"),
+            "followup record moderator_followup.updated_stop_conditions",
+        )
+        validate_string_list_allow_empty(
+            moderator_followup.get("remaining_uncertainties"),
+            "followup record moderator_followup.remaining_uncertainties",
+        )
+    else:
+        require(
+            moderator_followup is None,
+            "followup record must not include moderator_followup when moderator was not requested.",
+        )
+
+    rereview_status = payload.get("rereview_status")
+    require(isinstance(rereview_status, dict), "followup record rereview_status must be an object.")
+    require(rereview_status.get("rereview_required") is True, "followup record rereview_required must be true.")
+    require(rereview_status.get("max_followup_rounds") == 1, "followup record max_followup_rounds must be 1.")
+    require(rereview_status.get("return_to_reviewer") is True, "followup record return_to_reviewer must be true.")
+
+    return {
+        "accepted": True,
+        "checked_against": str(Path(__file__).resolve()),
+        "reason": "followup record satisfies the checked-in reject-followup-rereview contract.",
+        "participant_followup_count": len(participant_targets),
+        "moderator_followup_required": moderator_required,
+    }
+
+
+def build_rereview_packet(
+    *,
+    review_packet: dict[str, Any],
+    review_result: dict[str, Any],
+    followup_record: dict[str, Any],
+) -> dict[str, Any]:
+    rereview_packet = copy.deepcopy(review_packet)
+    participant_followups = {
+        item["agent_id"]: item
+        for item in followup_record["agent_followups"]
+    }
+
+    rereview_packet["followup_context"] = {
+        "followup_round": followup_record["followup_round"],
+        "rejection_summary": copy.deepcopy(followup_record["rejection_summary"]),
+        "prior_review_result": {
+            "overall_score": review_result["overall_score"],
+            "best_agent": review_result["best_agent"],
+            "weak_agents": copy.deepcopy(review_result["weak_agents"]),
+            "evidence_gaps": copy.deepcopy(review_result["evidence_gaps"]),
+            "logic_gaps": copy.deepcopy(review_result["logic_gaps"]),
+            "overlooked_issues": copy.deepcopy(review_result["overlooked_issues"]),
+            "severe_red_flags": copy.deepcopy(review_result["severe_red_flags"]),
+            "allow_final_decision": review_result["allow_final_decision"],
+            "required_followups": copy.deepcopy(review_result["required_followups"]),
+            "rationale": review_result["rationale"],
+        },
+        "return_to_reviewer": followup_record["rereview_status"]["return_to_reviewer"],
+    }
+
+    for output in rereview_packet["agent_outputs"]:
+        agent_id = output["agent_id"]
+        if agent_id not in participant_followups:
+            continue
+        followup = participant_followups[agent_id]
+        output["followup_update"] = {
+            "needs": followup["needs"],
+            "supplemental_points": copy.deepcopy(followup["supplemental_points"]),
+            "updated_recommendation": followup["updated_recommendation"],
+            "remaining_uncertainties": copy.deepcopy(followup["remaining_uncertainties"]),
+        }
+        rereview_packet["evidence_buckets"]["recommendations"].append(followup["updated_recommendation"])
+        rereview_packet["evidence_buckets"]["uncertainties"].extend(copy.deepcopy(followup["remaining_uncertainties"]))
+
+    moderator_followup = followup_record.get("moderator_followup")
+    if moderator_followup is not None:
+        rereview_packet["moderator_summary"]["consensus_points"].extend(
+            copy.deepcopy(moderator_followup["added_or_corrected_consensus"])
+        )
+        rereview_packet["moderator_summary"]["core_conflicts"].extend(
+            copy.deepcopy(moderator_followup["added_or_corrected_conflicts"])
+        )
+        rereview_packet["moderator_summary"]["preliminary_recommendation"] = moderator_followup[
+            "updated_preliminary_recommendation"
+        ]
+        rereview_packet["moderator_summary"]["stop_conditions"] = copy.deepcopy(
+            moderator_followup["updated_stop_conditions"]
+        )
+        rereview_packet["moderator_summary"]["followup_update"] = {
+            "needs": moderator_followup["needs"],
+            "facts": copy.deepcopy(moderator_followup["facts"]),
+            "inferences": copy.deepcopy(moderator_followup["inferences"]),
+            "updated_preliminary_recommendation": moderator_followup["updated_preliminary_recommendation"],
+            "updated_stop_conditions": copy.deepcopy(moderator_followup["updated_stop_conditions"]),
+            "remaining_uncertainties": copy.deepcopy(moderator_followup["remaining_uncertainties"]),
+        }
+        rereview_packet["evidence_buckets"]["facts"].extend(copy.deepcopy(moderator_followup["facts"]))
+        rereview_packet["evidence_buckets"]["inferences"].extend(copy.deepcopy(moderator_followup["inferences"]))
+        rereview_packet["evidence_buckets"]["uncertainties"].extend(
+            copy.deepcopy(moderator_followup["remaining_uncertainties"])
+        )
+        rereview_packet["evidence_buckets"]["recommendations"].append(
+            moderator_followup["updated_preliminary_recommendation"]
+        )
+        rereview_packet["evidence_buckets"]["recommendations"].extend(
+            copy.deepcopy(moderator_followup["updated_stop_conditions"])
+        )
+
+    rereview_packet["review_boundaries"]["followup_round"] = followup_record["followup_round"]
+    rereview_packet["review_boundaries"]["rereview_required"] = True
+    return rereview_packet
 
 
 def validate_launch_bundle(payload: dict[str, Any]) -> None:

@@ -1,0 +1,91 @@
+{
+  "schema_version": "v0.1",
+  "mode": "debate_followup_record",
+  "source_kind": "room_handoff",
+  "debate_id": "__DEBATE_ID__",
+  "source_room_id": "__ROOM_ID__",
+  "topic_restatement": "围绕面向大学生的 AI 学习产品，判断是否应该立刻产品化，以及最稳妥的下一步验证动作是什么。",
+  "quick_mode": false,
+  "followup_round": 1,
+  "rejection_summary": [
+    "上一轮没有把失败代价和信任损伤翻成明确边界。",
+    "上一轮缺少 kill rule 与继续投入门槛。",
+    "主持人汇总没有显式区分事实与推断，也没有停止条件。"
+  ],
+  "required_followups": [
+    {
+      "agent_id": "taleb",
+      "needs": "补完整下行风险、信任损伤和不可逆失败代价分析，并翻译成明确边界。"
+    },
+    {
+      "agent_id": "munger",
+      "needs": "把 kill rule、机会成本和继续投入门槛写成可执行条件。"
+    },
+    {
+      "agent_id": "moderator",
+      "needs": "补事实 / 推断分栏，并把阶段建议改写成带停止条件的主持人汇总。"
+    }
+  ],
+  "agent_followups": [
+    {
+      "agent_id": "taleb",
+      "role_duty": "检查错误反馈、不可逆信任损伤和下行暴露。",
+      "needs": "补完整下行风险、信任损伤和不可逆失败代价分析，并翻译成明确边界。",
+      "supplemental_points": [
+        "最大风险不是实验失败，而是在错误反馈没有兜底时伤害学生对学习结果的信任。",
+        "如果连续 7 天实验里出现 2 次以上高影响错误反馈，就应该立即暂停自动化输出并回退到人工兜底。",
+        "只有当错误反馈可恢复且代价被限制在低风险学习任务内时，这个验证才是可承受下注。"
+      ],
+      "updated_recommendation": "把实验限定在低风险学习任务，并设置高影响错误次数上限，一旦触发就暂停自动化验证。",
+      "remaining_uncertainties": [
+        "哪些学习任务的错误反馈最容易造成不可逆信任损伤。"
+      ]
+    },
+    {
+      "agent_id": "munger",
+      "role_duty": "审查实验设计是否自欺，并给出 kill rule 与资源边界。",
+      "needs": "把 kill rule、机会成本和继续投入门槛写成可执行条件。",
+      "supplemental_points": [
+        "如果 7 天复用率、完成率、主动回访率三项中有两项不达标，就不允许加码开发。",
+        "学业底盘和其他更低风险成长路径是明确机会成本，不能用模糊热情抵消。",
+        "只有当验证信号明显强于替代方案时，才值得讨论继续投入更多时间和工程资源。"
+      ],
+      "updated_recommendation": "先写死三项验证门槛与资源上限，未达标就停止，不把弱正反馈解释成继续投入理由。",
+      "remaining_uncertainties": [
+        "目标场景的真实复用频率是否足够高，能让门槛在 7 天内被有效观察。"
+      ]
+    }
+  ],
+  "moderator_followup": {
+    "needs": "补事实 / 推断分栏，并把阶段建议改写成带停止条件的主持人汇总。",
+    "added_or_corrected_consensus": [
+      "正式验证只能在单场景、人工兜底、硬门槛约束下推进。",
+      "任何继续投入都必须晚于验证门槛达标，而不是先加码再找理由。"
+    ],
+    "added_or_corrected_conflicts": [
+      "Jobs 关心先找到锋利体验，Taleb 与 Munger 更关心在体验验证前先锁住下行和停止条件。"
+    ],
+    "facts": [
+      "当前没有稳定现金流，且首轮记录里没有真实学生连续 7 天复用数据。",
+      "现有记录已经承认错误反馈影响和持续交付材料意愿仍未验证。"
+    ],
+    "inferences": [
+      "在缺少连续复用数据前，任何“值得正式产品化”的判断都只能是条件性推断。",
+      "如果不把错误反馈上限和 kill rule 写死，团队很容易把弱信号误读成可继续投入。"
+    ],
+    "updated_preliminary_recommendation": "允许进入一次受限正式验证，但前提是只做单场景、保留人工兜底，并在开始前写死 kill rule 与暂停条件。",
+    "updated_stop_conditions": [
+      "7 天复用率、完成率、主动回访率三项中任意两项未达标，则停止加码。",
+      "出现 2 次以上高影响错误反馈，则暂停自动化输出并回退到人工兜底。",
+      "30 天内拿不到真实连续复用信号，则不进入更重的产品化阶段。"
+    ],
+    "remaining_uncertainties": [
+      "首批学生获取路径是否足以在 30 天内形成可解释的连续复用信号。"
+    ]
+  },
+  "rereview_status": {
+    "rereview_required": true,
+    "max_followup_rounds": 1,
+    "return_to_reviewer": true
+  }
+}

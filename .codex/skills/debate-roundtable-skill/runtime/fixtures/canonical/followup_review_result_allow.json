@@ -1,0 +1,22 @@
+{
+  "schema_version": "v0.1",
+  "mode": "debate_review_result",
+  "source_kind": "room_handoff",
+  "debate_id": "__DEBATE_ID__",
+  "source_room_id": "__ROOM_ID__",
+  "topic_restatement": "本轮讨论已经把 debate 的主建议收敛到单场景、薄闭环、带 kill rule 的正式验证路径。",
+  "quick_mode": false,
+  "review_applicable": true,
+  "overall_score": 8,
+  "best_agent": "munger",
+  "weak_agents": [],
+  "evidence_gaps": [
+    "首批学生获取路径仍然需要真实分发实验支撑。"
+  ],
+  "logic_gaps": [],
+  "overlooked_issues": [],
+  "severe_red_flags": [],
+  "allow_final_decision": true,
+  "required_followups": [],
+  "rationale": "补充讨论已经把下行边界、kill rule、事实 / 推断分栏和停止条件补到 reviewer 可审范围内，因此可以允许进入条件性最终决议。"
+}

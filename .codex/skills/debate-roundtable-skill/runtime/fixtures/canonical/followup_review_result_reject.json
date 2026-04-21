@@ -1,0 +1,41 @@
+{
+  "schema_version": "v0.1",
+  "mode": "debate_review_result",
+  "source_kind": "room_handoff",
+  "debate_id": "__DEBATE_ID__",
+  "source_room_id": "__ROOM_ID__",
+  "topic_restatement": "本轮讨论已经把 debate 的主建议收敛到单场景、薄闭环、带 kill rule 的正式验证路径。",
+  "quick_mode": false,
+  "review_applicable": true,
+  "overall_score": 6,
+  "best_agent": "munger",
+  "weak_agents": [
+    "steve-jobs"
+  ],
+  "evidence_gaps": [
+    "Jobs 对强单点体验的判断仍然缺少真实学生语料支撑。"
+  ],
+  "logic_gaps": [
+    "主持人当前的初步建议还没有把停止条件和不加码门槛显式写进可执行决策。"
+  ],
+  "overlooked_issues": [
+    "如果学习反馈错误导致信任损伤，当前记录还没有把代价写成明确边界。"
+  ],
+  "severe_red_flags": [],
+  "allow_final_decision": false,
+  "required_followups": [
+    {
+      "agent_id": "taleb",
+      "needs": "补完整下行风险、信任损伤和不可逆失败代价分析，并翻译成明确边界。"
+    },
+    {
+      "agent_id": "munger",
+      "needs": "把 kill rule、机会成本和继续投入门槛写成可执行条件。"
+    },
+    {
+      "agent_id": "moderator",
+      "needs": "补事实 / 推断分栏，并把阶段建议改写成带停止条件的主持人汇总。"
+    }
+  ],
+  "rationale": "当前 roundtable 已经形成方向，但 reviewer 仍看不到足够明确的下行边界、kill rule 和事实 / 推断分栏，因此不能直接放行最终决议。"
+}

@@ -1,7 +1,7 @@
 # Debate Runtime Bridge
 
 > Purpose: define the checked-in host bridge for `/debate`, so packet-driven debate execution can be wired from repository source instead of ad hoc session logic.
-> Last reviewed: 2026-04-21
+> Last reviewed: 2026-04-22
 
 ---
 
@@ -34,7 +34,9 @@ The checked-in bridge is responsible for these actions and no others:
 6. validate roundtable records produced from that launch bundle
 7. build or validate reviewer-facing review packets
 8. validate reviewer results against the checked-in reviewer decision contract
-9. write portable runtime artifacts under `artifacts/runtime/debates/<debate_id>/`
+9. validate follow-up records against a rejected reviewer result
+10. build reviewer-facing re-review packets after one checked-in follow-up round
+11. write portable runtime artifacts under `artifacts/runtime/debates/<debate_id>/`
 
 The bridge is not responsible for:
 
@@ -209,6 +211,56 @@ The bridge also validates a `review-result.json` after the reviewer prompt runs:
 
 This schema exists so the host can decide whether `/debate` may emit a final decision or must enter one follow-up loop.
 
+`required_followups.agent_id` may target:
+
+- one of the debate participants
+- `moderator` when the reviewer explicitly requires a moderator-side补充汇总
+
+---
+
+## Followup Record Schema
+
+When the first review rejects the debate, the checked-in bridge validates a `followup-record.json` with this shape:
+
+```json
+{
+  "schema_version": "v0.1",
+  "mode": "debate_followup_record",
+  "source_kind": "room_handoff",
+  "debate_id": "debate-...",
+  "source_room_id": "room-...",
+  "topic_restatement": "...",
+  "quick_mode": false,
+  "followup_round": 1,
+  "rejection_summary": [],
+  "required_followups": [],
+  "agent_followups": [],
+  "moderator_followup": {},
+  "rereview_status": {
+    "rereview_required": true,
+    "max_followup_rounds": 1,
+    "return_to_reviewer": true
+  }
+}
+```
+
+This schema exists so the host can validate the single allowed full-mode补充轮，不会把 reviewer 点名缺口 silently drop 掉。
+
+---
+
+## Re-Review Packet Shape
+
+After a valid follow-up record exists, the checked-in bridge can build a reviewer-facing re-review packet.
+
+It reuses the original `review-packet.json` structure and adds:
+
+- `followup_context`
+- targeted `agent_outputs[].followup_update`
+- `moderator_summary.followup_update`
+- updated evidence / recommendation buckets for the second review
+
+This keeps the re-review payload structurally compatible with the reviewer contract while preserving the follow-up delta as explicit visible output.
+
 ---
 
 ## Output Location
@@ -227,6 +279,14 @@ Typical files:
 - `review/review-packet.validation.json`
 - `review/review-result.json`
 - `review/review-result.validation.json`
+- `review/review-result.reject.json`
+- `review/review-result.reject.validation.json`
+- `followup/followup-record.json`
+- `followup/followup.validation.json`
+- `followup/rereview-packet.json`
+- `followup/rereview-packet.validation.json`
+- `followup/review-result.allow.json`
+- `followup/review-result.allow.validation.json`
 - `validation-report.json`
 
 These are generated runtime artifacts, not source of truth.
@@ -241,6 +301,7 @@ It still does not prove:
 
 - a real prompt host has executed `prompts/debate-roundtable.md`
 - a real reviewer run has passed or rejected a live roundtable through an external model host
-- a real follow-up loop has completed end to end
+- a real prompt host has executed `prompts/debate-followup.md`
+- a real follow-up loop has completed end to end through an external model host
 
 Those remain separate live validation steps.
