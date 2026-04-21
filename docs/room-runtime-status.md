@@ -1,13 +1,13 @@
 # Room Runtime Status
 
-> Purpose: lock the current `/room` implementation boundary after the Windows-to-GitHub migration, so Mac-side continuation does not treat historical reports as executable source.
+> Purpose: lock the real `/room` implementation boundary after the Windows-to-GitHub migration, so Mac-side continuation uses checked-in source instead of historical reports.
 > Last reviewed: 2026-04-21
 
 ---
 
 ## Source Of Truth
 
-The current source-of-truth files for `/room` in this repository are:
+The current source-of-truth files for `/room` are:
 
 - `README.md`
 - `AGENTS.md`
@@ -28,64 +28,66 @@ The current source-of-truth files for `/room` in this repository are:
 - `.codex/skills/room-skill/SKILL.md`
 - `.codex/skills/room-skill/WORKFLOW.md`
 
-If a report or session note conflicts with the files above, the files above win.
+If a report, checkpoint, or session artifact conflicts with the files above, the files above win.
 
 ---
 
 ## What Is Already Completed
 
-The repository already contains a largely complete protocol layer for `/room`:
+The repository already contains a largely complete source layer for `/room`:
 
-- state model, ownership, and command semantics in `docs/room-architecture.md`
-- selection and scheduling policy in `docs/room-selection-policy.md`
+- state model, ownership, command semantics, and host responsibilities in `docs/room-architecture.md`
+- selection policy and scoring rules in `docs/room-selection-policy.md`
 - `/room -> /debate` handoff schema in `docs/room-to-debate-handoff.md`
-- a checked-in agent registry in `docs/agent-registry.md`
+- a checked-in portable agent registry in `docs/agent-registry.md`
 - an implementation-facing runtime bridge contract in `docs/room-runtime-bridge.md`
-- active prompt contracts for selection, summary, and upgrade in `prompts/`
-- a clean fallback contract for chat in `docs/room-chat-contract.md`
-- a rebuilt and readable `prompts/room-chat.md`
-- a checked-in `/room` source entry aligned with the registry and bridge contract in `.codex/skills/room-skill/SKILL.md`
 - a checked-in runtime workflow playbook in `.codex/skills/room-skill/WORKFLOW.md`
+- a checked-in `/room` runtime entry in `.codex/skills/room-skill/SKILL.md`
 - a checked-in end-to-end validation guide in `docs/room-e2e-validation.md`
-- repository-level entrypoints now aligned so `/room` is first-class in `README.md`, `AGENTS.md`, and `examples/room-examples.md`
-- architecture decisions confirming the dual-mode product (`/room` + `/debate`) in `docs/DECISIONS-LOCKED.md`
+- repository-level entrypoints aligned so `/room` is first-class in `README.md`, `AGENTS.md`, and `examples/room-examples.md`
+- a clean fallback chat contract in `docs/room-chat-contract.md`
+- rebuilt and portable active prompts in:
+  - `prompts/room-chat.md`
+  - `prompts/room-summary.md`
+  - `prompts/room-upgrade.md`
+  - `prompts/room-selection.md`
 
-The `/debate` side is also structurally complete enough to be treated as an implemented source area, not an open design sketch.
+The `/debate` side is also structurally complete enough to be treated as an implemented source area, not an open sketch.
 
 ---
 
 ## What Is Not Yet Completed In This Repo
 
-The final incomplete part is no longer the `/room` workflow description. It is the host-side portable execution and live validation layer.
+The remaining unfinished part is no longer the checked-in source definition.
 
-The main gaps are:
+The remaining gap is the host-side portable execution and validation layer:
 
-1. The checked-in runtime playbook now exists, but the host-side state persistence and execution path still have not been proven end to end on Mac.
-2. Some active prompt files still contain Windows-local absolute links in legacy header references, especially `prompts/room-selection.md`, `prompts/room-summary.md`, and `prompts/room-upgrade.md`.
-3. The `/room` flow still needs a real `/room -> /summary -> /upgrade-to-debate` validation run before production use.
+1. the checked-in workflow and bridge still need a real host-side state persistence path that is proven end to end on Mac
+2. the first real `/room -> /summary -> /upgrade-to-debate` validation run still has not been completed against a live host flow
+3. the local terminal Git chain on this Mac is still not fully usable until GitHub trusts the prepared SSH key
 
 In short:
 
-`/room` is protocol-complete, workflow-checked-in, validation-specified, entry-aligned, but not yet host-validated as a portable runnable feature.
+`/room` is protocol-complete, prompt-cleaned, workflow-checked-in, validation-specified, and entry-aligned, but not yet host-validated as a portable runnable feature.
 
 ---
 
 ## How To Treat Reports
 
-`reports/` is historical evidence, not the runtime source.
+`reports/` is historical evidence, not runtime source.
 
 Use reports to understand:
 
 - why a decision was made
-- what was validated
+- what was validated at the time
 - what existed on the Windows machine
 
-Do not use reports as the only source for:
+Do not use reports as the sole authority for:
 
 - current prompt contracts
-- path references
 - runtime entrypoints
-- implementation truth
+- path references
+- portable implementation truth
 
 The same rule applies to `artifacts/`: they are outputs, not authoring source.
 
@@ -93,9 +95,9 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 
 ## Current Risks
 
-- Windows-local absolute links still remain in a few active prompt headers, which can create cross-machine confusion even when the underlying protocol is correct.
-- The host-side `/room` execution path is now specified, but still not live-validated on this Mac.
-- Reports still reference external Windows runtime paths that are not present in this repository, which can create a false impression that the runtime is already checked in.
+- The host-side `/room` execution path is specified, but still not live-validated on this Mac.
+- Historical reports still reference old Windows runtime paths, which can mislead future continuation if read as implementation truth.
+- Local terminal Git is still one GitHub-side trust step away from working end to end on this machine.
 
 ---
 
@@ -103,12 +105,12 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 
 The most reasonable continuation path is:
 
-1. finish normalizing the remaining Windows-local links in active `/room` prompts
-2. connect the host-side `/room` execution path to the checked-in `WORKFLOW.md`
-3. run the first end-to-end flow in `docs/room-e2e-validation.md`
-4. only after that, continue deeper runtime-level implementation
+1. wire the host-side `/room` execution path to the checked-in `WORKFLOW.md`
+2. run the first real flow from `docs/room-e2e-validation.md`
+3. verify the resulting handoff packet is accepted by `debate-roundtable-skill`
+4. after the host flow passes, treat `/room` as runtime-ready instead of only source-ready
 
-This keeps the current repository structure stable:
+This keeps the repository structure stable:
 
 - `docs/`, `prompts/`, `examples/`, `.codex/skills/` stay as source
 - `reports/` remains historical
@@ -119,6 +121,6 @@ This keeps the current repository structure stable:
 ## Non-Goals
 
 - Do not move historical reports into source directories.
-- Do not treat old session notes as stronger than current docs/prompts.
+- Do not treat old session notes as stronger than current docs and prompts.
 - Do not redesign `/debate`.
 - Do not rewrite repo structure unless a concrete source/runtime conflict requires it.
