@@ -34,6 +34,7 @@ This prompt is designed to force a correct startup sequence:
    - AGENTS.md
    - README.md
    - docs/development-sync-protocol.md
+   - docs/superpowers/local-development-integration.md（如果本地已安装 superpowers）
    - docs/
    - prompts/
    - examples/
@@ -96,6 +97,13 @@ This prompt is designed to force a correct startup sequence:
    - 如果存在明显阻塞，要先写阻塞
 
 7. 然后再继续开发，不要停留在分析层。
+
+7.1 如果本地已安装 superpowers，并且任务明显属于多步实现或需要更高开发纪律：
+   - 优先把 superpowers 作为流程增强层接入
+   - 规划阶段优先参考 `superpowers:writing-plans`
+   - 执行阶段优先参考 `superpowers:subagent-driven-development`，否则退回 `superpowers:executing-plans`
+   - 在重要里程碑前参考 `superpowers:requesting-code-review`
+   - 但不得让 superpowers 覆盖本仓库真源规则
 
 8. 开发时遵守以下硬约束：
    - docs/、prompts/、examples/、.codex/skills/ 是真源

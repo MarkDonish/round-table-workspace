@@ -39,6 +39,8 @@ The expected loop is:
 Do not treat GitHub as a mounted working directory.
 Do not treat `reports/` as the live implementation source.
 
+If local Superpowers is installed, use it as a workflow accelerator on top of this repository protocol, not instead of it.
+
 ---
 
 ## Per-Task Sync Standard
@@ -71,6 +73,10 @@ Minimum command checks:
 - `git status -sb`
 - `git log --oneline -5`
 - `git remote -v`
+
+If local Superpowers is available and the task is non-trivial, also read:
+
+- `docs/superpowers/local-development-integration.md`
 
 ---
 
@@ -108,6 +114,28 @@ Examples:
 - smoke run of the changed path
 
 If a full live validation cannot run because credentials, provider config, or external systems are missing, state that explicitly in the final report.
+
+If local Superpowers participates in the task, use it to strengthen planning and review quality, but keep verification anchored in real repo-local commands and checked-in validation paths.
+
+---
+
+## Local Superpowers Integration
+
+This repository now explicitly supports local Superpowers participation in development.
+
+Preferred mapping:
+
+1. `superpowers:writing-plans` for multi-step implementation planning
+2. `superpowers:subagent-driven-development` when subagents are available and tasks are separable
+3. `superpowers:executing-plans` when the plan should execute inline
+4. `superpowers:requesting-code-review` before closing a significant milestone
+
+Repository-specific boundaries:
+
+- repository source-of-truth files still win
+- `docs/superpowers/plans/` is a workflow plan area, not a stronger protocol layer
+- verified milestones in this repo still end with commit + push unless the user says otherwise
+- live validation claims must stay separated from fixture or mock validation claims
 
 ---
 

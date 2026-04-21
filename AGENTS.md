@@ -35,6 +35,7 @@ Historical material lives under:
 For every new development task, follow:
 
 - `docs/development-sync-protocol.md`
+- `docs/superpowers/local-development-integration.md` when local Superpowers is installed
 
 Default rule:
 
@@ -46,6 +47,8 @@ Default rule:
 
 Do not treat exploratory local edits as complete work.
 Do not treat `reports/` as the active implementation source.
+
+Local Superpowers is a workflow helper, not a source-of-truth override.
 
 ## Room Roundtable
 
