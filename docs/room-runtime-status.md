@@ -18,6 +18,7 @@ The current source-of-truth files for `/room` in this repository are:
 - `docs/room-chat-contract.md`
 - `docs/room-runtime-bridge.md`
 - `docs/room-runtime-status.md`
+- `docs/room-e2e-validation.md`
 - `docs/DECISIONS-LOCKED.md`
 - `prompts/room-selection.md`
 - `prompts/room-summary.md`
@@ -45,6 +46,7 @@ The repository already contains a largely complete protocol layer for `/room`:
 - a rebuilt and readable `prompts/room-chat.md`
 - a checked-in `/room` source entry aligned with the registry and bridge contract in `.codex/skills/room-skill/SKILL.md`
 - a checked-in runtime workflow playbook in `.codex/skills/room-skill/WORKFLOW.md`
+- a checked-in end-to-end validation guide in `docs/room-e2e-validation.md`
 - repository-level entrypoints now aligned so `/room` is first-class in `README.md`, `AGENTS.md`, and `examples/room-examples.md`
 - architecture decisions confirming the dual-mode product (`/room` + `/debate`) in `docs/DECISIONS-LOCKED.md`
 
@@ -64,7 +66,7 @@ The main gaps are:
 
 In short:
 
-`/room` is protocol-complete, workflow-checked-in, entry-aligned, but not yet host-validated as a portable runnable feature.
+`/room` is protocol-complete, workflow-checked-in, validation-specified, entry-aligned, but not yet host-validated as a portable runnable feature.
 
 ---
 
@@ -103,7 +105,7 @@ The most reasonable continuation path is:
 
 1. finish normalizing the remaining Windows-local links in active `/room` prompts
 2. connect the host-side `/room` execution path to the checked-in `WORKFLOW.md`
-3. run a first end-to-end `/room -> /summary -> /upgrade-to-debate` validation flow
+3. run the first end-to-end flow in `docs/room-e2e-validation.md`
 4. only after that, continue deeper runtime-level implementation
 
 This keeps the current repository structure stable:
