@@ -39,6 +39,7 @@ description: |
 - 优先消费 handoff packet，而不是回退到历史报告
 - 不把旧 Windows 机器路径当成当前入口
 - 不重写 `/room` 已经打包好的共识、张力和开放问题
+- checked-in preflight 参考实现见 `runtime/debate_packet_validator.py`
 
 ## 输入语义
 
@@ -124,6 +125,20 @@ description: |
    - 至少 1 个 `grounded`
    - `dominant` 不得超过一半
 7. 若不平衡，自动补位；仍不平衡时显式提示
+
+## Checked-In Runtime Preflight
+
+仓库里有一个 checked-in 的 handoff packet 可执行预检入口：
+
+- `runtime/debate_packet_validator.py`
+- `runtime/README.md`
+
+它用于做 `/room -> /debate` 交接前的结构校验与候选池平衡预检。
+
+注意边界：
+
+- 这不是 live `/debate` 多 Agent 执行器
+- 它只负责验证 packet 是否足够让 `/debate` 正常接手
 
 ## Token 预算
 

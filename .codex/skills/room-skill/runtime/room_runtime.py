@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import importlib.util
 import json
 import re
 import sys
@@ -15,6 +16,9 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "rooms"
 REGISTRY_PATH = REPO_ROOT / "docs" / "agent-registry.md"
 DEBATE_SKILL_PATH = REPO_ROOT / ".codex" / "skills" / "debate-roundtable-skill" / "SKILL.md"
+DEBATE_PACKET_VALIDATOR_PATH = (
+    REPO_ROOT / ".codex" / "skills" / "debate-roundtable-skill" / "runtime" / "debate_packet_validator.py"
+)
 
 VALID_STAGES = {"explore", "simulate", "stress_test", "converge", "decision"}
 VALID_TURN_ROLES = {"primary", "support", "challenge", "synthesizer"}
@@ -376,7 +380,7 @@ def command_validate_canonical(args: argparse.Namespace) -> dict[str, Any]:
             "at_least_two_turns": state["turn_count"] >= 2,
             "summary_persisted": bool((room_dir / "summary" / "summary-turn-002.json").exists()),
             "handoff_packet_persisted": bool((room_dir / "handoff" / "packet-turn-002.json").exists()),
-            "debate_contract_accepts_packet": upgrade_result["debate_acceptance"]["accepted"],
+            "debate_preflight_accepts_packet": upgrade_result["debate_acceptance"]["accepted"],
         },
     }
     write_json(room_dir / "validation-report.json", report)
@@ -955,17 +959,34 @@ def validate_upgrade_output(upgrade_output: dict[str, Any], state: dict[str, Any
 
 def validate_debate_acceptance(packet: dict[str, Any]) -> dict[str, Any]:
     require(DEBATE_SKILL_PATH.exists(), "debate-roundtable-skill entry is missing.")
-    skill_text = DEBATE_SKILL_PATH.read_text(encoding="utf-8")
-    require(
-        "/room" in skill_text and "handoff packet" in skill_text,
-        "debate skill entry no longer documents handoff packet acceptance.",
+    require(DEBATE_PACKET_VALIDATOR_PATH.exists(), "debate packet validator runtime is missing.")
+
+    validator = load_debate_packet_validator()
+    try:
+        acceptance = validator(packet)
+    except Exception as exc:
+        raise RoomRuntimeError(f"debate packet validator rejected handoff packet: {exc}") from exc
+
+    require(isinstance(acceptance, dict), "debate packet validator must return an object.")
+    require(acceptance.get("accepted") is True, "debate packet validator did not accept the handoff packet.")
+    return acceptance
+
+
+def load_debate_packet_validator():
+    spec = importlib.util.spec_from_file_location(
+        "round_table_debate_packet_validator",
+        DEBATE_PACKET_VALIDATOR_PATH,
     )
-    return {
-        "accepted": True,
-        "checked_against": str(DEBATE_SKILL_PATH),
-        "reason": "handoff packet matches the checked-in /room -> /debate contract and debate entry still accepts packet context.",
-        "suggested_agents": packet["field_11_suggested_agents"],
-    }
+    require(spec is not None and spec.loader is not None, "failed to load debate packet validator module.")
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+    except Exception as exc:
+        raise RoomRuntimeError(f"failed to import debate packet validator: {exc}") from exc
+
+    validator = getattr(module, "validate_handoff_packet", None)
+    require(callable(validator), "debate packet validator must expose validate_handoff_packet().")
+    return validator
 
 
 def compute_silent_rounds(state: dict[str, Any], turn: dict[str, Any]) -> dict[str, int]:

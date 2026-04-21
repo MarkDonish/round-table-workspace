@@ -27,6 +27,7 @@
 - `.codex/skills/room-skill/runtime/room_runtime.py` 已把 `/room` 的 host-side bridge 代码正式入仓
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 provider-backed 链路
+- `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py` 已提供 checked-in 的 `/debate` handoff packet 可执行预检
 - `.codex/skills/room-skill/runtime/fixtures/canonical/` 已提供 checked-in 的首轮验证 fixture
 
 ### 还没完成的核心能力
@@ -175,6 +176,7 @@ round-table-workspace/
 ### `/debate`
 
 - skill：`.codex/skills/debate-roundtable-skill/SKILL.md`
+- runtime preflight：`.codex/skills/debate-roundtable-skill/runtime/README.md`
 - 架构：`docs/debate-skill-architecture.md`
 - 角色边界：`docs/agent-role-map.md`
 - 审查协议：`docs/reviewer-protocol.md`

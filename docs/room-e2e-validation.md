@@ -201,6 +201,7 @@ Blocking failures:
 Expected checks:
 
 - `debate-roundtable-skill` accepts the handoff context
+- the checked-in `/debate` packet preflight accepts the packet shape
 - `/debate` does not fall back to historical reports
 - `/debate` treats the packet as the authoritative room handoff
 
@@ -220,7 +221,7 @@ A successful validation run should leave behind evidence that can be checked wit
 - at least 2 turns in `conversation_log`
 - a persisted summary snapshot
 - a generated handoff packet
-- proof that `debate-roundtable-skill` accepted the packet shape
+- proof that the checked-in `/debate` packet preflight accepted the packet shape
 
 If one of these is missing, the run is incomplete.
 
@@ -279,7 +280,7 @@ Examples:
 As of 2026-04-21, the main blockers before this validation can fully pass are:
 
 - the checked-in E2E runner and mock provider now exist, but a real external `--executor chat_completions --env-file .env.room` run is still missing
-- `/debate` handoff is still validated by checked-in contract acceptance, not by a real live `/debate` execution chain
+- `/debate` handoff is now checked by a checked-in executable preflight, but not yet by a real live `/debate` execution chain
 - local terminal Git access on this Mac still depends on GitHub trust for the generated SSH key
 
 ---

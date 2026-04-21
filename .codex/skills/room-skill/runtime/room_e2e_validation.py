@@ -225,7 +225,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
             "at_least_two_turns": state["turn_count"] >= 2,
             "summary_persisted": bool((room_dir / "summary" / f"summary-turn-{state['last_summary_turn']:03d}.json").exists()),
             "handoff_packet_persisted": bool((room_dir / "handoff" / f"packet-turn-{state['turn_count']:03d}.json").exists()),
-            "debate_contract_accepts_packet": upgrade_result["debate_acceptance"]["accepted"],
+            "debate_preflight_accepts_packet": upgrade_result["debate_acceptance"]["accepted"],
         },
     }
     runtime.write_json(room_dir / "validation-report.json", report)

@@ -10,6 +10,7 @@ It does not replace the prompts. Instead, it does the host-side work that the pr
 - update `silent_rounds`, `turn_count`, `last_stage`, and `recent_log`
 - persist summary snapshots
 - validate and persist `/room -> /debate` handoff packets
+- call the checked-in `/debate` packet preflight before persisting handoff acceptance
 
 ## Main Entry
 
@@ -35,6 +36,12 @@ For live prompt calls against a Chat Completions-compatible provider:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/chat_completions_executor.py --help
+```
+
+For the checked-in `/debate` packet preflight:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py --help
 ```
 
 ## Most Useful Commands
@@ -172,6 +179,8 @@ The bridge then validates those JSON outputs and performs the state writeback th
 `room_e2e_validation.py` is a checked-in validation harness above that bridge. It can drive the same flow through either canonical fixtures or a real Chat Completions-compatible provider, then persist evidence bundles for review.
 
 `mock_chat_completions_server.py` is a local-only validation aid. It serves the checked-in canonical fixtures behind a Chat Completions-compatible HTTP endpoint so the provider-backed path can be regression-checked without relying on external credentials.
+
+`debate_packet_validator.py` is a checked-in `/debate`-side preflight. `/room` calls it before writing `handoff/debate-acceptance.json`, so handoff acceptance is no longer just a plain-text skill-entry check.
 
 ## Live Provider Config
 
