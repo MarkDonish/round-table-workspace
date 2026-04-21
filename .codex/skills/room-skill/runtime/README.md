@@ -19,6 +19,12 @@ Run:
 python3 .codex/skills/room-skill/runtime/room_runtime.py --help
 ```
 
+For the checked-in end-to-end validation runner:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_e2e_validation.py --help
+```
+
 For live prompt calls against a Chat Completions-compatible provider:
 
 ```bash
@@ -31,6 +37,14 @@ Replay the checked-in canonical flow:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/room_runtime.py validate-canonical
+```
+
+Run the checked-in E2E validation flow through canonical fixtures:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
+  --executor fixture \
+  --state-root /tmp/round-table-room-e2e
 ```
 
 Check live provider config from an explicit env file:
@@ -49,6 +63,14 @@ python3 .codex/skills/room-skill/runtime/chat_completions_executor.py \
   --prompt-file prompts/room-selection.md \
   --input-json path/to/selection-input.json \
   --output-json path/to/selection-output.json
+```
+
+Run the checked-in E2E validation flow against a real Chat Completions-compatible provider:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
+  --executor chat_completions \
+  --env-file .env.room
 ```
 
 Create a room from `room_full` and optionally continue into the first turn:
@@ -106,6 +128,8 @@ Runtime state and evidence bundles are written under:
 Typical files:
 
 - `state.json`
+- `prompt-calls/001-room_full-selection.input.json`
+- `prompt-calls/001-room_full-selection.output.json`
 - `turns/turn-001.selection.json`
 - `turns/turn-001.chat.json`
 - `turns/turn-001.turn.json`
@@ -126,6 +150,8 @@ It assumes some host or operator already called:
 - `prompts/room-upgrade.md`
 
 The bridge then validates those JSON outputs and performs the state writeback that only the host is allowed to perform.
+
+`room_e2e_validation.py` is a checked-in validation harness above that bridge. It can drive the same flow through either canonical fixtures or a real Chat Completions-compatible provider, then persist evidence bundles for review.
 
 ## Live Provider Config
 

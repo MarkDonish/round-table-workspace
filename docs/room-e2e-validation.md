@@ -17,6 +17,35 @@ This file is not a historical report. It is the source validation checklist for 
 
 ---
 
+## Checked-In Entry
+
+Use the checked-in runner in `.codex/skills/room-skill/runtime/room_e2e_validation.py`.
+
+Fixture-backed smoke path:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
+  --executor fixture \
+  --state-root /tmp/round-table-room-e2e
+```
+
+Real provider path:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_executor.py \
+  --env-file .env.room \
+  --check-provider-config
+
+python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
+  --executor chat_completions \
+  --env-file .env.room
+```
+
+The fixture path validates the checked-in orchestration and writeback chain.
+It does not count as a live provider pass.
+
+---
+
 ## Validation Goal
 
 Prove that the following chain works on a portable host setup:
@@ -234,8 +263,8 @@ Examples:
 
 As of 2026-04-21, the main blockers before this validation can fully pass are:
 
-- some active `/room` prompts still contain Windows-local legacy header links
-- the host-side `/room` execution path is not yet proven end to end on this Mac
+- the checked-in E2E runner now exists, but `--executor chat_completions` still depends on a real local `.env.room` and reachable provider
+- `/debate` handoff is still validated by checked-in contract acceptance, not by a real live `/debate` execution chain
 - local terminal Git access on this Mac still depends on GitHub trust for the generated SSH key
 
 ---

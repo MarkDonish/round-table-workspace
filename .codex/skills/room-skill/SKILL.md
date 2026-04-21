@@ -179,6 +179,7 @@ description: |
 - `/room` 的协议层已完整进入真源
 - `.codex/skills/room-skill/WORKFLOW.md` 已提供 checked-in 的 runtime playbook
 - `.codex/skills/room-skill/runtime/room_runtime.py` 已提供 checked-in 的 host-side bridge
+- `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 E2E validation runner
 - canonical fixture 已可在 Mac 本地跑通 `/room -> /summary -> /upgrade-to-debate`
 - 但真实模型调用链上的 live host validation 仍未证明完成
 
@@ -187,6 +188,7 @@ description: |
 - `protocol-complete`
 - `workflow-checked-in`
 - `bridge-checked-in`
+- `e2e-runner-checked-in`
 - `fixture-validated-on-mac`
 - `provider-live-not-yet-validated`
 
