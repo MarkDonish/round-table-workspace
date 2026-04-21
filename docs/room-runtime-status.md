@@ -12,9 +12,10 @@ The current source-of-truth files for `/room` in this repository are:
 - `docs/room-architecture.md`
 - `docs/room-selection-policy.md`
 - `docs/room-to-debate-handoff.md`
+- `docs/agent-registry.md`
 - `docs/room-chat-contract.md`
-- `docs/DECISIONS-LOCKED.md`
 - `docs/room-runtime-status.md`
+- `docs/DECISIONS-LOCKED.md`
 - `prompts/room-selection.md`
 - `prompts/room-summary.md`
 - `prompts/room-upgrade.md`
@@ -32,8 +33,10 @@ The repository already contains a largely complete protocol layer for `/room`:
 - state model, ownership, and command semantics in `docs/room-architecture.md`
 - selection and scheduling policy in `docs/room-selection-policy.md`
 - `/room -> /debate` handoff schema in `docs/room-to-debate-handoff.md`
+- a checked-in agent registry in `docs/agent-registry.md`
 - active prompt contracts for selection, summary, and upgrade in `prompts/`
-- a clean fallback contract for the chat step in `docs/room-chat-contract.md`
+- a clean fallback contract for chat in `docs/room-chat-contract.md`
+- a rebuilt and readable `prompts/room-chat.md`
 - a checked-in source entry for `/room` in `.codex/skills/room-skill/SKILL.md`
 - architecture decisions confirming the dual-mode product (`/room` + `/debate`) in `docs/DECISIONS-LOCKED.md`
 
@@ -48,9 +51,8 @@ The final incomplete part is not the `/room` protocol itself. It is the checked-
 The main gaps are:
 
 1. `.codex/skills/room-skill/SKILL.md` now exists as a source entry, but the orchestrator/runtime entry behind it is still not present as checked-in source.
-2. `docs/agent-registry.md` is absent, even though reports and plans assume a registry/runtime layer exists.
-3. Active `/room` source files still contain Windows-local absolute links such as `/C:/Users/CLH/...`, which should not remain in source.
-4. `prompts/room-chat.md` contains import-time encoding damage in its main body. The trailing English addendum is readable, but the main Chinese contract text is not safe to treat as healthy source without repair.
+2. Active `/room` source files still contain Windows-local absolute links such as `/C:/Users/CLH/...`, which should not remain in source.
+3. The `/room` prompt layer is now structurally usable, but it still needs runtime-level integration and live validation before production use.
 
 In short:
 
@@ -82,7 +84,7 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 ## Current Risks
 
 - Windows absolute links in source prompts and skills create cross-machine breakage and confusion.
-- `prompts/room-chat.md` cannot be trusted as-is for future maintenance until its corrupted body is repaired.
+- The runtime bridge behind `/room` is still implied by source, not implemented as checked-in orchestrator code.
 - Reports reference external Windows runtime paths that are not present in this repository, which can create a false impression that the runtime is already checked in.
 
 ---
@@ -91,10 +93,10 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 
 The most reasonable continuation path is:
 
-1. normalize Windows absolute links in active `/room` source files and skill references
-2. repair or reconstruct `prompts/room-chat.md` from `docs/room-architecture.md` and `docs/room-chat-contract.md`
-3. implement the runtime bridge behind `.codex/skills/room-skill/SKILL.md`
-4. only after that, continue runtime-level implementation
+1. normalize remaining Windows absolute links in active source files and skill references
+2. implement the runtime bridge behind `.codex/skills/room-skill/SKILL.md` using `docs/agent-registry.md` + `prompts/`
+3. run a first end-to-end `/room -> /summary -> /upgrade-to-debate` validation flow
+4. only after that, continue deeper runtime-level implementation
 
 This keeps the current repository structure stable:
 
