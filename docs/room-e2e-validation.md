@@ -21,6 +21,8 @@ This file is not a historical report. It is the source validation checklist for 
 
 Use the checked-in runner in `.codex/skills/room-skill/runtime/room_e2e_validation.py`.
 
+If you want the first checked-in `/room -> /debate` full-chain validation instead of `/room` alone, use `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py`.
+
 Fixture-backed smoke path:
 
 ```bash
@@ -39,6 +41,15 @@ python3 .codex/skills/room-skill/runtime/chat_completions_executor.py \
 python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
   --executor chat_completions \
   --env-file .env.room
+```
+
+Full `/room -> /debate` checked-in path:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor chat_completions \
+  --room-env-file .env.room \
+  --debate-env-file .env.debate
 ```
 
 The fixture path validates the checked-in orchestration and writeback chain.

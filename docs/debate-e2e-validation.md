@@ -60,19 +60,15 @@ It still does not count as a real external provider pass.
 Real `/room -> /debate` handoff path:
 
 ```bash
-python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --executor chat_completions \
-  --env-file .env.room \
-  --state-root /tmp/round-table-room-live
-
-python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
-  --executor chat_completions \
-  --env-file .env.debate \
-  --packet-json /tmp/round-table-room-live/<room_run_id>/handoff/packet-turn-002.json \
-  --scenario reject_followup
+  --room-env-file .env.room \
+  --debate-env-file .env.debate \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-room-debate-live
 ```
 
-This is the first checked-in path that can consume a real `/room` packet instead of reusing only canonical packet material.
+This is the first checked-in one-command path that can consume a real `/room` packet instead of reusing only canonical packet material.
 
 Real provider path:
 

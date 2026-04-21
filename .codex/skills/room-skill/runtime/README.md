@@ -26,6 +26,12 @@ For the checked-in end-to-end validation runner:
 python3 .codex/skills/room-skill/runtime/room_e2e_validation.py --help
 ```
 
+For the checked-in `/room -> /debate` integration runner:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py --help
+```
+
 For the checked-in local mock Chat Completions provider:
 
 ```bash
@@ -84,6 +90,24 @@ Run the checked-in E2E validation flow against a real Chat Completions-compatibl
 python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
   --executor chat_completions \
   --env-file .env.room
+```
+
+Run the checked-in `/room -> /debate` integration flow through canonical fixtures:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor fixture \
+  --state-root /tmp/round-table-room-debate-e2e
+```
+
+Run the checked-in `/room -> /debate` integration flow against real providers:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor chat_completions \
+  --room-env-file .env.room \
+  --debate-env-file .env.debate \
+  --state-root /tmp/round-table-room-debate-live
 ```
 
 Run the same provider-backed path locally without external credentials:
@@ -177,6 +201,8 @@ It assumes some host or operator already called:
 The bridge then validates those JSON outputs and performs the state writeback that only the host is allowed to perform.
 
 `room_e2e_validation.py` is a checked-in validation harness above that bridge. It can drive the same flow through either canonical fixtures or a real Chat Completions-compatible provider, then persist evidence bundles for review.
+
+`room_debate_e2e_validation.py` is the checked-in orchestration layer above both runtime bridges. It first runs `/room`, then forwards the persisted handoff packet into `/debate`, so the full handoff chain can be exercised with one command.
 
 `mock_chat_completions_server.py` is a local-only validation aid. It serves the checked-in canonical fixtures behind a Chat Completions-compatible HTTP endpoint so the provider-backed path can be regression-checked without relying on external credentials.
 
