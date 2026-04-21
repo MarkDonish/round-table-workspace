@@ -4,6 +4,7 @@
 !.env.example
 !.env.sample
 !.env.room.example
+!.env.debate.example
 
 # Node / frontend
 node_modules/

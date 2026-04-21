@@ -24,6 +24,7 @@ The minimal checked-in bridge implementation now lives at:
 - `.codex/skills/room-skill/runtime/README.md`
 - `.codex/skills/room-skill/runtime/fixtures/canonical/`
 - `.env.room.example`
+- `.env.debate.example`
 
 This document remains the contract layer. The runtime code must stay aligned with it.
 

@@ -25,10 +25,11 @@ def main() -> int:
         env.update(load_env_file(Path(args.env_file)))
 
     try:
-        config = read_provider_config(env)
+        config = read_provider_config(env, provider_scope=args.provider_scope)
         if args.check_provider_config:
             payload = {
                 "ready": True,
+                "provider_scope": args.provider_scope,
                 "url": mask_value(config["url"]),
                 "model": mask_value(config["model"]),
                 "auth_configured": bool(config.get("auth_bearer")),
@@ -61,9 +62,15 @@ def main() -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Call a Chat Completions-compatible provider for checked-in /room prompt files."
+        description="Call a Chat Completions-compatible provider for checked-in runtime prompt files."
     )
     parser.add_argument("--env-file", help="Optional explicit .env file for provider config.")
+    parser.add_argument(
+        "--provider-scope",
+        choices=["room", "debate"],
+        default="room",
+        help="Which checked-in runtime scope to read provider variables for.",
+    )
     parser.add_argument("--check-provider-config", action="store_true")
     parser.add_argument("--prompt-file", help="Prompt markdown file.")
     parser.add_argument("--input-json", help="JSON input file for the prompt.")
@@ -93,29 +100,59 @@ def load_env_file(path: Path) -> dict[str, str]:
     return loaded
 
 
-def read_provider_config(env: dict[str, str]) -> dict[str, Any]:
-    url = env.get("ROOM_CHAT_COMPLETIONS_URL", "").strip()
-    model = env.get("ROOM_CHAT_COMPLETIONS_MODEL", "").strip()
+def read_provider_config(env: dict[str, str], *, provider_scope: str = "room") -> dict[str, Any]:
+    if provider_scope == "room":
+        primary_prefix = "ROOM"
+        fallback_prefixes: tuple[str, ...] = ()
+    elif provider_scope == "debate":
+        primary_prefix = "DEBATE"
+        fallback_prefixes = ("ROOM",)
+    else:
+        raise ProviderConfigError(f"Unsupported provider scope: {provider_scope}")
+
+    url = get_first_env(env, provider_keys(primary_prefix, "CHAT_COMPLETIONS_URL", fallback_prefixes))
+    model = get_first_env(env, provider_keys(primary_prefix, "CHAT_COMPLETIONS_MODEL", fallback_prefixes))
     auth_bearer = (
-        env.get("ROOM_PROVIDER_AUTH_BEARER", "").strip()
-        or env.get("ROOM_PROVIDER_API_KEY", "").strip()
+        get_first_env(env, provider_keys(primary_prefix, "PROVIDER_AUTH_BEARER", fallback_prefixes))
+        or get_first_env(env, provider_keys(primary_prefix, "PROVIDER_API_KEY", fallback_prefixes))
         or env.get("OPENAI_API_KEY", "").strip()
     )
-    timeout_raw = env.get("ROOM_PROVIDER_TIMEOUT_SECONDS", "").strip() or "60"
+    timeout_raw = get_first_env(env, provider_keys(primary_prefix, "PROVIDER_TIMEOUT_SECONDS", fallback_prefixes)) or "60"
     if not url:
-        raise ProviderConfigError("Missing ROOM_CHAT_COMPLETIONS_URL.")
+        raise ProviderConfigError(missing_config_message(primary_prefix, "CHAT_COMPLETIONS_URL", fallback_prefixes))
     if not model:
-        raise ProviderConfigError("Missing ROOM_CHAT_COMPLETIONS_MODEL.")
+        raise ProviderConfigError(missing_config_message(primary_prefix, "CHAT_COMPLETIONS_MODEL", fallback_prefixes))
     try:
         timeout_seconds = int(timeout_raw)
     except ValueError as exc:
-        raise ProviderConfigError("ROOM_PROVIDER_TIMEOUT_SECONDS must be an integer.") from exc
+        raise ProviderConfigError(f"{primary_prefix}_PROVIDER_TIMEOUT_SECONDS must be an integer.") from exc
     return {
         "url": url,
         "model": model,
         "auth_bearer": auth_bearer,
         "timeout_seconds": timeout_seconds,
+        "provider_scope": provider_scope,
     }
+
+
+def provider_keys(primary_prefix: str, suffix: str, fallback_prefixes: tuple[str, ...]) -> list[str]:
+    return [f"{primary_prefix}_{suffix}", *[f"{prefix}_{suffix}" for prefix in fallback_prefixes]]
+
+
+def get_first_env(env: dict[str, str], keys: list[str]) -> str:
+    for key in keys:
+        value = env.get(key, "").strip()
+        if value:
+            return value
+    return ""
+
+
+def missing_config_message(primary_prefix: str, suffix: str, fallback_prefixes: tuple[str, ...]) -> str:
+    primary_key = f"{primary_prefix}_{suffix}"
+    if not fallback_prefixes:
+        return f"Missing {primary_key}."
+    fallback_text = ", ".join(f"{prefix}_{suffix}" for prefix in fallback_prefixes)
+    return f"Missing {primary_key}. Fallbacks checked: {fallback_text}."
 
 
 def call_chat_completions(

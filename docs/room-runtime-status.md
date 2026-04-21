@@ -42,6 +42,7 @@ The current source-of-truth files for `/room` are:
 - `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/`
 - `.codex/skills/room-skill/runtime/fixtures/canonical/`
 - `.env.room.example`
+- `.env.debate.example`
 
 If a report, checkpoint, or session artifact conflicts with the files above, the files above win.
 
@@ -70,6 +71,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in local mock Chat Completions provider in `.codex/skills/room-skill/runtime/mock_chat_completions_server.py`
 - a checked-in canonical fixture pack in `.codex/skills/room-skill/runtime/fixtures/canonical/`
 - an explicit local provider config template in `.env.room.example`
+- an explicit `/debate` provider config template in `.env.debate.example`
 - repository-level entrypoints aligned so `/room` is first-class in `README.md`, `AGENTS.md`, and `examples/room-examples.md`
 - a clean fallback chat contract in `docs/room-chat-contract.md`
 - rebuilt and portable active prompts in:
@@ -136,7 +138,7 @@ The most reasonable continuation path is:
 1. point the real prompt-calling host at `.codex/skills/room-skill/runtime/room_runtime.py`
 2. use `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` plus `.codex/skills/room-skill/runtime/room_e2e_validation.py --executor chat_completions` for local provider-path regression
 3. run `.codex/skills/room-skill/runtime/room_e2e_validation.py --executor chat_completions --env-file .env.room` against a real provider
-4. run `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py --executor chat_completions --env-file .env.room --scenario reject_followup` against a real provider
+4. run `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py --executor chat_completions --env-file .env.debate --scenario reject_followup` against a real provider
 5. verify a real `/room` handoff packet can feed a real `/debate` execution, not only canonical packet material
 6. after the live host flow passes, treat `/room` and `/debate` as runtime-ready instead of only locally validated
 

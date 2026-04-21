@@ -71,7 +71,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--env-file",
-        help="Explicit env file for Chat Completions mode. Reuses the checked-in room provider config surface.",
+        help="Explicit env file for /debate Chat Completions mode.",
     )
     parser.add_argument(
         "--fixtures-dir",
@@ -307,7 +307,7 @@ def build_prompt_executor(args: argparse.Namespace, *, debate_id: str, room_id: 
     env = dict(os.environ)
     if args.env_file:
         env.update(provider_executor.load_env_file(Path(args.env_file)))
-    config = provider_executor.read_provider_config(env)
+    config = provider_executor.read_provider_config(env, provider_scope="debate")
 
     def execute(prompt_path: Path, prompt_input: dict[str, Any]) -> dict[str, Any]:
         return provider_executor.call_chat_completions(
@@ -330,7 +330,7 @@ def describe_executor(args: argparse.Namespace) -> dict[str, Any]:
     env = dict(os.environ)
     if args.env_file:
         env.update(provider_executor.load_env_file(Path(args.env_file)))
-    config = provider_executor.read_provider_config(env)
+    config = provider_executor.read_provider_config(env, provider_scope="debate")
     return {
         "mode": "chat_completions",
         "env_file": str(Path(args.env_file).expanduser().resolve()) if args.env_file else None,

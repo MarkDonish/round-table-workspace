@@ -185,6 +185,7 @@ Do not push machine-local secrets such as:
 Checked-in templates are allowed, such as:
 
 - `.env.room.example`
+- `.env.debate.example`
 
 Real secret values stay local.
 

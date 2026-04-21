@@ -188,6 +188,7 @@ round-table-workspace/
 - runtime implementation：`.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`
 - runtime E2E runner：`.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py`
 - mock provider：`.codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py`
+- live provider sample：`.env.debate.example`
 - 架构：`docs/debate-skill-architecture.md`
 - 角色边界：`docs/agent-role-map.md`
 - 审查协议：`docs/reviewer-protocol.md`

@@ -149,8 +149,8 @@ Run the local mock-provider `/debate` E2E path:
 ```bash
 python3 .codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py --port 32124
 
-ROOM_CHAT_COMPLETIONS_URL=http://127.0.0.1:32124/v1/chat/completions \
-ROOM_CHAT_COMPLETIONS_MODEL=mock-debate-model \
+DEBATE_CHAT_COMPLETIONS_URL=http://127.0.0.1:32124/v1/chat/completions \
+DEBATE_CHAT_COMPLETIONS_MODEL=mock-debate-model \
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --executor chat_completions \
   --scenario reject_followup \
@@ -161,12 +161,13 @@ Run the real provider path:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/chat_completions_executor.py \
-  --env-file .env.room \
+  --provider-scope debate \
+  --env-file .env.debate \
   --check-provider-config
 
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --executor chat_completions \
-  --env-file .env.room \
+  --env-file .env.debate \
   --scenario reject_followup
 ```
 
