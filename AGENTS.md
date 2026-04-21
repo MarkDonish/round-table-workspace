@@ -7,7 +7,7 @@ Project entrypoint for this repository. Keep this file short and repo-local so i
 1. Do not fabricate missing facts. If information is insufficient, say `信息缺失`.
 2. Keep outputs practical, clear, and structured. Avoid slogans, fluff, and unsupported certainty.
 3. Distinguish facts, inferences, uncertainties, and recommendations when doing multi-agent or multi-perspective work.
-4. Do not enter roundtable mode unless the user explicitly starts with `/debate`.
+4. Do not enter `/room` or `/debate` unless the user explicitly starts with that command or is already continuing inside that mode.
 5. Prefer repo-relative paths and repo-local references over machine-specific absolute home-directory paths.
 
 ## Source Of Truth
@@ -17,16 +17,38 @@ Treat this repository as the long-term source of truth for the round-table syste
 Primary source directories:
 
 - `README.md`
+- `AGENTS.md`
 - `docs/`
 - `prompts/`
 - `examples/`
 - `.codex/skills/debate-roundtable-skill/`
+- `.codex/skills/room-skill/`
 - `.codex/skills/*/roundtable-profile.md`
 
 Historical material lives under:
 
 - `reports/`
 - `artifacts/`
+
+## Room Roundtable
+
+`/room` is an explicit-only stateful roundtable mode. It is not the default mode.
+
+On `/room`, use:
+
+- Skill: `.codex/skills/room-skill/SKILL.md`
+- Supporting docs:
+  - `docs/room-runtime-status.md`
+  - `docs/room-runtime-bridge.md`
+  - `docs/room-architecture.md`
+  - `docs/room-selection-policy.md`
+  - `docs/room-chat-contract.md`
+  - `docs/agent-registry.md`
+  - `docs/room-to-debate-handoff.md`
+  - `prompts/room-selection.md`
+  - `prompts/room-chat.md`
+  - `prompts/room-summary.md`
+  - `prompts/room-upgrade.md`
 
 ## Debate Roundtable
 
@@ -35,14 +57,18 @@ Historical material lives under:
 On `/debate`, use:
 
 - Skill: `.codex/skills/debate-roundtable-skill/SKILL.md`
-- Archived spec: `docs/archive/AGENTS.full-20260411-142320.md`
 - Supporting docs:
   - `docs/debate-skill-architecture.md`
   - `docs/agent-role-map.md`
   - `docs/reviewer-protocol.md`
   - `docs/red-flags.md`
+  - `docs/room-to-debate-handoff.md`
   - `prompts/debate-roundtable.md`
   - `prompts/debate-reviewer.md`
   - `prompts/debate-followup.md`
 
-Default daily mode: route to 1-3 relevant skills only when their trigger conditions are met. Do not auto-run a roundtable.
+Historical archive only when needed for archaeology, not as active source of truth:
+
+- `docs/archive/AGENTS.full-20260411-142320.md`
+
+Default daily mode: route to 1-3 relevant skills only when their trigger conditions are met. Do not auto-run a room or roundtable.
