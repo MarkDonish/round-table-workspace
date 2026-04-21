@@ -34,6 +34,7 @@ description: |
 
 - `AGENTS.md`
 - `docs/room-runtime-status.md`
+- `docs/room-chat-contract.md`
 - `docs/DECISIONS-LOCKED.md`
 - `docs/room-architecture.md`
 - `docs/room-selection-policy.md`
@@ -60,7 +61,7 @@ description: |
 
 - `/room` 的状态模型、命令语义、发言机制、summary 和 upgrade 协议已经在 `docs/` 与 `prompts/` 中落地
 - `.codex/skills/room-skill/SKILL.md` 是 `/room` 的源码入口，不应再依赖历史报告来解释架构
-- `prompts/room-chat.md` 主体仍存在已知编码污染；在该文件完全修复前，如遇冲突，以 `docs/room-architecture.md` 中的相关协议为准
+- `prompts/room-chat.md` 主体仍存在已知编码污染；在该文件完全修复前，如遇冲突，以 `docs/room-architecture.md` 与 `docs/room-chat-contract.md` 为准
 - 本仓库当前不应假设已有完整的 Mac 可运行 orchestrator 代码
 
 ## 最小工作流
