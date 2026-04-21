@@ -1,0 +1,24 @@
+{
+  "schema_version": "v0.1",
+  "mode": "debate_review_result",
+  "source_kind": "room_handoff",
+  "debate_id": "__DEBATE_ID__",
+  "source_room_id": "__ROOM_ID__",
+  "topic_restatement": "本轮讨论已经把 debate 的主建议收敛到单场景、薄闭环、带 kill rule 的正式验证路径。",
+  "quick_mode": false,
+  "review_applicable": true,
+  "overall_score": 8,
+  "best_agent": "munger",
+  "weak_agents": [],
+  "evidence_gaps": [
+    "Jobs 对强单点体验的判断仍然缺少真实学生语料支撑。"
+  ],
+  "logic_gaps": [],
+  "overlooked_issues": [
+    "首批用户的获取路径和分发机制还没有展开。"
+  ],
+  "severe_red_flags": [],
+  "allow_final_decision": true,
+  "required_followups": [],
+  "rationale": "讨论已经形成单一可执行建议，关键风险、停止条件和不确定性也被明确写出，足以进入最终决议。"
+}

@@ -19,7 +19,7 @@
 ### 已完成的核心能力
 
 - `/debate` 的 skill 架构、角色边界、reviewer 协议、红旗规则、主 prompts 已经落地
-- `/debate` 已有 checked-in runtime bridge，可把 handoff packet 转成 launch bundle 与 review packet
+- `/debate` 已有 checked-in runtime bridge，可把 handoff packet 串到 launch bundle、roundtable record、review packet、review result
 - `/room` 的状态模型、selection / chat / summary / upgrade 协议已经落地
 - `/room -> /debate` 的 handoff schema 已经落地
 - `docs/agent-registry.md` 已提供 runtime-facing 的 agent registry
@@ -29,6 +29,8 @@
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 provider-backed 链路
 - `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py` 已提供 checked-in 的 `/debate` handoff packet 可执行预检
+- `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py` 已提供 checked-in 的 `/debate` execution bridge
+- `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/` 已提供 checked-in 的 debate execution fixtures
 - `.codex/skills/room-skill/runtime/fixtures/canonical/` 已提供 checked-in 的首轮验证 fixture
 
 ### 还没完成的核心能力
@@ -179,6 +181,7 @@ round-table-workspace/
 - skill：`.codex/skills/debate-roundtable-skill/SKILL.md`
 - bridge contract：`docs/debate-runtime-bridge.md`
 - runtime bridge：`.codex/skills/debate-roundtable-skill/runtime/README.md`
+- runtime implementation：`.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`
 - 架构：`docs/debate-skill-architecture.md`
 - 角色边界：`docs/agent-role-map.md`
 - 审查协议：`docs/reviewer-protocol.md`

@@ -28,6 +28,26 @@ CANONICAL_REVIEW_PACKET = (
     / "canonical"
     / "review_packet.json"
 )
+CANONICAL_ROUNDTABLE_RECORD = (
+    REPO_ROOT
+    / ".codex"
+    / "skills"
+    / "debate-roundtable-skill"
+    / "runtime"
+    / "fixtures"
+    / "canonical"
+    / "roundtable_record.json"
+)
+CANONICAL_REVIEW_RESULT = (
+    REPO_ROOT
+    / ".codex"
+    / "skills"
+    / "debate-roundtable-skill"
+    / "runtime"
+    / "fixtures"
+    / "canonical"
+    / "review_result.json"
+)
 
 TASK_LABELS = {
     "startup": "创业方向",
@@ -52,12 +72,20 @@ def main() -> int:
     try:
         if args.command == "build-launch-bundle":
             result = command_build_launch_bundle(args)
+        elif args.command == "validate-roundtable-record":
+            result = command_validate_roundtable_record(args)
         elif args.command == "build-review-template":
             result = command_build_review_template(args)
+        elif args.command == "build-review-packet":
+            result = command_build_review_packet(args)
         elif args.command == "validate-review-packet":
             result = command_validate_review_packet(args)
+        elif args.command == "validate-review-result":
+            result = command_validate_review_result(args)
         elif args.command == "validate-canonical":
             result = command_validate_canonical(args)
+        elif args.command == "validate-canonical-execution":
+            result = command_validate_canonical_execution(args)
         else:
             raise DebateRuntimeError(f"Unsupported command: {args.command}")
     except DebateRuntimeError as exc:
@@ -86,6 +114,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Directory for persisted debate runtime artifacts.",
     )
 
+    roundtable_parser = subparsers.add_parser(
+        "validate-roundtable-record",
+        help="Validate a debate roundtable record against a checked-in launch bundle.",
+    )
+    roundtable_parser.add_argument("--roundtable-json", required=True)
+    roundtable_parser.add_argument("--launch-bundle-json", required=True)
+
     template_parser = subparsers.add_parser(
         "build-review-template",
         help="Build a reviewer-facing template from a debate launch bundle.",
@@ -93,17 +128,46 @@ def build_parser() -> argparse.ArgumentParser:
     template_parser.add_argument("--launch-bundle-json", required=True)
     template_parser.add_argument("--output-json", help="Optional explicit output path.")
 
+    review_packet_parser = subparsers.add_parser(
+        "build-review-packet",
+        help="Build a reviewer packet from a validated roundtable record and launch bundle.",
+    )
+    review_packet_parser.add_argument("--roundtable-json", required=True)
+    review_packet_parser.add_argument("--launch-bundle-json", required=True)
+    review_packet_parser.add_argument("--output-json", help="Optional explicit output path.")
+    review_packet_parser.add_argument(
+        "--source-launch-bundle-label",
+        help="Optional stable label to write into source_launch_bundle instead of the full path.",
+    )
+
     review_parser = subparsers.add_parser(
         "validate-review-packet",
         help="Validate a reviewer packet against the checked-in reviewer protocol contract.",
     )
     review_parser.add_argument("--review-packet-json", required=True)
 
+    review_result_parser = subparsers.add_parser(
+        "validate-review-result",
+        help="Validate a reviewer result against a checked-in reviewer packet.",
+    )
+    review_result_parser.add_argument("--review-result-json", required=True)
+    review_result_parser.add_argument("--review-packet-json", required=True)
+
     canonical_parser = subparsers.add_parser(
         "validate-canonical",
         help="Replay the checked-in canonical handoff into a debate launch bundle and reviewer packet validation.",
     )
     canonical_parser.add_argument(
+        "--state-root",
+        default=str(DEFAULT_STATE_ROOT),
+        help="Directory for persisted debate runtime artifacts.",
+    )
+
+    canonical_execution_parser = subparsers.add_parser(
+        "validate-canonical-execution",
+        help="Replay the checked-in canonical debate execution chain through roundtable and reviewer artifacts.",
+    )
+    canonical_execution_parser.add_argument(
         "--state-root",
         default=str(DEFAULT_STATE_ROOT),
         help="Directory for persisted debate runtime artifacts.",
@@ -143,6 +207,18 @@ def command_build_launch_bundle(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def command_validate_roundtable_record(args: argparse.Namespace) -> dict[str, Any]:
+    launch_bundle = load_json(Path(args.launch_bundle_json))
+    validate_launch_bundle(launch_bundle)
+    roundtable_record = load_json(Path(args.roundtable_json))
+    validation = validate_roundtable_record(roundtable_record, launch_bundle)
+    return {
+        "ok": True,
+        "action": "validate-roundtable-record",
+        "validation": validation,
+    }
+
+
 def command_build_review_template(args: argparse.Namespace) -> dict[str, Any]:
     launch_bundle_path = Path(args.launch_bundle_json).expanduser().resolve()
     launch_bundle = load_json(launch_bundle_path)
@@ -165,10 +241,51 @@ def command_build_review_template(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
+def command_build_review_packet(args: argparse.Namespace) -> dict[str, Any]:
+    launch_bundle_path = Path(args.launch_bundle_json).expanduser().resolve()
+    launch_bundle = load_json(launch_bundle_path)
+    validate_launch_bundle(launch_bundle)
+
+    roundtable_path = Path(args.roundtable_json).expanduser().resolve()
+    roundtable_record = load_json(roundtable_path)
+    roundtable_validation = validate_roundtable_record(roundtable_record, launch_bundle)
+
+    source_label = args.source_launch_bundle_label or str(launch_bundle_path)
+    review_packet = build_review_packet(
+        launch_bundle=launch_bundle,
+        roundtable_record=roundtable_record,
+        source_launch_bundle=source_label,
+    )
+    review_packet_validation = validate_review_packet(review_packet)
+
+    if args.output_json:
+        output_path = Path(args.output_json).expanduser().resolve()
+    else:
+        output_path = launch_bundle_path.parent.parent / "review" / "review-packet.json"
+    ensure_directory(output_path.parent)
+    write_json(output_path, review_packet)
+
+    return {
+        "ok": True,
+        "action": "build-review-packet",
+        "review_packet_path": str(output_path),
+        "roundtable_validation": roundtable_validation,
+        "review_packet_validation": review_packet_validation,
+    }
+
+
 def command_validate_review_packet(args: argparse.Namespace) -> dict[str, Any]:
     payload = load_json(Path(args.review_packet_json))
     result = validate_review_packet(payload)
     return {"ok": True, "action": "validate-review-packet", "validation": result}
+
+
+def command_validate_review_result(args: argparse.Namespace) -> dict[str, Any]:
+    review_packet = load_json(Path(args.review_packet_json))
+    validate_review_packet(review_packet)
+    review_result = load_json(Path(args.review_result_json))
+    validation = validate_review_result(review_result, review_packet)
+    return {"ok": True, "action": "validate-review-result", "validation": validation}
 
 
 def command_validate_canonical(args: argparse.Namespace) -> dict[str, Any]:
@@ -225,6 +342,93 @@ def command_validate_canonical(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "selection_balanced": launch_bundle["candidate_pool"]["balance_after_reselection"]["passes_debate_balance"],
             "review_packet_accepted": review_validation["accepted"],
+        },
+    }
+    write_json(debate_dir / "validation-report.json", report)
+    return report
+
+
+def command_validate_canonical_execution(args: argparse.Namespace) -> dict[str, Any]:
+    state_root = Path(args.state_root).expanduser().resolve()
+    debate_id = "debate-canonical-execution"
+    room_id = "room-canonical-debate"
+
+    fixture_payload = materialize_placeholders(load_json(ROOM_UPGRADE_FIXTURE), {"__ROOM_ID__": room_id})
+    packet = unwrap_packet(fixture_payload)
+    packet_acceptance = validate_packet_payload(fixture_payload)
+    registry = packet_validator.load_registry()
+    launch_bundle = build_launch_bundle(
+        packet=packet,
+        packet_acceptance=packet_acceptance,
+        registry=registry,
+        debate_id=debate_id,
+        source_packet_path=str(ROOM_UPGRADE_FIXTURE),
+    )
+
+    roundtable_record = materialize_placeholders(
+        load_json(CANONICAL_ROUNDTABLE_RECORD),
+        {"__ROOM_ID__": room_id, "__DEBATE_ID__": debate_id},
+    )
+    roundtable_validation = validate_roundtable_record(roundtable_record, launch_bundle)
+
+    review_packet = build_review_packet(
+        launch_bundle=launch_bundle,
+        roundtable_record=roundtable_record,
+        source_launch_bundle="canonical",
+    )
+    review_packet_validation = validate_review_packet(review_packet)
+    expected_review_packet = materialize_placeholders(load_json(CANONICAL_REVIEW_PACKET), {"__ROOM_ID__": room_id})
+    require(review_packet == expected_review_packet, "canonical built review packet no longer matches fixture.")
+
+    review_result = materialize_placeholders(
+        load_json(CANONICAL_REVIEW_RESULT),
+        {"__ROOM_ID__": room_id, "__DEBATE_ID__": debate_id},
+    )
+    review_result_validation = validate_review_result(review_result, review_packet)
+
+    debate_dir = get_debate_dir(state_root, debate_id)
+    ensure_directory(debate_dir / "launch")
+    ensure_directory(debate_dir / "roundtable")
+    ensure_directory(debate_dir / "review")
+    write_json(debate_dir / "launch" / "launch-bundle.json", launch_bundle)
+    write_json(debate_dir / "roundtable" / "roundtable-record.json", roundtable_record)
+    write_json(debate_dir / "roundtable" / "roundtable.validation.json", roundtable_validation)
+    write_json(debate_dir / "review" / "review-packet.json", review_packet)
+    write_json(debate_dir / "review" / "review-packet.validation.json", review_packet_validation)
+    write_json(debate_dir / "review" / "review-result.json", review_result)
+    write_json(debate_dir / "review" / "review-result.validation.json", review_result_validation)
+
+    report = {
+        "ok": True,
+        "action": "validate-canonical-execution",
+        "debate_id": debate_id,
+        "source_room_id": room_id,
+        "artifacts": {
+            "debate_dir": str(debate_dir),
+            "launch_bundle": str(debate_dir / "launch" / "launch-bundle.json"),
+            "roundtable_record": str(debate_dir / "roundtable" / "roundtable-record.json"),
+            "roundtable_validation": str(debate_dir / "roundtable" / "roundtable.validation.json"),
+            "review_packet": str(debate_dir / "review" / "review-packet.json"),
+            "review_packet_validation": str(debate_dir / "review" / "review-packet.validation.json"),
+            "review_result": str(debate_dir / "review" / "review-result.json"),
+            "review_result_validation": str(debate_dir / "review" / "review-result.validation.json"),
+        },
+        "launch_summary": {
+            "selected_agents": launch_bundle["candidate_pool"]["final_agents"],
+            "speaker_order": launch_bundle["speaker_order"],
+            "actual_overlap": launch_bundle["candidate_pool"]["actual_overlap"],
+            "minimum_overlap_target": launch_bundle["candidate_pool"]["minimum_overlap_target"],
+            "balance_after_reselection": launch_bundle["candidate_pool"]["balance_after_reselection"],
+        },
+        "roundtable_validation": roundtable_validation,
+        "review_packet_validation": review_packet_validation,
+        "review_result_validation": review_result_validation,
+        "pass_criteria": {
+            "launch_bundle_persisted": bool((debate_dir / "launch" / "launch-bundle.json").exists()),
+            "roundtable_record_accepted": roundtable_validation["accepted"],
+            "review_packet_matches_fixture": review_packet == expected_review_packet,
+            "review_result_accepted": review_result_validation["accepted"],
+            "allow_final_decision": review_result["allow_final_decision"],
         },
     }
     write_json(debate_dir / "validation-report.json", report)
@@ -426,6 +630,113 @@ def build_review_template(launch_bundle: dict[str, Any], *, source_launch_bundle
     }
 
 
+def build_review_packet(
+    *,
+    launch_bundle: dict[str, Any],
+    roundtable_record: dict[str, Any],
+    source_launch_bundle: str,
+) -> dict[str, Any]:
+    return {
+        "schema_version": "v0.1",
+        "source_kind": launch_bundle["source_kind"],
+        "source_room_id": launch_bundle["source_room_id"],
+        "source_launch_bundle": source_launch_bundle,
+        "topic_restatement": roundtable_record["topic_restatement"],
+        "primary_type": roundtable_record["primary_type"],
+        "secondary_type": roundtable_record.get("secondary_type"),
+        "quick_mode": roundtable_record["quick_mode"],
+        "participants": copy.deepcopy(roundtable_record["participants"]),
+        "agent_outputs": copy.deepcopy(roundtable_record["agent_outputs"]),
+        "moderator_summary": copy.deepcopy(roundtable_record["moderator_summary"]),
+        "evidence_buckets": copy.deepcopy(roundtable_record["evidence_buckets"]),
+        "review_boundaries": {
+            "conversation_log_reviewable": False,
+            "review_only_visible_outputs": launch_bundle["reviewer"]["review_only_visible_outputs"],
+            "followup_cap": launch_bundle["reviewer"]["followup_cap"],
+        },
+    }
+
+
+def validate_roundtable_record(payload: dict[str, Any], launch_bundle: dict[str, Any]) -> dict[str, Any]:
+    registry = packet_validator.load_registry()
+    validate_launch_bundle(launch_bundle)
+
+    require(payload.get("schema_version") == "v0.1", "roundtable record schema_version must be v0.1.")
+    require(payload.get("mode") == "debate_roundtable_record", "roundtable record mode must be debate_roundtable_record.")
+    require(payload.get("source_kind") == launch_bundle["source_kind"], "roundtable record source_kind must match launch bundle.")
+    require(payload.get("debate_id") == launch_bundle["debate_id"], "roundtable record debate_id must match launch bundle.")
+    require(
+        payload.get("source_room_id") == launch_bundle["source_room_id"],
+        "roundtable record source_room_id must match launch bundle.",
+    )
+    require(
+        isinstance(payload.get("topic_restatement"), str) and bool(payload["topic_restatement"].strip()),
+        "roundtable record topic_restatement must be non-empty.",
+    )
+    require(
+        payload.get("primary_type") == launch_bundle["primary_type"],
+        "roundtable record primary_type must match launch bundle.",
+    )
+    require(
+        payload.get("secondary_type") == launch_bundle.get("secondary_type"),
+        "roundtable record secondary_type must match launch bundle.",
+    )
+    require(isinstance(payload.get("quick_mode"), bool), "roundtable record quick_mode must be a boolean.")
+
+    participants = payload.get("participants")
+    require(isinstance(participants, list) and 3 <= len(participants) <= 5, "roundtable record must contain 3-5 participants.")
+    participant_ids: list[str] = []
+    launch_participants = {item["agent_id"] for item in launch_bundle["participants"]}
+    for item in participants:
+        require(isinstance(item, dict), "roundtable record participants must be objects.")
+        agent_id = item.get("agent_id")
+        require(agent_id in registry, f"roundtable participant is not registered: {agent_id}")
+        require(agent_id not in participant_ids, f"duplicate roundtable participant: {agent_id}")
+        participant_ids.append(agent_id)
+        require(
+            isinstance(item.get("short_name"), str) and bool(item["short_name"].strip()),
+            f"roundtable participant short_name must be non-empty for {agent_id}.",
+        )
+        require(
+            isinstance(item.get("responsibility"), str) and bool(item["responsibility"].strip()),
+            f"roundtable participant responsibility must be non-empty for {agent_id}.",
+        )
+    require(set(participant_ids) == launch_participants, "roundtable participants must match launch bundle participants.")
+
+    speaker_order = payload.get("speaker_order")
+    require(isinstance(speaker_order, list) and len(speaker_order) == len(participant_ids), "roundtable speaker_order must align with participants.")
+    require(len(set(speaker_order)) == len(speaker_order), "roundtable speaker_order must not repeat participants.")
+    require(set(speaker_order) == set(participant_ids), "roundtable speaker_order must cover the same participants.")
+
+    review_status = payload.get("review_status")
+    require(isinstance(review_status, dict), "roundtable review_status must be an object.")
+    require(
+        review_status.get("review_required") is (not payload["quick_mode"]),
+        "roundtable review_required must reflect quick_mode.",
+    )
+    require(isinstance(review_status.get("followup_allowed"), bool), "roundtable followup_allowed must be a boolean.")
+    require(review_status.get("max_followup_rounds") == 1, "roundtable max_followup_rounds must be 1.")
+    if payload["quick_mode"]:
+        require(review_status.get("followup_allowed") is False, "quick mode roundtable must not allow reviewer followup.")
+    else:
+        require(review_status.get("followup_allowed") is True, "full mode roundtable must allow one reviewer followup.")
+
+    derived_review_packet = build_review_packet(
+        launch_bundle=launch_bundle,
+        roundtable_record=payload,
+        source_launch_bundle="validation",
+    )
+    review_validation = validate_review_packet(derived_review_packet)
+
+    return {
+        "accepted": True,
+        "checked_against": str(Path(__file__).resolve()),
+        "reason": "roundtable record is structurally compatible with the checked-in launch bundle and reviewer packet contract.",
+        "participant_count": len(participant_ids),
+        "review_validation": review_validation,
+    }
+
+
 def validate_review_packet(payload: dict[str, Any]) -> dict[str, Any]:
     registry = packet_validator.load_registry()
     require(payload.get("schema_version") == "v0.1", "review packet schema_version must be v0.1.")
@@ -548,6 +859,90 @@ def validate_review_packet(payload: dict[str, Any]) -> dict[str, Any]:
         "review_applicable": True,
         "reason": "review packet satisfies the checked-in reviewer protocol contract for full-mode /debate review.",
         "participant_count": len(participant_ids),
+    }
+
+
+def validate_review_result(payload: dict[str, Any], review_packet: dict[str, Any]) -> dict[str, Any]:
+    participant_ids = [item["agent_id"] for item in review_packet["participants"]]
+    participant_set = set(participant_ids)
+
+    require(payload.get("schema_version") == "v0.1", "review result schema_version must be v0.1.")
+    require(payload.get("mode") == "debate_review_result", "review result mode must be debate_review_result.")
+    require(payload.get("source_kind") == review_packet["source_kind"], "review result source_kind must match review packet.")
+    require(
+        payload.get("source_room_id") == review_packet["source_room_id"],
+        "review result source_room_id must match review packet.",
+    )
+    require(
+        isinstance(payload.get("topic_restatement"), str) and bool(payload["topic_restatement"].strip()),
+        "review result topic_restatement must be non-empty.",
+    )
+    require(
+        isinstance(payload.get("quick_mode"), bool) and payload["quick_mode"] == review_packet["quick_mode"],
+        "review result quick_mode must match review packet.",
+    )
+    require(isinstance(payload.get("review_applicable"), bool), "review result review_applicable must be a boolean.")
+    require(
+        isinstance(payload.get("overall_score"), int) and 1 <= payload["overall_score"] <= 10,
+        "review result overall_score must be an integer between 1 and 10.",
+    )
+
+    best_agent = payload.get("best_agent")
+    require(isinstance(best_agent, str) and bool(best_agent.strip()), "review result best_agent must be non-empty.")
+    require(best_agent in participant_set, "review result best_agent must be one of the debate participants.")
+
+    weak_agents = payload.get("weak_agents")
+    require(isinstance(weak_agents, list), "review result weak_agents must be a list.")
+    require(len(set(weak_agents)) == len(weak_agents), "review result weak_agents must not contain duplicates.")
+    require(all(isinstance(agent_id, str) and agent_id in participant_set for agent_id in weak_agents), "review result weak_agents must contain only participant ids.")
+
+    validate_string_list_allow_empty(payload.get("evidence_gaps"), "review result evidence_gaps")
+    validate_string_list_allow_empty(payload.get("logic_gaps"), "review result logic_gaps")
+    validate_string_list_allow_empty(payload.get("overlooked_issues"), "review result overlooked_issues")
+    validate_string_list_allow_empty(payload.get("severe_red_flags"), "review result severe_red_flags")
+
+    require(isinstance(payload.get("allow_final_decision"), bool), "review result allow_final_decision must be a boolean.")
+
+    required_followups = payload.get("required_followups")
+    require(isinstance(required_followups, list), "review result required_followups must be a list.")
+    seen_followups: set[str] = set()
+    for item in required_followups:
+        require(isinstance(item, dict), "required_followups entries must be objects.")
+        agent_id = item.get("agent_id")
+        require(agent_id in participant_set, "required_followups.agent_id must be one of the debate participants.")
+        require(agent_id not in seen_followups, "required_followups must not repeat the same participant.")
+        seen_followups.add(agent_id)
+        require(
+            isinstance(item.get("needs"), str) and bool(item["needs"].strip()),
+            f"required_followups.needs must be non-empty for {agent_id}.",
+        )
+
+    require(
+        isinstance(payload.get("rationale"), str) and bool(payload["rationale"].strip()),
+        "review result rationale must be non-empty.",
+    )
+
+    if review_packet["quick_mode"]:
+        require(payload["review_applicable"] is False, "quick mode review result must be marked not applicable.")
+    else:
+        require(payload["review_applicable"] is True, "full mode review result must be marked applicable.")
+
+    if payload["allow_final_decision"]:
+        require(payload["overall_score"] >= 7, "review result cannot allow final decision with score below 7.")
+        require(len(payload["severe_red_flags"]) == 0, "review result cannot allow final decision with severe red flags.")
+        require(len(required_followups) == 0, "review result cannot allow final decision while still requiring followups.")
+    else:
+        require(
+            len(required_followups) >= 1 or payload["overall_score"] < 7 or len(payload["severe_red_flags"]) >= 1,
+            "review result rejection must include followups, a low score, or severe red flags.",
+        )
+
+    return {
+        "accepted": True,
+        "checked_against": str(Path(__file__).resolve()),
+        "review_applicable": payload["review_applicable"],
+        "reason": "review result satisfies the checked-in reviewer decision contract.",
+        "allow_final_decision": payload["allow_final_decision"],
     }
 
 
@@ -807,6 +1202,11 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
 
 def validate_non_empty_string_list(value: Any, field_name: str) -> None:
     require(isinstance(value, list) and len(value) >= 1, f"{field_name} must be a non-empty list.")
+    require(all(isinstance(item, str) and bool(item.strip()) for item in value), f"{field_name} entries must be non-empty strings.")
+
+
+def validate_string_list_allow_empty(value: Any, field_name: str) -> None:
+    require(isinstance(value, list), f"{field_name} must be a list.")
     require(all(isinstance(item, str) and bool(item.strip()) for item in value), f"{field_name} entries must be non-empty strings.")
 
 

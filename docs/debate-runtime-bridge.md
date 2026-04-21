@@ -31,8 +31,10 @@ The checked-in bridge is responsible for these actions and no others:
    - dominant agents must not exceed half
 4. preserve packet continuity by keeping at least 2 agents from `field_11_suggested_agents` when possible
 5. build a launch bundle for the debate-side prompt host
-6. build or validate reviewer-facing review packets
-7. write portable runtime artifacts under `artifacts/runtime/debates/<debate_id>/`
+6. validate roundtable records produced from that launch bundle
+7. build or validate reviewer-facing review packets
+8. validate reviewer results against the checked-in reviewer decision contract
+9. write portable runtime artifacts under `artifacts/runtime/debates/<debate_id>/`
 
 The bridge is not responsible for:
 
@@ -60,6 +62,8 @@ The debate bridge should consume only these checked-in sources:
 - `prompts/debate-followup.md`
 - `.codex/skills/debate-roundtable-skill/SKILL.md`
 - `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py`
+- `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`
+- `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/`
 
 If a report or generated artifact disagrees with the files above, the checked-in files above win.
 
@@ -144,6 +148,69 @@ This schema exists so the host can validate reviewer inputs against `docs/review
 
 ---
 
+## Roundtable Record Schema
+
+The checked-in bridge also validates a `roundtable-record.json` that captures the visible outputs of the debate itself:
+
+```json
+{
+  "schema_version": "v0.1",
+  "mode": "debate_roundtable_record",
+  "source_kind": "room_handoff",
+  "debate_id": "debate-...",
+  "source_room_id": "room-...",
+  "topic_restatement": "...",
+  "primary_type": "product",
+  "secondary_type": "startup",
+  "quick_mode": false,
+  "participants": [],
+  "speaker_order": [],
+  "agent_outputs": [],
+  "moderator_summary": {},
+  "evidence_buckets": {},
+  "review_status": {
+    "review_required": true,
+    "followup_allowed": true,
+    "max_followup_rounds": 1
+  }
+}
+```
+
+This schema exists so the host can keep `/debate` visible outputs auditable before they are transformed into a reviewer packet.
+
+---
+
+## Review Result Schema
+
+The bridge also validates a `review-result.json` after the reviewer prompt runs:
+
+```json
+{
+  "schema_version": "v0.1",
+  "mode": "debate_review_result",
+  "source_kind": "room_handoff",
+  "debate_id": "debate-...",
+  "source_room_id": "room-...",
+  "topic_restatement": "...",
+  "quick_mode": false,
+  "review_applicable": true,
+  "overall_score": 8,
+  "best_agent": "munger",
+  "weak_agents": [],
+  "evidence_gaps": [],
+  "logic_gaps": [],
+  "overlooked_issues": [],
+  "severe_red_flags": [],
+  "allow_final_decision": true,
+  "required_followups": [],
+  "rationale": "..."
+}
+```
+
+This schema exists so the host can decide whether `/debate` may emit a final decision or must enter one follow-up loop.
+
+---
+
 ## Output Location
 
 Runtime outputs should be written under:
@@ -153,8 +220,13 @@ Runtime outputs should be written under:
 Typical files:
 
 - `launch/launch-bundle.json`
+- `roundtable/roundtable-record.json`
+- `roundtable/roundtable.validation.json`
 - `review/review-template.json`
+- `review/review-packet.json`
 - `review/review-packet.validation.json`
+- `review/review-result.json`
+- `review/review-result.validation.json`
 - `validation-report.json`
 
 These are generated runtime artifacts, not source of truth.
@@ -168,7 +240,7 @@ This bridge closes the gap between packet acceptance and debate-side host wiring
 It still does not prove:
 
 - a real prompt host has executed `prompts/debate-roundtable.md`
-- a real reviewer run has passed or rejected a live roundtable
+- a real reviewer run has passed or rejected a live roundtable through an external model host
 - a real follow-up loop has completed end to end
 
 Those remain separate live validation steps.
