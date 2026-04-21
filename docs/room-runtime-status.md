@@ -37,7 +37,7 @@ The repository already contains a largely complete protocol layer for `/room`:
 - active prompt contracts for selection, summary, and upgrade in `prompts/`
 - a clean fallback contract for chat in `docs/room-chat-contract.md`
 - a rebuilt and readable `prompts/room-chat.md`
-- a checked-in source entry for `/room` in `.codex/skills/room-skill/SKILL.md`
+- a checked-in `/room` source entry aligned with the registry and chat contract in `.codex/skills/room-skill/SKILL.md`
 - architecture decisions confirming the dual-mode product (`/room` + `/debate`) in `docs/DECISIONS-LOCKED.md`
 
 The `/debate` side is also structurally complete enough to be treated as an implemented source area, not an open design sketch.
@@ -50,8 +50,8 @@ The final incomplete part is not the `/room` protocol itself. It is the checked-
 
 The main gaps are:
 
-1. `.codex/skills/room-skill/SKILL.md` now exists as a source entry, but the orchestrator/runtime entry behind it is still not present as checked-in source.
-2. Active `/room` source files still contain Windows-local absolute links such as `/C:/Users/CLH/...`, which should not remain in source.
+1. `.codex/skills/room-skill/SKILL.md` is now aligned with the current docs/prompts, but the orchestrator/runtime entry behind it is still not present as checked-in source.
+2. Some active prompt files still contain Windows-local absolute links in legacy header references, especially `prompts/room-selection.md`, `prompts/room-summary.md`, and `prompts/room-upgrade.md`.
 3. The `/room` prompt layer is now structurally usable, but it still needs runtime-level integration and live validation before production use.
 
 In short:
@@ -83,9 +83,9 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 
 ## Current Risks
 
-- Windows absolute links in source prompts and skills create cross-machine breakage and confusion.
+- Windows-local absolute links still remain in a few active prompt headers, which can create cross-machine confusion even when the underlying protocol is correct.
 - The runtime bridge behind `/room` is still implied by source, not implemented as checked-in orchestrator code.
-- Reports reference external Windows runtime paths that are not present in this repository, which can create a false impression that the runtime is already checked in.
+- Reports still reference external Windows runtime paths that are not present in this repository, which can create a false impression that the runtime is already checked in.
 
 ---
 
@@ -93,7 +93,7 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 
 The most reasonable continuation path is:
 
-1. normalize remaining Windows absolute links in active source files and skill references
+1. normalize the remaining Windows-local links in active `/room` prompts
 2. implement the runtime bridge behind `.codex/skills/room-skill/SKILL.md` using `docs/agent-registry.md` + `prompts/`
 3. run a first end-to-end `/room -> /summary -> /upgrade-to-debate` validation flow
 4. only after that, continue deeper runtime-level implementation
