@@ -29,7 +29,7 @@
 
 ### 还没完成的核心能力
 
-- `/room` 的 provider-backed live host integration 还没和真实模型调用链完全接上线
+- `/room` 的 provider-backed live host integration 还没和真实模型调用链完全接上线，但仓库里已经有 `.env` + Chat Completions-compatible adapter 入口
 - 还没有完成一轮带真实 prompt 调用的 `/room -> /summary -> /upgrade-to-debate` live run
 - 当前已完成的是 fixture-driven 的本地 bridge 验证，不应误报成所有宿主都已 100% 实战验证
 
@@ -163,6 +163,7 @@ round-table-workspace/
 - bridge contract：`docs/room-runtime-bridge.md`
 - 当前边界：`docs/room-runtime-status.md`
 - runtime bridge：`.codex/skills/room-skill/runtime/README.md`
+- live provider sample：`.env.room.example`
 - examples：`examples/room-examples.md`
 
 ### `/debate`

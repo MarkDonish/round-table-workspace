@@ -28,8 +28,10 @@ The current source-of-truth files for `/room` are:
 - `.codex/skills/room-skill/SKILL.md`
 - `.codex/skills/room-skill/WORKFLOW.md`
 - `.codex/skills/room-skill/runtime/room_runtime.py`
+- `.codex/skills/room-skill/runtime/chat_completions_executor.py`
 - `.codex/skills/room-skill/runtime/README.md`
 - `.codex/skills/room-skill/runtime/fixtures/canonical/`
+- `.env.room.example`
 
 If a report, checkpoint, or session artifact conflicts with the files above, the files above win.
 
@@ -48,7 +50,9 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in `/room` runtime entry in `.codex/skills/room-skill/SKILL.md`
 - a checked-in end-to-end validation guide in `docs/room-e2e-validation.md`
 - a checked-in host bridge implementation in `.codex/skills/room-skill/runtime/room_runtime.py`
+- a checked-in Chat Completions-compatible live prompt adapter in `.codex/skills/room-skill/runtime/chat_completions_executor.py`
 - a checked-in canonical fixture pack in `.codex/skills/room-skill/runtime/fixtures/canonical/`
+- an explicit local provider config template in `.env.room.example`
 - repository-level entrypoints aligned so `/room` is first-class in `README.md`, `AGENTS.md`, and `examples/room-examples.md`
 - a clean fallback chat contract in `docs/room-chat-contract.md`
 - rebuilt and portable active prompts in:
@@ -68,7 +72,7 @@ The remaining unfinished part is no longer the checked-in bridge itself.
 
 The remaining gap is the live host integration layer:
 
-1. the checked-in bridge is fixture-validated on Mac, but not yet proven against a real prompt-calling host loop
+1. the checked-in bridge and live adapter are in repo, but still not yet proven against a real prompt-calling host loop
 2. the first live `/room -> /summary -> /upgrade-to-debate` run with actual prompt execution still has not been completed
 3. debate handoff is currently contract-validated through the checked-in skill entry, not yet through a live multi-agent `/debate` execution chain
 

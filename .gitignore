@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 !.env.sample
+!.env.room.example
 
 # Node / frontend
 node_modules/

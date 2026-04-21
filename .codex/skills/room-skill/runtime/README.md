@@ -19,12 +19,36 @@ Run:
 python3 .codex/skills/room-skill/runtime/room_runtime.py --help
 ```
 
+For live prompt calls against a Chat Completions-compatible provider:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_executor.py --help
+```
+
 ## Most Useful Commands
 
 Replay the checked-in canonical flow:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/room_runtime.py validate-canonical
+```
+
+Check live provider config from an explicit env file:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_executor.py \
+  --env-file .env.room \
+  --check-provider-config
+```
+
+Call one checked-in prompt through a Chat Completions-compatible endpoint:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_executor.py \
+  --env-file .env.room \
+  --prompt-file prompts/room-selection.md \
+  --input-json path/to/selection-input.json \
+  --output-json path/to/selection-output.json
 ```
 
 Create a room from `room_full` and optionally continue into the first turn:
@@ -102,3 +126,19 @@ It assumes some host or operator already called:
 - `prompts/room-upgrade.md`
 
 The bridge then validates those JSON outputs and performs the state writeback that only the host is allowed to perform.
+
+## Live Provider Config
+
+The checked-in example env file is:
+
+`/.env.room.example`
+
+Required variables:
+
+- `ROOM_CHAT_COMPLETIONS_URL`
+- `ROOM_CHAT_COMPLETIONS_MODEL`
+
+Optional variables:
+
+- `ROOM_PROVIDER_AUTH_BEARER`
+- `ROOM_PROVIDER_TIMEOUT_SECONDS`

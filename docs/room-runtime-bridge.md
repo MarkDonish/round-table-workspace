@@ -20,8 +20,10 @@ It does not replace prompt logic. It defines what the missing orchestrator must 
 The minimal checked-in bridge implementation now lives at:
 
 - `.codex/skills/room-skill/runtime/room_runtime.py`
+- `.codex/skills/room-skill/runtime/chat_completions_executor.py`
 - `.codex/skills/room-skill/runtime/README.md`
 - `.codex/skills/room-skill/runtime/fixtures/canonical/`
+- `.env.room.example`
 
 This document remains the contract layer. The runtime code must stay aligned with it.
 
