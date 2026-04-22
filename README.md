@@ -27,6 +27,7 @@
 - `docs/room-runtime-bridge.md` 已把缺失的 runtime bridge 责任边界锁成真源
 - `.codex/skills/room-skill/runtime/room_runtime.py` 已把 `/room` 的 host-side bridge 代码正式入仓
 - `.codex/skills/room-skill/runtime/local_codex_executor.py` 已提供 checked-in 的本地 child-agent 执行器，直接复用本机 Codex 作为 `/room` 和 `/debate` 的 prompt host
+- `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口，可一条命令跑 smoke + room + debate + integration
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
 - `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py` 已提供 checked-in 的 `/room -> /debate` 联调验证入口
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 provider-backed 链路
@@ -39,10 +40,11 @@
 - `/room local_codex` 已在 Mac 上通过 checked-in E2E 验证
 - `/debate local_codex` 的 `allow` 与 `reject_followup` 两条链都已在 Mac 上通过 checked-in E2E 验证
 - `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证，真实消费 `/room` 持久化 handoff packet
+- 当前最稳定的 checked-in 本地主线配置已收敛到 `GPT-5.4` child task + 显式 reasoning override；完整 `/room -> /debate reject_followup` 联调已在 Mac 上用 `gpt-5.4` 主模型通过，`gpt-5.4-mini` 可作为同家族 fallback
 
 ### 还没完成的核心能力
 
-- `local_codex` 主链已经在 Mac 上打通，但当前通过证据来自显式 child-task 模型配置；若要把更重的默认宿主模型直接设为主跑配置，仍需要单独调优和再验证
+- `local_codex` 主链已经在 Mac 上打通，checked-in child-task 执行器现在默认会显式控制 reasoning effort，避免直接继承宿主全局 `xhigh`；未单独证明的是“完全不加 child-task 调优，直接裸继承宿主默认配置”这一条非目标路径
 - `/room` 与 `/debate` 的 Chat Completions-compatible provider 路径仍然保留，但现在应视为 fallback / regression lane，而不是主线
 - 还没有完成真实外部 provider 的 `/room -> /summary -> /upgrade-to-debate -> /debate` live run
 - 当前已完成的是 fixture-driven 验证、mock provider-backed 验证、以及本地 child-agent 主链验证；仍不应误报成所有宿主配置都已 100% 实战验证
@@ -180,6 +182,7 @@ round-table-workspace/
 - 当前边界：`docs/room-runtime-status.md`
 - runtime bridge：`.codex/skills/room-skill/runtime/README.md`
 - local child-agent executor：`.codex/skills/room-skill/runtime/local_codex_executor.py`
+- local mainline regression：`.codex/skills/room-skill/runtime/local_codex_regression.py`
 - runtime validation：`.codex/skills/room-skill/runtime/room_e2e_validation.py`
 - mock provider：`.codex/skills/room-skill/runtime/mock_chat_completions_server.py`
 - live provider sample：`.env.room.example`

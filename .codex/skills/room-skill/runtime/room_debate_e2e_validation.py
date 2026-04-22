@@ -115,7 +115,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Sampling temperature for Chat Completions mode.",
     )
     parser.add_argument("--local-codex-model", help="Optional model override for local Codex child tasks.")
+    parser.add_argument(
+        "--local-codex-fallback-models",
+        help="Optional comma-separated fallback models for local Codex child tasks.",
+    )
     parser.add_argument("--local-codex-profile", help="Optional Codex profile for local Codex child tasks.")
+    parser.add_argument(
+        "--local-codex-reasoning-effort",
+        default=local_executor.DEFAULT_REASONING_EFFORT,
+        help="Reasoning effort override for local Codex child tasks.",
+    )
     parser.add_argument(
         "--local-codex-sandbox",
         default=local_executor.DEFAULT_SANDBOX,
@@ -127,6 +136,18 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=local_executor.DEFAULT_TIMEOUT_SECONDS,
         help="Timeout for one local Codex child task.",
+    )
+    parser.add_argument(
+        "--local-codex-timeout-retries",
+        type=int,
+        default=local_executor.DEFAULT_TIMEOUT_RETRIES,
+        help="How many times to retry a timed-out local Codex child task.",
+    )
+    parser.add_argument(
+        "--local-codex-retry-timeout-multiplier",
+        type=float,
+        default=local_executor.DEFAULT_RETRY_TIMEOUT_MULTIPLIER,
+        help="Multiplier applied to the timeout on each retry after a timeout.",
     )
     parser.add_argument(
         "--local-codex-persist-session",
@@ -155,9 +176,13 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         follow_up_input=args.follow_up_input,
         temperature=args.temperature,
         local_codex_model=args.local_codex_model,
+        local_codex_fallback_models=args.local_codex_fallback_models,
         local_codex_profile=args.local_codex_profile,
+        local_codex_reasoning_effort=args.local_codex_reasoning_effort,
         local_codex_sandbox=args.local_codex_sandbox,
         local_codex_timeout_seconds=args.local_codex_timeout_seconds,
+        local_codex_timeout_retries=args.local_codex_timeout_retries,
+        local_codex_retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
         local_codex_persist_session=args.local_codex_persist_session,
     )
     room_report = room_validation.run_validation(room_args)
@@ -173,9 +198,13 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         temperature=args.temperature,
         packet_json=handoff_packet,
         local_codex_model=args.local_codex_model,
+        local_codex_fallback_models=args.local_codex_fallback_models,
         local_codex_profile=args.local_codex_profile,
+        local_codex_reasoning_effort=args.local_codex_reasoning_effort,
         local_codex_sandbox=args.local_codex_sandbox,
         local_codex_timeout_seconds=args.local_codex_timeout_seconds,
+        local_codex_timeout_retries=args.local_codex_timeout_retries,
+        local_codex_retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
         local_codex_persist_session=args.local_codex_persist_session,
     )
     debate_report = debate_validation.run_validation(debate_args)

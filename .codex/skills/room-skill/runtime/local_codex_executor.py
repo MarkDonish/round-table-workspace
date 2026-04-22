@@ -16,6 +16,9 @@ from chat_completions_executor import parse_json_from_text
 REPO_ROOT = Path(__file__).resolve().parent.parents[3]
 DEFAULT_SANDBOX = "read-only"
 DEFAULT_TIMEOUT_SECONDS = 900
+DEFAULT_TIMEOUT_RETRIES = 1
+DEFAULT_RETRY_TIMEOUT_MULTIPLIER = 1.5
+DEFAULT_REASONING_EFFORT = "medium"
 SMOKE_RESPONSE = {"ok": True, "mode": "local_codex_exec"}
 
 
@@ -32,9 +35,13 @@ def main() -> int:
             result = check_local_exec(
                 repo_root=REPO_ROOT,
                 model=args.model,
+                fallback_models=parse_model_list(args.fallback_models),
                 profile=args.profile,
+                reasoning_effort=args.reasoning_effort,
                 sandbox=args.sandbox,
                 timeout_seconds=args.timeout_seconds,
+                timeout_retries=args.timeout_retries,
+                retry_timeout_multiplier=args.retry_timeout_multiplier,
                 ephemeral=not args.persist_session,
             )
         else:
@@ -48,9 +55,13 @@ def main() -> int:
                 prompt_input=json.loads(input_path.read_text(encoding="utf-8")),
                 repo_root=REPO_ROOT,
                 model=args.model,
+                fallback_models=parse_model_list(args.fallback_models),
                 profile=args.profile,
+                reasoning_effort=args.reasoning_effort,
                 sandbox=args.sandbox,
                 timeout_seconds=args.timeout_seconds,
+                timeout_retries=args.timeout_retries,
+                retry_timeout_multiplier=args.retry_timeout_multiplier,
                 ephemeral=not args.persist_session,
             )
     except (LocalCodexExecutorError, json.JSONDecodeError, ValueError) as exc:
@@ -76,7 +87,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--input-json", help="Structured JSON input file for the prompt.")
     parser.add_argument("--output-json", help="Optional path for the parsed JSON output.")
     parser.add_argument("--model", help="Optional explicit model for the local child task.")
+    parser.add_argument(
+        "--fallback-models",
+        help="Optional comma-separated fallback models to try when the primary model fails or is rate-limited.",
+    )
     parser.add_argument("--profile", help="Optional Codex profile for the local child task.")
+    parser.add_argument(
+        "--reasoning-effort",
+        default=DEFAULT_REASONING_EFFORT,
+        help=(
+            "Reasoning effort override for the local child task. Defaults to `medium` so "
+            "structured round-table child steps do not inherit a heavier host profile."
+        ),
+    )
     parser.add_argument(
         "--sandbox",
         default=DEFAULT_SANDBOX,
@@ -90,6 +113,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Timeout for one local child task.",
     )
     parser.add_argument(
+        "--timeout-retries",
+        type=int,
+        default=DEFAULT_TIMEOUT_RETRIES,
+        help="How many times to retry a timed-out local child task.",
+    )
+    parser.add_argument(
+        "--retry-timeout-multiplier",
+        type=float,
+        default=DEFAULT_RETRY_TIMEOUT_MULTIPLIER,
+        help="Multiplier applied to the timeout on each retry after a timeout.",
+    )
+    parser.add_argument(
         "--persist-session",
         action="store_true",
         help="Keep child sessions on disk instead of using --ephemeral.",
@@ -101,18 +136,26 @@ def check_local_exec(
     *,
     repo_root: Path,
     model: str | None,
+    fallback_models: list[str] | None,
     profile: str | None,
+    reasoning_effort: str | None,
     sandbox: str,
     timeout_seconds: int,
+    timeout_retries: int,
+    retry_timeout_multiplier: float,
     ephemeral: bool,
 ) -> dict[str, Any]:
     response = run_local_codex_prompt(
         repo_root=repo_root,
         task_prompt='Return exactly this JSON object and nothing else: {"ok": true, "mode": "local_codex_exec"}',
         model=model,
+        fallback_models=fallback_models,
         profile=profile,
+        reasoning_effort=reasoning_effort,
         sandbox=sandbox,
         timeout_seconds=timeout_seconds,
+        timeout_retries=timeout_retries,
+        retry_timeout_multiplier=retry_timeout_multiplier,
         ephemeral=ephemeral,
         trace_base=None,
     )
@@ -127,8 +170,12 @@ def check_local_exec(
         "repo_root": str(repo_root),
         "sandbox": sandbox,
         "model": model,
+        "fallback_models": fallback_models or [],
         "profile": profile,
+        "reasoning_effort": reasoning_effort,
         "timeout_seconds": timeout_seconds,
+        "timeout_retries": timeout_retries,
+        "retry_timeout_multiplier": retry_timeout_multiplier,
         "ephemeral": ephemeral,
     }
 
@@ -140,9 +187,13 @@ def call_local_codex(
     prompt_input: dict[str, Any],
     repo_root: Path,
     model: str | None,
+    fallback_models: list[str] | None,
     profile: str | None,
+    reasoning_effort: str | None,
     sandbox: str,
     timeout_seconds: int,
+    timeout_retries: int,
+    retry_timeout_multiplier: float,
     ephemeral: bool,
     trace_base: Path | None = None,
 ) -> dict[str, Any]:
@@ -150,9 +201,13 @@ def call_local_codex(
         repo_root=repo_root,
         task_prompt=build_task_prompt(prompt_path=prompt_path, prompt_text=prompt_text, prompt_input=prompt_input),
         model=model,
+        fallback_models=fallback_models,
         profile=profile,
+        reasoning_effort=reasoning_effort,
         sandbox=sandbox,
         timeout_seconds=timeout_seconds,
+        timeout_retries=timeout_retries,
+        retry_timeout_multiplier=retry_timeout_multiplier,
         ephemeral=ephemeral,
         trace_base=trace_base,
     )
@@ -314,15 +369,20 @@ def run_local_codex_prompt(
     repo_root: Path,
     task_prompt: str,
     model: str | None,
+    fallback_models: list[str] | None,
     profile: str | None,
+    reasoning_effort: str | None,
     sandbox: str,
     timeout_seconds: int,
+    timeout_retries: int,
+    retry_timeout_multiplier: float,
     ephemeral: bool,
     trace_base: Path | None,
 ) -> str:
     codex_path = shutil.which("codex")
     if not codex_path:
         raise LocalCodexExecutorError("Could not find `codex` on PATH.")
+    model_candidates = build_model_candidates(model=model, fallback_models=fallback_models)
 
     with tempfile.TemporaryDirectory(prefix="round-table-local-codex-") as temp_dir:
         if trace_base is not None:
@@ -339,76 +399,113 @@ def run_local_codex_prompt(
             prompt_path = None
             command_path = None
 
-        cmd = [
-            codex_path,
-            "exec",
-            "--color",
-            "never",
-            "--json",
-            "--skip-git-repo-check",
-            "--sandbox",
-            sandbox,
-            "--ignore-rules",
-            "--output-last-message",
-            str(output_path),
-        ]
-        if ephemeral:
-            cmd.append("--ephemeral")
-        if model:
-            cmd.extend(["--model", model])
-        if profile:
-            cmd.extend(["--profile", profile])
-
         if prompt_path is not None:
             prompt_path.write_text(task_prompt, encoding="utf-8")
-        if command_path is not None:
-            command_path.write_text(
-                json.dumps(
+        attempts: list[dict[str, Any]] = []
+        last_timeout_error: LocalCodexExecutorError | None = None
+        last_failure_message: str | None = None
+        for model_index, candidate_model in enumerate(model_candidates):
+            cmd = [
+                codex_path,
+                "exec",
+                "--color",
+                "never",
+                "--json",
+                "--skip-git-repo-check",
+                "--sandbox",
+                sandbox,
+                "--ignore-rules",
+                "--output-last-message",
+                str(output_path),
+            ]
+            if ephemeral:
+                cmd.append("--ephemeral")
+            if candidate_model:
+                cmd.extend(["--model", candidate_model])
+            if profile:
+                cmd.extend(["--profile", profile])
+            if reasoning_effort:
+                cmd.extend(["-c", f'model_reasoning_effort="{reasoning_effort}"'])
+
+            for attempt_index in range(timeout_retries + 1):
+                attempt_timeout = int(round(timeout_seconds * (retry_timeout_multiplier ** attempt_index)))
+                attempt_timeout = max(attempt_timeout, timeout_seconds)
+                attempts.append(
                     {
-                        "cmd": cmd,
-                        "cwd": str(repo_root),
-                        "timeout_seconds": timeout_seconds,
-                        "ephemeral": ephemeral,
-                    },
-                    ensure_ascii=False,
-                    indent=2,
+                        "model_candidate_index": model_index + 1,
+                        "model": candidate_model,
+                        "attempt": attempt_index + 1,
+                        "timeout_seconds": attempt_timeout,
+                    }
                 )
-                + "\n",
-                encoding="utf-8",
-            )
+                if command_path is not None:
+                    command_path.write_text(
+                        json.dumps(
+                            {
+                                "cmd": cmd,
+                                "cwd": str(repo_root),
+                                "timeout_seconds": timeout_seconds,
+                                "timeout_retries": timeout_retries,
+                                "retry_timeout_multiplier": retry_timeout_multiplier,
+                                "fallback_models": fallback_models or [],
+                                "reasoning_effort": reasoning_effort,
+                                "attempts": attempts,
+                                "ephemeral": ephemeral,
+                            },
+                            ensure_ascii=False,
+                            indent=2,
+                        )
+                        + "\n",
+                        encoding="utf-8",
+                    )
+                try:
+                    completed = subprocess.run(
+                        cmd,
+                        input=task_prompt,
+                        text=True,
+                        capture_output=True,
+                        cwd=temp_dir,
+                        timeout=attempt_timeout,
+                        check=False,
+                    )
+                except subprocess.TimeoutExpired as exc:
+                    write_trace_text(stdout_path, exc.stdout)
+                    write_trace_text(stderr_path, exc.stderr)
+                    if attempt_index >= timeout_retries:
+                        last_timeout_error = LocalCodexExecutorError(
+                            f"local codex exec timed out after {attempt_timeout}s on attempt {attempt_index + 1}"
+                            + build_trace_hint(trace_base)
+                        )
+                        break
+                    continue
 
-        try:
-            completed = subprocess.run(
-                cmd,
-                input=task_prompt,
-                text=True,
-                capture_output=True,
-                cwd=temp_dir,
-                timeout=timeout_seconds,
-                check=False,
-            )
-        except subprocess.TimeoutExpired as exc:
-            write_trace_text(stdout_path, exc.stdout)
-            write_trace_text(stderr_path, exc.stderr)
-            raise LocalCodexExecutorError(
-                f"local codex exec timed out after {timeout_seconds}s"
-                + build_trace_hint(trace_base)
-            ) from exc
+                write_trace_text(stdout_path, completed.stdout)
+                write_trace_text(stderr_path, completed.stderr)
+                if completed.returncode == 0:
+                    if not output_path.exists():
+                        raise LocalCodexExecutorError(
+                            "local codex exec completed but did not write the last message file."
+                            + build_trace_hint(trace_base)
+                        )
+                    return output_path.read_text(encoding="utf-8")
 
-        write_trace_text(stdout_path, completed.stdout)
-        write_trace_text(stderr_path, completed.stderr)
-        if completed.returncode != 0:
-            raise LocalCodexExecutorError(
-                "local codex exec failed: "
-                + summarize_command_failure(completed.stdout, completed.stderr, completed.returncode)
-                + build_trace_hint(trace_base)
-            )
-        if not output_path.exists():
-            raise LocalCodexExecutorError(
-                "local codex exec completed but did not write the last message file."
-                + build_trace_hint(trace_base)
-            )
-        return output_path.read_text(encoding="utf-8")
+                last_failure_message = (
+                    "local codex exec failed: "
+                    + summarize_command_failure(completed.stdout, completed.stderr, completed.returncode)
+                    + build_trace_hint(trace_base)
+                )
+                if should_try_next_model(stdout=completed.stdout, stderr=completed.stderr) and model_index + 1 < len(model_candidates):
+                    break
+                raise LocalCodexExecutorError(last_failure_message)
+
+            if last_timeout_error is not None and model_index + 1 < len(model_candidates):
+                last_timeout_error = None
+                continue
+            if last_timeout_error is not None:
+                raise last_timeout_error
+        if last_failure_message:
+            raise LocalCodexExecutorError(last_failure_message)
+        raise LocalCodexExecutorError("local codex exec failed without a usable attempt result." + build_trace_hint(trace_base))
 
 
 def summarize_command_failure(stdout: str, stderr: str, returncode: int) -> str:
@@ -417,6 +514,34 @@ def summarize_command_failure(stdout: str, stderr: str, returncode: int) -> str:
     if len(condensed) > 400:
         condensed = condensed[:400] + "..."
     return f"exit={returncode}; output={condensed or '信息缺失'}"
+
+
+def parse_model_list(value: str | None) -> list[str]:
+    if not value:
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def build_model_candidates(*, model: str | None, fallback_models: list[str] | None) -> list[str | None]:
+    candidates: list[str | None] = [model]
+    for item in fallback_models or []:
+        if item == model:
+            continue
+        candidates.append(item)
+    return candidates
+
+
+def should_try_next_model(*, stdout: str, stderr: str) -> bool:
+    combined = "\n".join(part.strip() for part in (stdout, stderr) if part and part.strip()).lower()
+    retry_signals = [
+        "usage limit",
+        "switch to another model",
+        "rate limit",
+        "quota",
+        "model overloaded",
+        "try again later",
+    ]
+    return any(signal in combined for signal in retry_signals)
 
 
 def normalize_prompt_output(*, prompt_path: Path, prompt_input: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
@@ -442,13 +567,17 @@ def normalize_room_selection_output(*, prompt_input: dict[str, Any], payload: di
     mode = prompt_input.get("mode")
 
     roster = normalized.get("roster")
-    if isinstance(roster, list) and all(isinstance(item, str) for item in roster):
-        normalized["roster"] = [{"agent": item} for item in roster]
+    if isinstance(roster, list):
+        normalized_roster = normalize_agent_reference_list(roster)
+        if normalized_roster:
+            normalized["roster"] = normalized_roster
 
     if mode == "room_turn":
         speakers = normalized.get("speakers")
-        if isinstance(speakers, list) and all(isinstance(item, str) for item in speakers):
-            normalized["speakers"] = [{"agent": item} for item in speakers]
+        if isinstance(speakers, list):
+            normalized_speakers = normalize_agent_reference_list(speakers)
+            if normalized_speakers:
+                normalized["speakers"] = normalized_speakers
 
     return normalized
 
@@ -932,7 +1061,7 @@ def enrich_debate_review_result(*, prompt_input: dict[str, Any], payload: dict[s
     enriched["source_kind"] = payload.get("source_kind") or review_packet.get("source_kind")
     enriched["debate_id"] = payload.get("debate_id") or prompt_input.get("debate_id")
     enriched["source_room_id"] = payload.get("source_room_id") or review_packet.get("source_room_id")
-    enriched["topic_restatement"] = first_non_empty_string(payload.get("topic_restatement"), review_packet.get("topic_restatement"))
+    enriched["topic_restatement"] = review_packet.get("topic_restatement")
     enriched["quick_mode"] = bool(payload.get("quick_mode", review_packet.get("quick_mode")))
     enriched["review_applicable"] = bool(payload.get("review_applicable", not bool(review_packet.get("quick_mode"))))
     enriched["overall_score"] = normalize_score(payload.get("overall_score"))
@@ -971,7 +1100,7 @@ def enrich_debate_followup_record(*, prompt_input: dict[str, Any], payload: dict
     enriched["source_kind"] = payload.get("source_kind") or review_packet.get("source_kind")
     enriched["debate_id"] = payload.get("debate_id") or review_result.get("debate_id") or prompt_input.get("debate_id")
     enriched["source_room_id"] = payload.get("source_room_id") or review_packet.get("source_room_id")
-    enriched["topic_restatement"] = first_non_empty_string(payload.get("topic_restatement"), review_packet.get("topic_restatement"))
+    enriched["topic_restatement"] = review_packet.get("topic_restatement")
     enriched["quick_mode"] = False
     enriched["followup_round"] = 1
 
@@ -1006,8 +1135,8 @@ def enrich_debate_followup_record(*, prompt_input: dict[str, Any], payload: dict
             normalized_agent_followups.append(
                 {
                     "agent_id": agent_id,
-                    "role_duty": first_non_empty_string(item.get("role_duty"), participant.get("responsibility")),
-                    "needs": first_non_empty_string(item.get("needs"), required_map.get(agent_id)),
+                    "role_duty": participant.get("responsibility"),
+                    "needs": required_map.get(agent_id),
                     "supplemental_points": ensure_string_list(item.get("supplemental_points")),
                     "updated_recommendation": stringify_recommendation(item.get("updated_recommendation")),
                     "remaining_uncertainties": ensure_string_list_allow_empty(item.get("remaining_uncertainties")),
@@ -1048,6 +1177,20 @@ def first_non_empty_string(*values: Any) -> str:
         if isinstance(value, str) and value.strip():
             return value.strip()
     return "信息缺失"
+
+
+def normalize_agent_reference_list(items: list[Any]) -> list[dict[str, str]]:
+    normalized: list[dict[str, str]] = []
+    for item in items:
+        if isinstance(item, str) and item.strip():
+            normalized.append({"agent": item.strip()})
+            continue
+        if not isinstance(item, dict):
+            continue
+        agent_id = item.get("agent") or item.get("agent_id")
+        if isinstance(agent_id, str) and agent_id.strip():
+            normalized.append({"agent": agent_id.strip()})
+    return normalized
 
 
 def ensure_string_list(value: Any) -> list[str]:

@@ -180,10 +180,13 @@ description: |
 - `.codex/skills/room-skill/WORKFLOW.md` 已提供 checked-in 的 runtime playbook
 - `.codex/skills/room-skill/runtime/room_runtime.py` 已提供 checked-in 的 host-side bridge
 - `.codex/skills/room-skill/runtime/local_codex_executor.py` 已提供 checked-in 的本地 child-agent 执行器
+- `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 E2E validation runner
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 mock provider，用于验证 Chat Completions 路径
 - `/room local_codex` 已在 Mac 上通过 checked-in E2E 验证
 - `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证
+- checked-in child-agent 执行器现在可显式控制 child task 的 reasoning effort，不必继承宿主全局 `xhigh`
+- 当前最稳定的 Mac 本地主线配置已验证 `gpt-5.4` 主模型；`gpt-5.4-mini` 可作为同家族 fallback
 - canonical fixture 已可在 Mac 本地跑通 `/room -> /summary -> /upgrade-to-debate`
 - 外部 provider 路径仍保留，但应视为 fallback；真实 provider live validation 仍未证明完成
 

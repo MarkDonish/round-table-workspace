@@ -38,6 +38,12 @@ For the checked-in local child-agent executor:
 python3 .codex/skills/room-skill/runtime/local_codex_executor.py --help
 ```
 
+For the checked-in local mainline regression runner:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_regression.py --help
+```
+
 For the checked-in local mock Chat Completions provider:
 
 ```bash
@@ -77,8 +83,21 @@ Run a local child-agent smoke test:
 ```bash
 python3 .codex/skills/room-skill/runtime/local_codex_executor.py \
   --check-local-exec \
-  --model gpt-5.3-codex-spark \
+  --model gpt-5.4 \
+  --reasoning-effort medium \
   --timeout-seconds 180
+```
+
+Run the checked-in full local mainline regression suite:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_regression.py \
+  --local-codex-model gpt-5.4 \
+  --local-codex-fallback-models gpt-5.4-mini \
+  --local-codex-reasoning-effort low \
+  --local-codex-timeout-seconds 120 \
+  --local-codex-timeout-retries 0 \
+  --state-root /tmp/round-table-local-codex-regression
 ```
 
 Run the checked-in E2E validation flow through local child-agent tasks:
@@ -86,8 +105,11 @@ Run the checked-in E2E validation flow through local child-agent tasks:
 ```bash
 python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.3-codex-spark \
-  --local-codex-timeout-seconds 240 \
+  --local-codex-model gpt-5.4 \
+  --local-codex-fallback-models gpt-5.4-mini \
+  --local-codex-reasoning-effort low \
+  --local-codex-timeout-seconds 120 \
+  --local-codex-timeout-retries 0 \
   --state-root /tmp/round-table-room-local-codex
 ```
 
@@ -130,8 +152,11 @@ Run the checked-in `/room -> /debate` integration flow through local child-agent
 ```bash
 python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.3-codex-spark \
-  --local-codex-timeout-seconds 240 \
+  --local-codex-model gpt-5.4 \
+  --local-codex-fallback-models gpt-5.4-mini \
+  --local-codex-reasoning-effort low \
+  --local-codex-timeout-seconds 120 \
+  --local-codex-timeout-retries 0 \
   --scenario reject_followup \
   --state-root /tmp/round-table-room-debate-local-codex
 ```
@@ -236,7 +261,9 @@ It assumes some host or operator already called:
 
 The bridge then validates those JSON outputs and performs the state writeback that only the host is allowed to perform.
 
-`local_codex_executor.py` is the checked-in local child-agent adapter. It reuses the local Codex host to run one prompt as one nested child task, then normalizes the resulting JSON back into the runtime contracts.
+`local_codex_executor.py` is the checked-in local child-agent adapter. It reuses the local Codex host to run one prompt as one nested child task, normalizes the resulting JSON back into the runtime contracts, and now exposes explicit child-task reasoning control so `/room` and `/debate` do not blindly inherit the host's global `xhigh` profile.
+
+`local_codex_regression.py` is the checked-in local mainline regression runner. It sequences the smoke check, `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration into one evidence bundle. The most stable current Mac lane is `gpt-5.4` with an explicit child-task reasoning setting plus optional `gpt-5.4-mini` fallback.
 
 `room_e2e_validation.py` is a checked-in validation harness above that bridge. It can drive the same flow through canonical fixtures, local child-agent execution, or a real Chat Completions-compatible provider, then persist evidence bundles for review.
 
