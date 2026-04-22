@@ -264,6 +264,17 @@ It reuses the original `review-packet.json` structure and adds:
 
 This keeps the re-review payload structurally compatible with the reviewer contract while preserving the follow-up delta as explicit visible output.
 
+When the reviewer explicitly targets `moderator`, that `moderator_summary.followup_update` comes from the checked-in follow-up prompt output.
+
+When the reviewer only targets debate participants, the host bridge now synthesizes `moderator_summary.followup_update` from the targeted agent followups before the second review. This prevents the re-review packet from showing only scattered deltas without a moderator-level integrated recommendation and stop-condition summary.
+
+After that single allowed follow-up round, the second review now has two checked-in terminal outcomes:
+
+- `allow_final_decision = true`
+- `allow_final_decision = false` plus `required_followups = []`
+
+The second case is still terminal. It means the bridge must stop with a blocked conclusion instead of fabricating extra follow-up rounds that the protocol does not allow.
+
 ---
 
 ## Output Location

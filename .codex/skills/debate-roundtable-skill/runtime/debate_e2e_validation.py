@@ -129,7 +129,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--local-codex-timeout-retries",
         type=int,
         default=local_executor.DEFAULT_TIMEOUT_RETRIES,
-        help="How many times to retry a timed-out local Codex child task.",
+        help="How many times to retry a timed-out or transiently disconnected local Codex child task.",
     )
     parser.add_argument(
         "--local-codex-retry-timeout-multiplier",
@@ -319,6 +319,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         "followup_record_accepted": followup_validation["accepted"],
         "rereview_packet_accepted": rereview_packet_validation["accepted"],
         "final_review_accepted": final_review_validation["accepted"],
+        "terminal_outcome_after_followup": is_terminal_followup_outcome(final_review_result),
         "allow_final_decision_after_followup": final_review_result["allow_final_decision"],
     }
     runtime.write_json(debate_dir / "validation-report.json", report)
@@ -346,6 +347,32 @@ def resolve_launch_bundle(args: argparse.Namespace) -> tuple[dict[str, Any], dic
         "packet_json": str(runtime.ROOM_UPGRADE_FIXTURE),
         "packet_acceptance": packet_acceptance,
     }
+
+
+def is_terminal_followup_outcome(review_result: dict[str, Any]) -> bool:
+    if review_result.get("allow_final_decision") is True:
+        return True
+    required_followups = review_result.get("required_followups")
+    return isinstance(required_followups, list) and len(required_followups) == 0
+
+
+def debate_report_passed(report: dict[str, Any]) -> bool:
+    pass_criteria = report.get("pass_criteria", {})
+    if "terminal_outcome_after_followup" not in pass_criteria:
+        return all(bool(value) for value in pass_criteria.values())
+
+    base_keys = [
+        "launch_bundle_persisted",
+        "roundtable_record_accepted",
+        "review_packet_accepted",
+        "initial_reject_accepted",
+        "initial_reject_required_followups",
+        "followup_record_accepted",
+        "rereview_packet_accepted",
+        "final_review_accepted",
+        "terminal_outcome_after_followup",
+    ]
+    return all(bool(pass_criteria.get(key)) for key in base_keys)
 
 
 def build_canonical_launch_bundle(*, debate_id: str, room_id: str) -> tuple[dict[str, Any], dict[str, Any]]:

@@ -1393,6 +1393,12 @@ def build_rereview_packet(
         rereview_packet["evidence_buckets"]["uncertainties"].extend(copy.deepcopy(followup["remaining_uncertainties"]))
 
     moderator_followup = followup_record.get("moderator_followup")
+    if moderator_followup is None:
+        moderator_followup = synthesize_moderator_followup(
+            review_packet=review_packet,
+            review_result=review_result,
+            followup_record=followup_record,
+        )
     if moderator_followup is not None:
         rereview_packet["moderator_summary"]["consensus_points"].extend(
             copy.deepcopy(moderator_followup["added_or_corrected_consensus"])
@@ -1414,6 +1420,8 @@ def build_rereview_packet(
             "updated_stop_conditions": copy.deepcopy(moderator_followup["updated_stop_conditions"]),
             "remaining_uncertainties": copy.deepcopy(moderator_followup["remaining_uncertainties"]),
         }
+        if moderator_followup.get("synthesized_from_agent_followups") is True:
+            rereview_packet["moderator_summary"]["followup_update"]["synthesized_from_agent_followups"] = True
         rereview_packet["evidence_buckets"]["facts"].extend(copy.deepcopy(moderator_followup["facts"]))
         rereview_packet["evidence_buckets"]["inferences"].extend(copy.deepcopy(moderator_followup["inferences"]))
         rereview_packet["evidence_buckets"]["uncertainties"].extend(
@@ -1429,6 +1437,383 @@ def build_rereview_packet(
     rereview_packet["review_boundaries"]["followup_round"] = followup_record["followup_round"]
     rereview_packet["review_boundaries"]["rereview_required"] = True
     return rereview_packet
+
+
+def synthesize_moderator_followup(
+    *,
+    review_packet: dict[str, Any],
+    review_result: dict[str, Any],
+    followup_record: dict[str, Any],
+) -> dict[str, Any] | None:
+    agent_followups = followup_record.get("agent_followups")
+    if not isinstance(agent_followups, list) or not agent_followups:
+        return None
+
+    participant_map = {
+        item["agent_id"]: item
+        for item in review_packet.get("participants", [])
+        if isinstance(item, dict) and isinstance(item.get("agent_id"), str)
+    }
+    integrated_recommendations: list[str] = []
+    integrated_inferences: list[str] = []
+    remaining_uncertainties: list[str] = []
+    entry_candidates: list[str] = []
+    workflow_constraints: list[str] = []
+    gate_candidates: list[str] = []
+    for item in agent_followups:
+        if not isinstance(item, dict):
+            continue
+        agent_id = item.get("agent_id")
+        participant = participant_map.get(agent_id, {})
+        label = participant.get("short_name") or agent_id
+        updated_recommendation = item.get("updated_recommendation")
+        if isinstance(updated_recommendation, str) and updated_recommendation.strip():
+            cleaned = updated_recommendation.strip()
+            integrated_recommendations.append(f"{label}: {cleaned}")
+            classify_followup_text(
+                cleaned,
+                entry_candidates=entry_candidates,
+                workflow_constraints=workflow_constraints,
+                gate_candidates=gate_candidates,
+            )
+        supplemental_points = item.get("supplemental_points")
+        if isinstance(supplemental_points, list):
+            for point in supplemental_points:
+                if isinstance(point, str) and point.strip():
+                    cleaned = point.strip()
+                    integrated_inferences.append(f"{label}: {cleaned}")
+                    classify_followup_text(
+                        cleaned,
+                        entry_candidates=entry_candidates,
+                        workflow_constraints=workflow_constraints,
+                        gate_candidates=gate_candidates,
+                    )
+        uncertainties = item.get("remaining_uncertainties")
+        if isinstance(uncertainties, list):
+            for point in uncertainties:
+                if isinstance(point, str) and point.strip():
+                    remaining_uncertainties.append(point.strip())
+
+    if not integrated_recommendations:
+        return None
+
+    synthesized_stop_conditions = collect_stop_conditions_from_followups(agent_followups)
+    reviewer_feedback = dedupe_non_empty_strings(
+        review_result.get("evidence_gaps", [])
+        + review_result.get("logic_gaps", [])
+        + review_result.get("overlooked_issues", [])
+        + review_result.get("severe_red_flags", [])
+    )
+    should_block = should_emit_blocked_followup(
+        entry_candidates=entry_candidates,
+        gate_candidates=gate_candidates,
+        reviewer_feedback=reviewer_feedback,
+    )
+
+    if should_block:
+        blocking_prerequisites = build_blocking_prerequisites(
+            review_result=review_result,
+            entry_candidates=entry_candidates,
+            workflow_constraints=workflow_constraints,
+            gate_candidates=gate_candidates,
+        )
+        integrated_preliminary_recommendation = build_blocked_preliminary_recommendation(
+            entry_candidates=entry_candidates,
+            blocking_prerequisites=blocking_prerequisites,
+        )
+        synthesized_stop_conditions = build_blocking_stop_conditions(
+            blocking_prerequisites=blocking_prerequisites,
+            derived_stop_conditions=synthesized_stop_conditions,
+        )
+        added_or_corrected_consensus = build_blocking_consensus(
+            entry_candidates=entry_candidates,
+            blocking_prerequisites=blocking_prerequisites,
+        )
+        added_or_corrected_conflicts = reviewer_feedback[:3]
+        integrated_inferences.extend(blocking_prerequisites)
+    else:
+        integrated_preliminary_recommendation = build_structured_preliminary_recommendation(
+            entry_candidates=entry_candidates,
+            workflow_constraints=workflow_constraints,
+            gate_candidates=gate_candidates,
+            remaining_uncertainties=remaining_uncertainties,
+        )
+        added_or_corrected_consensus = build_structured_consensus(
+            entry_candidates=entry_candidates,
+            workflow_constraints=workflow_constraints,
+            gate_candidates=gate_candidates,
+        )
+        added_or_corrected_conflicts = []
+
+    return {
+        "needs": (
+            "主持人需把 reviewer 点名补充的结果整合成单一可复审建议。"
+            if not should_block
+            else "主持人需把补充结果收束成单一阻塞结论，明确当前为什么还不能放行。"
+        ),
+        "added_or_corrected_consensus": added_or_corrected_consensus,
+        "added_or_corrected_conflicts": added_or_corrected_conflicts,
+        "facts": [],
+        "inferences": copy.deepcopy(integrated_inferences),
+        "updated_preliminary_recommendation": integrated_preliminary_recommendation,
+        "updated_stop_conditions": synthesized_stop_conditions,
+        "remaining_uncertainties": dedupe_non_empty_strings(remaining_uncertainties + review_result.get("logic_gaps", [])),
+        "synthesized_from_agent_followups": True,
+    }
+
+
+def classify_followup_text(
+    text: str,
+    *,
+    entry_candidates: list[str],
+    workflow_constraints: list[str],
+    gate_candidates: list[str],
+) -> None:
+    lowered = text.lower()
+    if any(
+        marker in lowered
+        for marker in (
+            "首发入口",
+            "第一刀",
+            "单押",
+            "固定为",
+            "ddl 前",
+            "考试周",
+            "文本场景",
+            "课程短文",
+            "作业文字说明",
+            "单题单步",
+            "垂直场景",
+            "候选场景",
+        )
+    ):
+        entry_candidates.append(text)
+    if any(
+        marker in lowered
+        for marker in (
+            "流程",
+            "步骤",
+            "上传",
+            "回填",
+            "审核",
+            "闭环",
+            "闸门",
+            "界面",
+            "生成",
+            "提交帮助度",
+        )
+    ):
+        workflow_constraints.append(text)
+    if any(
+        marker in lowered
+        for marker in (
+            "完成率",
+            "复用率",
+            "回访",
+            "阈值",
+            "停止",
+            "判定",
+            "不允许",
+            "低于",
+            "高于",
+            "一票否决",
+            "样本",
+            "放行",
+            "主指标",
+            "迁移",
+            "复述",
+        )
+    ):
+        gate_candidates.append(text)
+
+
+def should_emit_blocked_followup(
+    *,
+    entry_candidates: list[str],
+    gate_candidates: list[str],
+    reviewer_feedback: list[str],
+) -> bool:
+    if not has_locked_entry_candidate(entry_candidates) or not gate_candidates:
+        return True
+
+    block_markers = (
+        "没有可见候选场景清单",
+        "切口未锁定",
+        "仍停留在筛选标准层",
+        "未形成足够清晰的成功/失败门槛",
+        "没有新增可核实事实",
+        "仍主要建立在推断",
+        "应输出阻塞结论",
+        "不应启动实验",
+        "结论先行",
+        "虚假共识",
+    )
+    for item in reviewer_feedback:
+        if any(marker in item for marker in block_markers):
+            return True
+    return False
+
+
+def has_locked_entry_candidate(entry_candidates: list[str]) -> bool:
+    lock_markers = ("锁定", "固定为", "只选", "定为", "单押", "不再并列", "首发入口固定", "第一刀场景定为")
+    for item in entry_candidates:
+        if any(marker in item for marker in lock_markers):
+            return True
+    return False
+
+
+def build_blocking_prerequisites(
+    *,
+    review_result: dict[str, Any],
+    entry_candidates: list[str],
+    workflow_constraints: list[str],
+    gate_candidates: list[str],
+) -> list[str]:
+    prerequisites: list[str] = []
+    feedback = dedupe_non_empty_strings(
+        review_result.get("evidence_gaps", [])
+        + review_result.get("logic_gaps", [])
+        + review_result.get("overlooked_issues", [])
+        + review_result.get("severe_red_flags", [])
+    )
+
+    if entry_candidates:
+        prerequisites.append("当前讨论里出现过的首刀/入口都只能保留为候选假设，不得在没有额外证据前写成已收束结论。")
+
+    if any("没有可见候选场景清单" in item or "切口" in item for item in feedback):
+        prerequisites.append("在至少拿出一个通过筛选标准的具体候选切口前，不允许启动首轮实验。")
+    if any("没有新增可核实事实" in item or "仍主要建立在推断" in item for item in feedback):
+        prerequisites.append("在没有新增外部事实时，所有关于场景频率、复用强度和需求动机的判断都只能降格为待验证假设。")
+    if any("门槛" in item or "阈值" in item or "判定" in item for item in feedback) or not gate_candidates:
+        prerequisites.append("在把成功/失败门槛、停止条件和样本归类规则写成单表前，不允许放行。")
+    if any("人工" in item or "时延" in item for item in workflow_constraints + gate_candidates + feedback):
+        prerequisites.append("在人工风险闸门的先后顺序、时延上限和超标后的处理规则明确前，不允许把人工兜底写成已成立路径。")
+
+    if not prerequisites:
+        prerequisites.append("在主持人无法把补充内容压成单一路径前，不允许把本轮讨论写成可启动实验。")
+    return dedupe_non_empty_strings(prerequisites)
+
+
+def build_blocked_preliminary_recommendation(
+    *,
+    entry_candidates: list[str],
+    blocking_prerequisites: list[str],
+) -> str:
+    parts = [
+        "补充后主持人统一结论：本轮的最终决议不是启动受限首版实验，而是维持阻塞结论。",
+    ]
+    if entry_candidates:
+        parts.append(f"当前只允许把“{entry_candidates[0]}”保留为候选假设，而不是已收束切口。")
+    parts.append("在以下前置条件满足前，只允许保留筛选标准、风险边界和判停规则，不允许扩入口，也不允许对外承诺学习有效。")
+    if blocking_prerequisites:
+        parts.append("前置条件包括：" + "；".join(blocking_prerequisites))
+    return " ".join(parts)
+
+
+def build_blocking_stop_conditions(
+    *,
+    blocking_prerequisites: list[str],
+    derived_stop_conditions: list[str],
+) -> list[str]:
+    stop_conditions = [
+        "只要上述任一前置条件仍未满足，就维持阻塞结论，不允许启动首版实验。",
+        "如果后续材料仍只能提供筛选标准而没有单一可执行切口，就直接结束本轮 debate，不再解释成可放行方案。",
+    ]
+    stop_conditions.extend(blocking_prerequisites)
+    stop_conditions.extend(derived_stop_conditions)
+    return dedupe_non_empty_strings(stop_conditions)
+
+
+def build_blocking_consensus(
+    *,
+    entry_candidates: list[str],
+    blocking_prerequisites: list[str],
+) -> list[str]:
+    items = ["本轮最终结论改为阻塞，不批准直接启动首版实验。"]
+    if entry_candidates:
+        items.append(f"当前只能把“{entry_candidates[0]}”保留为候选假设。")
+    items.extend(blocking_prerequisites[:3])
+    return dedupe_non_empty_strings(items)
+
+
+def build_structured_preliminary_recommendation(
+    *,
+    entry_candidates: list[str],
+    workflow_constraints: list[str],
+    gate_candidates: list[str],
+    remaining_uncertainties: list[str],
+) -> str:
+    parts = [
+        "补充后主持人统一建议：当前只允许执行一个受限首版实验，不允许并行扩展其他入口，也不允许把方案放大成更重的产品化投入。",
+    ]
+    if entry_candidates:
+        parts.append(f"唯一允许继续验证的首刀切口是：{entry_candidates[0]}")
+    if workflow_constraints:
+        parts.append("执行链路只保留：" + "；".join(dedupe_non_empty_strings(workflow_constraints)[:3]))
+    if gate_candidates:
+        parts.append("放行与停表只看：" + "；".join(dedupe_non_empty_strings(gate_candidates)[:4]))
+    if remaining_uncertainties:
+        parts.append("凡仍缺事实支撑的频率、需求强度和长期价值判断，一律降格为待验证假设，不写成已证成事实。")
+    parts.append("只要触发任一停止条件，就直接判定该方向暂不成立，不得继续放大。")
+    return " ".join(parts)
+
+
+def build_structured_consensus(
+    *,
+    entry_candidates: list[str],
+    workflow_constraints: list[str],
+    gate_candidates: list[str],
+) -> list[str]:
+    items: list[str] = []
+    if entry_candidates:
+        items.append(f"唯一允许继续验证的首刀切口是：{entry_candidates[0]}")
+    if workflow_constraints:
+        items.append("执行链路必须收敛为单一路径，不再并列多种入口或多套人工兜底方式。")
+    if gate_candidates:
+        items.append("放行与停表标准必须先于扩张决定写死，不能靠事后解释补救。")
+    return dedupe_non_empty_strings(items)
+
+
+def dedupe_non_empty_strings(items: list[Any]) -> list[str]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for item in items:
+        if not isinstance(item, str):
+            continue
+        text = item.strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        ordered.append(text)
+    return ordered
+
+
+def collect_stop_conditions_from_followups(agent_followups: list[Any]) -> list[str]:
+    derived: list[str] = []
+    trigger_words = ("停止", "暂停", "失败", "不允许", "高风险", "偏向代做", "不进入", "拦截")
+    for item in agent_followups:
+        if not isinstance(item, dict):
+            continue
+        for field in ("updated_recommendation",):
+            value = item.get(field)
+            if isinstance(value, str) and value.strip() and any(word in value for word in trigger_words):
+                derived.append(value.strip())
+        supplemental_points = item.get("supplemental_points")
+        if not isinstance(supplemental_points, list):
+            continue
+        for point in supplemental_points:
+            if isinstance(point, str) and point.strip() and any(word in point for word in trigger_words):
+                derived.append(point.strip())
+
+    if not derived:
+        for item in agent_followups:
+            if not isinstance(item, dict):
+                continue
+            recommendation = item.get("updated_recommendation")
+            if isinstance(recommendation, str) and recommendation.strip():
+                derived.append(f"若无法满足以下补充要求，则不允许继续放大：{recommendation.strip()}")
+
+    return dedupe_non_empty_strings(derived)
 
 
 def validate_launch_bundle(payload: dict[str, Any]) -> None:

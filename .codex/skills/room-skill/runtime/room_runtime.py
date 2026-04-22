@@ -501,16 +501,20 @@ def apply_upgrade(
     state_root: Path,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     updated_state = copy.deepcopy(state)
-    if updated_state.get("upgrade_signal") is None:
-        if not explicit_user_request:
-            raise RoomRuntimeError("Upgrade requires an existing upgrade_signal or --explicit-user-request.")
+    existing_signal = updated_state.get("upgrade_signal") or {}
+    if explicit_user_request:
         updated_state["upgrade_signal"] = {
-            "triggered_at_turn": updated_state["turn_count"],
+            "triggered_at_turn": existing_signal.get("triggered_at_turn", updated_state["turn_count"]),
             "reason": "user_explicit_request",
-            "tension_unresolved": bool(updated_state["tension_points"]),
-            "confidence": 0.8,
+            "tension_unresolved": bool(updated_state["tension_points"]) or bool(existing_signal.get("tension_unresolved")),
+            "confidence": max(float(existing_signal.get("confidence", 0.0)), 0.8),
             "handoff_ready": False,
         }
+    elif updated_state.get("upgrade_signal") is None:
+        raise RoomRuntimeError("Upgrade requires an existing upgrade_signal or --explicit-user-request.")
+
+    if explicit_user_request and upgrade_output.get("error") == "room_too_fresh":
+        upgrade_output = synthesize_explicit_upgrade_output(updated_state, rejected_upgrade_output=upgrade_output)
 
     validate_upgrade_output(upgrade_output, updated_state)
     packet = upgrade_output["handoff_packet"]
@@ -535,6 +539,150 @@ def apply_upgrade(
         "upgrade_signal": updated_state["upgrade_signal"],
     }
     return updated_state, result
+
+
+def synthesize_explicit_upgrade_output(
+    state: dict[str, Any], *, rejected_upgrade_output: dict[str, Any]
+) -> dict[str, Any]:
+    participants = state.get("agents", [])
+    last_turn = state.get("conversation_log", [])[-1] if state.get("conversation_log") else {}
+    last_speakers = []
+    if isinstance(last_turn, dict):
+        speakers = last_turn.get("speakers")
+        if isinstance(speakers, list):
+            last_speakers = [
+                item.get("agent_id")
+                for item in speakers
+                if isinstance(item, dict) and isinstance(item.get("agent_id"), str)
+            ]
+
+    open_questions = copy.deepcopy(state.get("open_questions", []))
+    candidate_solutions = []
+    recommended_next_step = state.get("recommended_next_step")
+    if isinstance(recommended_next_step, str) and recommended_next_step.strip():
+        candidate_solutions.append(
+            {
+                "solution_text": recommended_next_step.strip(),
+                "proposed_by": last_speakers or participants[:3],
+                "support_level": "medium",
+                "unresolved_concerns": open_questions[:2],
+            }
+        )
+
+    unresolved = copy.deepcopy(state.get("tension_points", [])) + open_questions[:2]
+    field_04 = build_host_sub_problems(state)
+    warning_flags = ["user_forced_early_upgrade"]
+    packaging_warnings = ["user_forced_early_upgrade", "prompt_reported_room_too_fresh_but_host_packaged_anyway"]
+    detail = rejected_upgrade_output.get("detail")
+    if isinstance(detail, str) and detail.strip():
+        packaging_warnings.append(detail.strip())
+
+    return {
+        "mode": "room_upgrade",
+        "handoff_packet": {
+            "schema_version": "v0.1",
+            "generated_at_turn": state["turn_count"],
+            "source_room_id": state["room_id"],
+            "field_01_original_topic": state["original_topic"],
+            "field_02_room_title": state["title"],
+            "field_03_type": {
+                "primary": state["primary_type"],
+                "secondary": state["secondary_type"],
+            },
+            "field_04_sub_problems": field_04,
+            "field_05_consensus_points": copy.deepcopy(state.get("consensus_points", [])),
+            "field_06_tension_points": copy.deepcopy(state.get("tension_points", [])),
+            "field_07_open_questions": open_questions,
+            "field_08_candidate_solutions": candidate_solutions,
+            "field_09_factual_claims": [],
+            "field_10_uncertainty_points": dedupe_non_empty_strings(unresolved),
+            "field_11_suggested_agents": participants[:5],
+            "field_12_suggested_agent_roles": build_host_suggested_agent_roles(state),
+            "field_13_upgrade_reason": {
+                "reason_code": state["upgrade_signal"]["reason"],
+                "reason_text": "用户显式要求进入 /debate；host 以已持久化 room state 直接打包 handoff packet。",
+                "triggered_by": "user_explicit",
+                "confidence": state["upgrade_signal"]["confidence"],
+                "warning_flags": warning_flags,
+            },
+        },
+        "packaging_meta": {
+            "turns_scanned": state["turn_count"],
+            "solutions_extracted": len(candidate_solutions),
+            "claims_extracted": 0,
+            "agents_filtered_out": [],
+            "agents_upgraded_in": [],
+            "warnings": packaging_warnings,
+            "host_fallback": "explicit_user_request_room_too_fresh",
+        },
+        "meta": {
+            "generated_at_turn": state["turn_count"],
+            "prompt_version": "room-upgrade host-fallback v0.1",
+            "next_action": "pass_packet_to_debate_skill",
+        },
+    }
+
+
+def build_host_sub_problems(state: dict[str, Any]) -> list[dict[str, Any]]:
+    turn_span = [1, state["turn_count"]]
+    sub_problems: list[dict[str, Any]] = []
+    for question in state.get("open_questions", []):
+        if not isinstance(question, str) or not question.strip():
+            continue
+        sub_problems.append(
+            {
+                "text": question.strip(),
+                "tags": ["product_focus", "execution_path"],
+                "discussed_in_turns": turn_span,
+                "status": "open",
+            }
+        )
+    if state.get("recommended_next_step"):
+        sub_problems.append(
+            {
+                "text": str(state["recommended_next_step"]).strip(),
+                "tags": ["execution_path", "decision_rule"],
+                "discussed_in_turns": turn_span,
+                "status": "converged" if not state.get("tension_points") else "open",
+            }
+        )
+    if not sub_problems:
+        sub_problems.append(
+            {
+                "text": "Host fallback packaging used the persisted room state because the user explicitly requested /debate.",
+                "tags": ["upgrade_override"],
+                "discussed_in_turns": turn_span,
+                "status": "open",
+            }
+        )
+    return sub_problems[:4]
+
+
+def build_host_suggested_agent_roles(state: dict[str, Any]) -> dict[str, str]:
+    roles: dict[str, str] = {}
+    for agent_id in state.get("agents", [])[:5]:
+        meta = state.get("agent_roles", {}).get(agent_id, {})
+        short_name = meta.get("short_name") or agent_id
+        task_types = ", ".join(meta.get("task_types", [])[:2]) if isinstance(meta.get("task_types"), list) else ""
+        tags = ", ".join(meta.get("sub_problem_tags", [])[:2]) if isinstance(meta.get("sub_problem_tags"), list) else ""
+        focus_bits = [part for part in [task_types, tags] if part]
+        focus_text = " / ".join(focus_bits) if focus_bits else "当前未决问题"
+        roles[agent_id] = f"{short_name} 负责从 {focus_text} 视角继续推进 debate 复审。"
+    return roles
+
+
+def dedupe_non_empty_strings(items: list[Any]) -> list[str]:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for item in items:
+        if not isinstance(item, str):
+            continue
+        text = item.strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        ordered.append(text)
+    return ordered
 
 
 def apply_roster_patch(
@@ -660,7 +808,8 @@ def validate_room_full_output(room_full: dict[str, Any], registry: dict[str, dic
     require(isinstance(roster, list) and 1 <= len(roster) <= 8, "room_full roster must contain 1-8 agents.")
     seen: set[str] = set()
     for item in roster:
-        agent_id = item.get("agent")
+        agent_id = canonicalize_registry_agent(item.get("agent"), registry)
+        item["agent"] = agent_id
         require(agent_id in registry, f"Unknown roster agent: {agent_id}")
         require(agent_id not in seen, f"Duplicate roster agent: {agent_id}")
         seen.add(agent_id)
@@ -691,7 +840,8 @@ def validate_room_turn_output(
     require(min_speakers <= len(speakers) <= max_speakers, "room_turn speakers must stay within legal range.")
     seen: set[str] = set()
     for item in speakers:
-        agent_id = item.get("agent") or item.get("agent_id")
+        agent_id = canonicalize_registry_agent(item.get("agent") or item.get("agent_id"), registry)
+        item["agent"] = agent_id
         require(agent_id in state["agents"], f"room_turn speaker is not in current roster: {agent_id}")
         require(agent_id in registry, f"Unknown room_turn speaker: {agent_id}")
         require(agent_id not in seen, f"Duplicate room_turn speaker: {agent_id}")
@@ -715,7 +865,8 @@ def validate_roster_patch_output(
     require(isinstance(roster, list) and 1 <= len(roster) <= 8, "roster_patch roster must contain 1-8 agents.")
     seen: set[str] = set()
     for item in roster:
-        agent_id = item.get("agent")
+        agent_id = canonicalize_registry_agent(item.get("agent"), registry)
+        item["agent"] = agent_id
         require(agent_id in registry, f"Unknown roster_patch agent: {agent_id}")
         require(agent_id not in seen, f"Duplicate roster_patch agent: {agent_id}")
         seen.add(agent_id)
@@ -1087,6 +1238,27 @@ def load_registry() -> dict[str, dict[str, Any]]:
     if not registry:
         raise RoomRuntimeError("Agent registry is empty after parsing docs/agent-registry.md.")
     return registry
+
+
+def canonicalize_registry_agent(raw_agent_id: Any, registry: dict[str, dict[str, Any]]) -> str:
+    require(isinstance(raw_agent_id, str) and bool(raw_agent_id.strip()), f"Agent id must be a non-empty string: {raw_agent_id}")
+    candidate = raw_agent_id.strip()
+    if candidate in registry:
+        return candidate
+
+    normalized_candidate = normalize_agent_key(candidate)
+    for agent_id, meta in registry.items():
+        if normalize_agent_key(agent_id) == normalized_candidate:
+            return agent_id
+        short_name = meta.get("short_name")
+        if isinstance(short_name, str) and normalize_agent_key(short_name) == normalized_candidate:
+            return agent_id
+
+    return candidate
+
+
+def normalize_agent_key(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", text.lower())
 
 
 def load_state(state_root: Path, room_id: str) -> dict[str, Any]:

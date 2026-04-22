@@ -23,6 +23,9 @@ import debate_e2e_validation as debate_validation
 
 
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "local-codex-regression"
+DEFAULT_REGRESSION_FOLLOW_UP = (
+    "/focus 先只盯最小可验证切口，并明确争论：首轮验证到底该优先看同型变体题完成率，还是优先看无提示复述与迁移能力？"
+)
 
 
 class LocalCodexRegressionError(Exception):
@@ -93,7 +96,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--local-codex-timeout-retries",
         type=int,
         default=local_executor.DEFAULT_TIMEOUT_RETRIES,
-        help="How many times to retry a timed-out local Codex child task.",
+        help="How many times to retry a timed-out or transiently disconnected local Codex child task.",
     )
     parser.add_argument(
         "--local-codex-retry-timeout-multiplier",
@@ -113,7 +116,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--follow-up-input",
-        default=room_validation.DEFAULT_FOLLOW_UP,
+        default=DEFAULT_REGRESSION_FOLLOW_UP,
         help="Follow-up /room input for the regression suite.",
     )
     return parser
@@ -259,8 +262,8 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
         "pass_criteria": {
             "smoke_ready": bool(smoke_result.get("ready")),
             "room_passed": all(bool(value) for value in room_report["pass_criteria"].values()),
-            "debate_allow_passed": all(bool(value) for value in debate_allow_report["pass_criteria"].values()),
-            "debate_followup_passed": all(bool(value) for value in debate_followup_report["pass_criteria"].values()),
+            "debate_allow_passed": debate_validation.debate_report_passed(debate_allow_report),
+            "debate_followup_passed": debate_validation.debate_report_passed(debate_followup_report),
             "integration_passed": bool(integration_report["pass_criteria"]["full_chain_passed"]),
         },
     }

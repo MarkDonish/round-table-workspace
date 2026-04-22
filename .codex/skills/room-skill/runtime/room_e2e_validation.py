@@ -125,7 +125,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--local-codex-timeout-retries",
         type=int,
         default=local_executor.DEFAULT_TIMEOUT_RETRIES,
-        help="How many times to retry a timed-out local Codex child task.",
+        help="How many times to retry a timed-out or transiently disconnected local Codex child task.",
     )
     parser.add_argument(
         "--local-codex-retry-timeout-multiplier",
@@ -570,14 +570,12 @@ def build_summary_input(*, state: dict[str, Any], trigger: str) -> dict[str, Any
 
 
 def build_effective_upgrade_signal(state: dict[str, Any]) -> dict[str, Any]:
-    upgrade_signal = state.get("upgrade_signal")
-    if upgrade_signal is not None:
-        return upgrade_signal
+    upgrade_signal = state.get("upgrade_signal") or {}
     return {
-        "triggered_at_turn": state["turn_count"],
+        "triggered_at_turn": upgrade_signal.get("triggered_at_turn", state["turn_count"]),
         "reason": "user_explicit_request",
-        "tension_unresolved": bool(state["tension_points"]),
-        "confidence": 0.8,
+        "tension_unresolved": bool(state["tension_points"]) or bool(upgrade_signal.get("tension_unresolved")),
+        "confidence": max(float(upgrade_signal.get("confidence", 0.0)), 0.8),
         "handoff_ready": False,
     }
 

@@ -78,8 +78,11 @@ The repository already contains a largely complete source layer for `/room`:
 - a Mac-validated `local_codex` `/room` E2E path
 - a Mac-validated `local_codex` `/debate` allow path plus reject-followup-rereview path
 - a Mac-validated `local_codex` `/room -> /debate` full-chain integration path that consumes the persisted room packet directly
+- a Mac-validated `local_codex` full regression suite (`smoke + room + debate allow + debate reject_followup + integration`) under the `GPT-5.4` family child-task lane
 - a checked-in child-task reasoning-effort control on the local executor, so nested `/room` and `/debate` tasks do not have to inherit the host's global `model_reasoning_effort`
 - a Mac-validated `GPT-5.4` local mainline configuration for the full `/room -> /debate reject_followup` chain, with `gpt-5.4` as the primary child-task model and `gpt-5.4-mini` available as same-family fallback
+- a checked-in `/room` host fallback for explicit `/upgrade-to-debate` requests when the upgrade prompt still returns `room_too_fresh`; that fallback reuses persisted room state and writes the required `user_forced_early_upgrade` packet warning
+- a checked-in `/debate` terminal-outcome rule for the single follow-up cap: the second review may either allow the decision or end in a blocked conclusion with no further required followups
 - a checked-in canonical fixture pack in `.codex/skills/room-skill/runtime/fixtures/canonical/`
 - an explicit local provider config template in `.env.room.example`
 - an explicit `/debate` provider config template in `.env.debate.example`

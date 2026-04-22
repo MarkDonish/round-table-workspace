@@ -116,7 +116,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--timeout-retries",
         type=int,
         default=DEFAULT_TIMEOUT_RETRIES,
-        help="How many times to retry a timed-out local child task.",
+        help="How many times to retry a timed-out or transiently disconnected local child task.",
     )
     parser.add_argument(
         "--retry-timeout-multiplier",
@@ -211,10 +211,10 @@ def call_local_codex(
         ephemeral=ephemeral,
         trace_base=trace_base,
     )
-    try:
-        payload = parse_json_from_text(response)
-    except json.JSONDecodeError:
-        payload = parse_json_from_text(repair_top_level_json_closers(response))
+    repaired_response = repair_runtime_json_text(response)
+    if repaired_response is None:
+        raise json.JSONDecodeError("Could not repair local Codex JSON response.", response, 0)
+    payload = parse_json_from_text(repaired_response)
     return normalize_prompt_output(prompt_path=prompt_path, prompt_input=prompt_input, payload=payload)
 
 
@@ -482,18 +482,24 @@ def run_local_codex_prompt(
                 write_trace_text(stdout_path, completed.stdout)
                 write_trace_text(stderr_path, completed.stderr)
                 if completed.returncode == 0:
-                    if not output_path.exists():
+                    response_text = read_child_response_text(output_path=output_path, stdout_jsonl=completed.stdout)
+                    if response_text is None:
                         raise LocalCodexExecutorError(
-                            "local codex exec completed but did not write the last message file."
+                            "local codex exec completed but did not yield a recoverable last message."
                             + build_trace_hint(trace_base)
                         )
-                    return output_path.read_text(encoding="utf-8")
+                    existing_output = output_path.read_text(encoding="utf-8") if output_path.exists() else None
+                    if existing_output != response_text:
+                        output_path.write_text(response_text, encoding="utf-8")
+                    return response_text
 
                 last_failure_message = (
                     "local codex exec failed: "
                     + summarize_command_failure(completed.stdout, completed.stderr, completed.returncode)
                     + build_trace_hint(trace_base)
                 )
+                if should_retry_transient_failure(stdout=completed.stdout, stderr=completed.stderr) and attempt_index < timeout_retries:
+                    continue
                 if should_try_next_model(stdout=completed.stdout, stderr=completed.stderr) and model_index + 1 < len(model_candidates):
                     break
                 raise LocalCodexExecutorError(last_failure_message)
@@ -514,6 +520,72 @@ def summarize_command_failure(stdout: str, stderr: str, returncode: int) -> str:
     if len(condensed) > 400:
         condensed = condensed[:400] + "..."
     return f"exit={returncode}; output={condensed or '信息缺失'}"
+
+
+def read_child_response_text(*, output_path: Path, stdout_jsonl: str) -> str | None:
+    raw_last_message = output_path.read_text(encoding="utf-8") if output_path.exists() else None
+    repaired_raw = repair_runtime_json_text(raw_last_message)
+    if repaired_raw is not None:
+        return repaired_raw
+
+    recovered_from_stdout = extract_last_agent_message_from_stdout_jsonl(stdout_jsonl)
+    repaired_stdout = repair_runtime_json_text(recovered_from_stdout)
+    if repaired_stdout is not None:
+        return repaired_stdout
+
+    if raw_last_message and recovered_from_stdout and len(recovered_from_stdout) > len(raw_last_message):
+        return recovered_from_stdout
+    return raw_last_message or recovered_from_stdout
+
+
+def is_valid_runtime_json_text(text: str | None) -> bool:
+    return repair_runtime_json_text(text) is not None
+
+
+def repair_runtime_json_text(text: str | None) -> str | None:
+    if not text:
+        return None
+    normalized = repair_missing_string_quotes_before_delimiters(text)
+    normalized_tail = repair_truncated_json_tail(repair_top_level_json_closers(normalized))
+    normalized_eof = repair_unterminated_json_eof(normalized_tail)
+    candidates = [
+        text,
+        normalized,
+        normalized_tail,
+        normalized_eof,
+    ]
+    seen: set[str] = set()
+    for candidate in candidates:
+        if not candidate or candidate in seen:
+            continue
+        seen.add(candidate)
+        try:
+            parse_json_from_text(candidate)
+        except (json.JSONDecodeError, ValueError):
+            continue
+        return candidate
+    return None
+
+
+def extract_last_agent_message_from_stdout_jsonl(stdout_jsonl: str) -> str | None:
+    last_message: str | None = None
+    for line in stdout_jsonl.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        item = event.get("item")
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") != "agent_message":
+            continue
+        text = item.get("text")
+        if isinstance(text, str) and text.strip():
+            last_message = text
+    return last_message
 
 
 def parse_model_list(value: str | None) -> list[str]:
@@ -540,6 +612,21 @@ def should_try_next_model(*, stdout: str, stderr: str) -> bool:
         "quota",
         "model overloaded",
         "try again later",
+    ]
+    return any(signal in combined for signal in retry_signals)
+
+
+def should_retry_transient_failure(*, stdout: str, stderr: str) -> bool:
+    combined = "\n".join(part.strip() for part in (stdout, stderr) if part and part.strip()).lower()
+    retry_signals = [
+        "stream disconnected before completion",
+        "stream disconnected - retrying sampling request",
+        "failed to lookup address information",
+        "dns error",
+        "could not resolve host",
+        "failed to connect to websocket",
+        "error sending request for url",
+        "transport channel closed",
     ]
     return any(signal in combined for signal in retry_signals)
 
@@ -1010,6 +1097,10 @@ def enrich_debate_roundtable_record(*, prompt_input: dict[str, Any], payload: di
         payload.get("topic_restatement"),
         prompt_input.get("topic"),
     )
+    normalized_summary["consensus_points"] = ensure_string_list(normalized_summary.get("consensus_points"))
+    normalized_summary["core_conflicts"] = ensure_string_list(normalized_summary.get("core_conflicts"))
+    normalized_summary["hidden_assumptions"] = ensure_string_list(normalized_summary.get("hidden_assumptions"))
+    normalized_summary["review_focus"] = ensure_string_list(normalized_summary.get("review_focus"))
     enriched["moderator_summary"] = normalized_summary
 
     agent_outputs = payload.get("agent_outputs")
@@ -1034,6 +1125,14 @@ def enrich_debate_roundtable_record(*, prompt_input: dict[str, Any], payload: di
                 }
             )
         enriched["agent_outputs"] = normalized_outputs
+
+    evidence_buckets = payload.get("evidence_buckets")
+    normalized_evidence = dict(evidence_buckets) if isinstance(evidence_buckets, dict) else {}
+    normalized_evidence["facts"] = ensure_string_list(normalized_evidence.get("facts"))
+    normalized_evidence["inferences"] = ensure_string_list(normalized_evidence.get("inferences"))
+    normalized_evidence["uncertainties"] = ensure_string_list(normalized_evidence.get("uncertainties"))
+    normalized_evidence["recommendations"] = ensure_string_list(normalized_evidence.get("recommendations"))
+    enriched["evidence_buckets"] = normalized_evidence
 
     enriched["review_boundaries"] = {
         "conversation_log_reviewable": False,
@@ -1195,19 +1294,42 @@ def normalize_agent_reference_list(items: list[Any]) -> list[dict[str, str]]:
 
 def ensure_string_list(value: Any) -> list[str]:
     if isinstance(value, list):
-        items = [str(item).strip() for item in value if str(item).strip()]
+        items = [item for item in (coerce_visible_string(entry) for entry in value) if item]
         return items or ["信息缺失"]
-    if isinstance(value, str) and value.strip():
-        return [value.strip()]
+    single_value = coerce_visible_string(value)
+    if single_value:
+        return [single_value]
     return ["信息缺失"]
 
 
 def ensure_string_list_allow_empty(value: Any) -> list[str]:
     if isinstance(value, list):
-        return [str(item).strip() for item in value if str(item).strip()]
-    if isinstance(value, str) and value.strip():
-        return [value.strip()]
+        return [item for item in (coerce_visible_string(entry) for entry in value) if item]
+    single_value = coerce_visible_string(value)
+    if single_value:
+        return [single_value]
     return []
+
+
+def coerce_visible_string(value: Any) -> str | None:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    if not isinstance(value, dict):
+        return None
+    for key in (
+        "text",
+        "needs",
+        "uncertainty_text",
+        "recommendation",
+        "updated_recommendation",
+        "summary",
+        "label",
+        "title",
+    ):
+        candidate = value.get(key)
+        if isinstance(candidate, str) and candidate.strip():
+            return candidate.strip()
+    return None
 
 
 def normalize_confidence_value(value: Any) -> str:
@@ -1432,6 +1554,113 @@ def repair_top_level_json_closers(text: str) -> str:
         elif opener == "{" and closer == "]":
             repaired[closer_index] = "}"
     return "".join(repaired)
+
+
+def repair_truncated_json_tail(text: str) -> str:
+    stripped_end = len(text.rstrip())
+    core = text[:stripped_end]
+    suffix = text[stripped_end:]
+    if not core:
+        return text
+
+    trail_index = len(core)
+    while trail_index > 0 and core[trail_index - 1] in "}]":
+        trail_index -= 1
+    if trail_index == len(core):
+        return text
+
+    prefix = core[:trail_index]
+    trailing_braces = core[trail_index:]
+    in_string = False
+    escape = False
+    for ch in prefix:
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+        elif ch == '"':
+            in_string = True
+
+    if not in_string:
+        return text
+    return prefix + '"' + trailing_braces + suffix
+
+
+def repair_missing_string_quotes_before_delimiters(text: str) -> str:
+    if not text:
+        return text
+
+    repaired: list[str] = []
+    in_string = False
+    escape = False
+    delimiter_patterns = (',"', ',{', ',]', ',}', '},{"', '}]', '},]')
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            elif any(text.startswith(pattern, i) for pattern in delimiter_patterns):
+                repaired.append('"')
+                in_string = False
+                continue
+        elif ch == '"':
+            in_string = True
+
+        repaired.append(ch)
+        i += 1
+    return "".join(repaired)
+
+
+def repair_unterminated_json_eof(text: str) -> str:
+    start = text.find("{")
+    if start == -1:
+        return text
+
+    prefix = text[:start]
+    core = text[start:]
+    stack: list[str] = []
+    in_string = False
+    escape = False
+    for ch in core:
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+
+        if ch == '"':
+            in_string = True
+            continue
+        if ch in "{[":
+            stack.append(ch)
+            continue
+        if ch == "}" and stack and stack[-1] == "{":
+            stack.pop()
+            continue
+        if ch == "]" and stack and stack[-1] == "[":
+            stack.pop()
+            continue
+
+    suffix = ""
+    if in_string:
+        suffix += '"'
+    while stack:
+        opener = stack.pop()
+        suffix += "}" if opener == "{" else "]"
+    if not suffix:
+        return text
+    return prefix + core + suffix
 
 
 def skip_whitespace(text: str, index: int) -> int:

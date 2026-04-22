@@ -165,7 +165,9 @@ Run the local child-agent `/debate` E2E allow path:
 ```bash
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-model gpt-5.4 \
+  --local-codex-fallback-models gpt-5.4-mini \
+  --local-codex-reasoning-effort low \
   --local-codex-timeout-seconds 240 \
   --scenario allow \
   --state-root /tmp/round-table-debate-local-codex-allow
@@ -176,7 +178,9 @@ Run the local child-agent `/debate` reject-followup path:
 ```bash
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-model gpt-5.4 \
+  --local-codex-fallback-models gpt-5.4-mini \
+  --local-codex-reasoning-effort low \
   --local-codex-timeout-seconds 240 \
   --scenario reject_followup \
   --state-root /tmp/round-table-debate-local-codex-followup
@@ -187,7 +191,9 @@ Run the local child-agent `/room -> /debate` handoff path after `/room` produces
 ```bash
 python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-model gpt-5.4 \
+  --local-codex-fallback-models gpt-5.4-mini \
+  --local-codex-reasoning-effort low \
   --local-codex-timeout-seconds 240 \
   --scenario reject_followup \
   --state-root /tmp/round-table-room-debate-local-codex
@@ -274,6 +280,11 @@ Typical files:
 - `prompt-calls/*.meta.json`
 - `validation-report.json`
 
+For `reject_followup`, the validation report now treats two end states as terminally valid after the single allowed follow-up round:
+
+- the second reviewer explicitly allows the final decision
+- the second reviewer still does not allow release, but also returns no remaining `required_followups`, which means the bridge must stop with a blocked conclusion instead of inventing more rounds
+
 ## Boundary
 
 This runtime closes 3 specific gaps:
@@ -281,6 +292,7 @@ This runtime closes 3 specific gaps:
 - `/room` no longer relies on a plain-text grep over `debate-roundtable-skill/SKILL.md`
 - `/debate` now has a checked-in execution bridge for launch bundle -> roundtable record -> review packet -> review result -> followup record -> rereview packet -> final review result
 - `/debate` now has a checked-in prompt-host E2E runner plus both local child-agent and local mock-provider execution lanes
+- the checked-in follow-up loop now synthesizes a moderator-level integrated followup summary when the reviewer only targets debate participants
 - `/debate` can now replay a real `/room` handoff packet through that E2E runner instead of starting only from canonical packet material
 
 It does not close the final live gap:

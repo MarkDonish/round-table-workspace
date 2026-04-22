@@ -141,7 +141,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--local-codex-timeout-retries",
         type=int,
         default=local_executor.DEFAULT_TIMEOUT_RETRIES,
-        help="How many times to retry a timed-out local Codex child task.",
+        help="How many times to retry a timed-out or transiently disconnected local Codex child task.",
     )
     parser.add_argument(
         "--local-codex-retry-timeout-multiplier",
@@ -243,7 +243,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         "pass_criteria": {
             "room_flow_passed": all(bool(value) for value in room_report["pass_criteria"].values()),
             "handoff_packet_forwarded": debate_report["source_packet"]["packet_json"] == handoff_packet,
-            "debate_flow_passed": all(bool(value) for value in debate_report["pass_criteria"].values()),
+            "debate_flow_passed": debate_validation.debate_report_passed(debate_report),
         },
     }
     integration_report["pass_criteria"]["full_chain_passed"] = all(
