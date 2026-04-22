@@ -144,6 +144,7 @@ description: |
 - 运行 fixture / local-child-agent / provider-aware 的 `/debate` prompt-host E2E 验证
 - 通过本地 Chat Completions-compatible mock provider 回放 canonical debate outputs
 - 当前 `allow` 与 `reject_followup` 两条 `local_codex` `/debate` 链都已在 Mac 上通过 checked-in 验证
+- 本地主线参数已可通过 checked-in `gpt54_family` preset 直接复用，不必每次手工拼接 `GPT-5.4` family 参数
 
 注意边界：
 

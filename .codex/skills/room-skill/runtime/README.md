@@ -83,20 +83,14 @@ Run a local child-agent smoke test:
 ```bash
 python3 .codex/skills/room-skill/runtime/local_codex_executor.py \
   --check-local-exec \
-  --model gpt-5.4 \
-  --reasoning-effort medium \
-  --timeout-seconds 180
+  --preset gpt54_family
 ```
 
 Run the checked-in full local mainline regression suite:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/local_codex_regression.py \
-  --local-codex-model gpt-5.4 \
-  --local-codex-fallback-models gpt-5.4-mini \
-  --local-codex-reasoning-effort low \
-  --local-codex-timeout-seconds 240 \
-  --local-codex-timeout-retries 1 \
+  --local-codex-preset gpt54_family \
   --state-root /tmp/round-table-local-codex-regression
 ```
 
@@ -105,11 +99,7 @@ Run the checked-in E2E validation flow through local child-agent tasks:
 ```bash
 python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.4 \
-  --local-codex-fallback-models gpt-5.4-mini \
-  --local-codex-reasoning-effort low \
-  --local-codex-timeout-seconds 240 \
-  --local-codex-timeout-retries 1 \
+  --local-codex-preset gpt54_family \
   --state-root /tmp/round-table-room-local-codex
 ```
 
@@ -263,13 +253,15 @@ The bridge then validates those JSON outputs and performs the state writeback th
 
 `local_codex_executor.py` is the checked-in local child-agent adapter. It reuses the local Codex host to run one prompt as one nested child task, normalizes the resulting JSON back into the runtime contracts, and now exposes explicit child-task reasoning control so `/room` and `/debate` do not blindly inherit the host's global `xhigh` profile.
 
+It also exposes a checked-in `gpt54_family` preset. That preset freezes the currently validated Mac-local lane: `gpt-5.4` primary child-task model, `gpt-5.4-mini` same-family fallback, `low` reasoning effort, and bounded timeouts.
+
 It also hardens two real local-host failure modes that showed up during Mac validation:
 
 - recover the final child message from `stdout.jsonl` when `--output-last-message` is truncated
 - repair truncated JSON when a string loses its closing quote either at EOF or right before the next structural delimiter such as `},{"text": ...`
 - normalize object-style evidence buckets like `{text, source}` back into the string lists expected by the runtime validators
 
-`local_codex_regression.py` is the checked-in local mainline regression runner. It sequences the smoke check, `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration into one evidence bundle. The most stable current Mac lane is `gpt-5.4` with an explicit child-task reasoning setting plus optional `gpt-5.4-mini` fallback.
+`local_codex_regression.py` is the checked-in local mainline regression runner. It sequences the smoke check, `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration into one evidence bundle. The shortest checked-in command for the most stable current Mac lane is `--local-codex-preset gpt54_family`.
 
 Because nested child tasks persist session and state data under `~/.codex/`, the `local_codex` mainline should be run from a normal local terminal or any host environment that permits writing `~/.codex/sessions` and the local Codex state DB. A tighter sandbox can make the chain fail before prompt execution even starts.
 

@@ -114,6 +114,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.1,
         help="Sampling temperature for Chat Completions mode.",
     )
+    parser.add_argument(
+        "--local-codex-preset",
+        choices=sorted(local_executor.LOCAL_CODEX_PRESETS),
+        help="Optional checked-in local Codex preset.",
+    )
     parser.add_argument("--local-codex-model", help="Optional model override for local Codex child tasks.")
     parser.add_argument(
         "--local-codex-fallback-models",
@@ -122,31 +127,31 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--local-codex-profile", help="Optional Codex profile for local Codex child tasks.")
     parser.add_argument(
         "--local-codex-reasoning-effort",
-        default=local_executor.DEFAULT_REASONING_EFFORT,
+        default=None,
         help="Reasoning effort override for local Codex child tasks.",
     )
     parser.add_argument(
         "--local-codex-sandbox",
-        default=local_executor.DEFAULT_SANDBOX,
+        default=None,
         choices=["read-only", "workspace-write", "danger-full-access"],
         help="Sandbox mode for local Codex child tasks.",
     )
     parser.add_argument(
         "--local-codex-timeout-seconds",
         type=int,
-        default=local_executor.DEFAULT_TIMEOUT_SECONDS,
+        default=None,
         help="Timeout for one local Codex child task.",
     )
     parser.add_argument(
         "--local-codex-timeout-retries",
         type=int,
-        default=local_executor.DEFAULT_TIMEOUT_RETRIES,
+        default=None,
         help="How many times to retry a timed-out or transiently disconnected local Codex child task.",
     )
     parser.add_argument(
         "--local-codex-retry-timeout-multiplier",
         type=float,
-        default=local_executor.DEFAULT_RETRY_TIMEOUT_MULTIPLIER,
+        default=None,
         help="Multiplier applied to the timeout on each retry after a timeout.",
     )
     parser.add_argument(
@@ -175,6 +180,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         topic=args.topic,
         follow_up_input=args.follow_up_input,
         temperature=args.temperature,
+        local_codex_preset=args.local_codex_preset,
         local_codex_model=args.local_codex_model,
         local_codex_fallback_models=args.local_codex_fallback_models,
         local_codex_profile=args.local_codex_profile,
@@ -197,6 +203,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         debate_id=debate_id,
         temperature=args.temperature,
         packet_json=handoff_packet,
+        local_codex_preset=args.local_codex_preset,
         local_codex_model=args.local_codex_model,
         local_codex_fallback_models=args.local_codex_fallback_models,
         local_codex_profile=args.local_codex_profile,

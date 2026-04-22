@@ -102,6 +102,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.1,
         help="Sampling temperature for Chat Completions mode.",
     )
+    parser.add_argument(
+        "--local-codex-preset",
+        choices=sorted(local_executor.LOCAL_CODEX_PRESETS),
+        help="Optional checked-in local Codex preset.",
+    )
     parser.add_argument("--local-codex-model", help="Optional model override for local Codex child tasks.")
     parser.add_argument(
         "--local-codex-fallback-models",
@@ -110,31 +115,31 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--local-codex-profile", help="Optional Codex profile for local child tasks.")
     parser.add_argument(
         "--local-codex-reasoning-effort",
-        default=local_executor.DEFAULT_REASONING_EFFORT,
+        default=None,
         help="Reasoning effort override for local Codex child tasks.",
     )
     parser.add_argument(
         "--local-codex-sandbox",
-        default=local_executor.DEFAULT_SANDBOX,
+        default=None,
         choices=["read-only", "workspace-write", "danger-full-access"],
         help="Sandbox mode for local Codex child tasks.",
     )
     parser.add_argument(
         "--local-codex-timeout-seconds",
         type=int,
-        default=local_executor.DEFAULT_TIMEOUT_SECONDS,
+        default=None,
         help="Timeout for one local Codex child task.",
     )
     parser.add_argument(
         "--local-codex-timeout-retries",
         type=int,
-        default=local_executor.DEFAULT_TIMEOUT_RETRIES,
+        default=None,
         help="How many times to retry a timed-out or transiently disconnected local Codex child task.",
     )
     parser.add_argument(
         "--local-codex-retry-timeout-multiplier",
         type=float,
-        default=local_executor.DEFAULT_RETRY_TIMEOUT_MULTIPLIER,
+        default=None,
         help="Multiplier applied to the timeout on each retry after a timeout.",
     )
     parser.add_argument(
@@ -422,21 +427,23 @@ def build_prompt_executor(args: argparse.Namespace, *, debate_id: str, room_id: 
         return execute
 
     if args.executor == "local_codex":
+        settings = resolve_local_codex_settings(args)
+
         def execute(prompt_path: Path, prompt_input: dict[str, Any], trace_base: Path | None = None) -> dict[str, Any]:
             return local_executor.call_local_codex(
                 prompt_path=prompt_path,
                 prompt_text=prompt_path.read_text(encoding="utf-8"),
                 prompt_input=prompt_input,
                 repo_root=REPO_ROOT,
-                model=args.local_codex_model,
-                fallback_models=local_executor.parse_model_list(args.local_codex_fallback_models),
-                profile=args.local_codex_profile,
-                reasoning_effort=args.local_codex_reasoning_effort,
-                sandbox=args.local_codex_sandbox,
-                timeout_seconds=args.local_codex_timeout_seconds,
-                timeout_retries=args.local_codex_timeout_retries,
-                retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
-                ephemeral=not args.local_codex_persist_session,
+                model=settings["model"],
+                fallback_models=settings["fallback_models"],
+                profile=settings["profile"],
+                reasoning_effort=settings["reasoning_effort"],
+                sandbox=settings["sandbox"],
+                timeout_seconds=settings["timeout_seconds"],
+                timeout_retries=settings["timeout_retries"],
+                retry_timeout_multiplier=settings["retry_timeout_multiplier"],
+                ephemeral=settings["ephemeral"],
                 trace_base=trace_base,
             )
 
@@ -466,18 +473,8 @@ def describe_executor(args: argparse.Namespace) -> dict[str, Any]:
         }
 
     if args.executor == "local_codex":
-        return {
-            "mode": "local_codex",
-            "model": args.local_codex_model,
-            "fallback_models": local_executor.parse_model_list(args.local_codex_fallback_models),
-            "profile": args.local_codex_profile,
-            "reasoning_effort": args.local_codex_reasoning_effort,
-            "sandbox": args.local_codex_sandbox,
-            "timeout_seconds": args.local_codex_timeout_seconds,
-            "timeout_retries": args.local_codex_timeout_retries,
-            "retry_timeout_multiplier": args.local_codex_retry_timeout_multiplier,
-            "ephemeral": not args.local_codex_persist_session,
-        }
+        settings = resolve_local_codex_settings(args)
+        return {"mode": "local_codex", **settings}
 
     env = dict(os.environ)
     if args.env_file:
@@ -492,6 +489,23 @@ def describe_executor(args: argparse.Namespace) -> dict[str, Any]:
         "timeout_seconds": config["timeout_seconds"],
         "temperature": args.temperature,
     }
+
+
+def resolve_local_codex_settings(args: argparse.Namespace) -> dict[str, Any]:
+    return local_executor.resolve_execution_settings(
+        preset_name=args.local_codex_preset,
+        model=args.local_codex_model,
+        fallback_models=local_executor.parse_model_list(args.local_codex_fallback_models)
+        if args.local_codex_fallback_models is not None
+        else None,
+        profile=args.local_codex_profile,
+        reasoning_effort=args.local_codex_reasoning_effort,
+        sandbox=args.local_codex_sandbox,
+        timeout_seconds=args.local_codex_timeout_seconds,
+        timeout_retries=args.local_codex_timeout_retries,
+        retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
+        persist_session=args.local_codex_persist_session,
+    )
 
 
 def execute_prompt(

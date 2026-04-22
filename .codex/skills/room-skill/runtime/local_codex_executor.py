@@ -19,6 +19,19 @@ DEFAULT_TIMEOUT_SECONDS = 900
 DEFAULT_TIMEOUT_RETRIES = 1
 DEFAULT_RETRY_TIMEOUT_MULTIPLIER = 1.5
 DEFAULT_REASONING_EFFORT = "medium"
+LOCAL_CODEX_PRESETS = {
+    "gpt54_family": {
+        "model": "gpt-5.4",
+        "fallback_models": ["gpt-5.4-mini"],
+        "profile": None,
+        "reasoning_effort": "low",
+        "sandbox": DEFAULT_SANDBOX,
+        "timeout_seconds": 240,
+        "timeout_retries": 1,
+        "retry_timeout_multiplier": DEFAULT_RETRY_TIMEOUT_MULTIPLIER,
+        "persist_session": False,
+    }
+}
 SMOKE_RESPONSE = {"ok": True, "mode": "local_codex_exec"}
 
 
@@ -29,20 +42,33 @@ class LocalCodexExecutorError(Exception):
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    resolved = resolve_execution_settings(
+        preset_name=args.preset,
+        model=args.model,
+        fallback_models=parse_model_list(args.fallback_models) if args.fallback_models is not None else None,
+        profile=args.profile,
+        reasoning_effort=args.reasoning_effort,
+        sandbox=args.sandbox,
+        timeout_seconds=args.timeout_seconds,
+        timeout_retries=args.timeout_retries,
+        retry_timeout_multiplier=args.retry_timeout_multiplier,
+        persist_session=args.persist_session,
+    )
 
     try:
         if args.check_local_exec:
             result = check_local_exec(
                 repo_root=REPO_ROOT,
-                model=args.model,
-                fallback_models=parse_model_list(args.fallback_models),
-                profile=args.profile,
-                reasoning_effort=args.reasoning_effort,
-                sandbox=args.sandbox,
-                timeout_seconds=args.timeout_seconds,
-                timeout_retries=args.timeout_retries,
-                retry_timeout_multiplier=args.retry_timeout_multiplier,
-                ephemeral=not args.persist_session,
+                model=resolved["model"],
+                fallback_models=resolved["fallback_models"],
+                profile=resolved["profile"],
+                reasoning_effort=resolved["reasoning_effort"],
+                sandbox=resolved["sandbox"],
+                timeout_seconds=resolved["timeout_seconds"],
+                timeout_retries=resolved["timeout_retries"],
+                retry_timeout_multiplier=resolved["retry_timeout_multiplier"],
+                ephemeral=resolved["ephemeral"],
+                preset_name=resolved["preset"],
             )
         else:
             if not args.prompt_file or not args.input_json:
@@ -54,15 +80,15 @@ def main() -> int:
                 prompt_text=prompt_path.read_text(encoding="utf-8"),
                 prompt_input=json.loads(input_path.read_text(encoding="utf-8")),
                 repo_root=REPO_ROOT,
-                model=args.model,
-                fallback_models=parse_model_list(args.fallback_models),
-                profile=args.profile,
-                reasoning_effort=args.reasoning_effort,
-                sandbox=args.sandbox,
-                timeout_seconds=args.timeout_seconds,
-                timeout_retries=args.timeout_retries,
-                retry_timeout_multiplier=args.retry_timeout_multiplier,
-                ephemeral=not args.persist_session,
+                model=resolved["model"],
+                fallback_models=resolved["fallback_models"],
+                profile=resolved["profile"],
+                reasoning_effort=resolved["reasoning_effort"],
+                sandbox=resolved["sandbox"],
+                timeout_seconds=resolved["timeout_seconds"],
+                timeout_retries=resolved["timeout_retries"],
+                retry_timeout_multiplier=resolved["retry_timeout_multiplier"],
+                ephemeral=resolved["ephemeral"],
             )
     except (LocalCodexExecutorError, json.JSONDecodeError, ValueError) as exc:
         print(json.dumps({"ready": False, "error": str(exc)}, ensure_ascii=False, indent=2))
@@ -86,6 +112,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--prompt-file", help="Prompt markdown file to execute.")
     parser.add_argument("--input-json", help="Structured JSON input file for the prompt.")
     parser.add_argument("--output-json", help="Optional path for the parsed JSON output.")
+    parser.add_argument(
+        "--preset",
+        choices=sorted(LOCAL_CODEX_PRESETS),
+        help="Optional checked-in local child-task preset.",
+    )
     parser.add_argument("--model", help="Optional explicit model for the local child task.")
     parser.add_argument(
         "--fallback-models",
@@ -94,34 +125,34 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--profile", help="Optional Codex profile for the local child task.")
     parser.add_argument(
         "--reasoning-effort",
-        default=DEFAULT_REASONING_EFFORT,
+        default=None,
         help=(
-            "Reasoning effort override for the local child task. Defaults to `medium` so "
-            "structured round-table child steps do not inherit a heavier host profile."
+            "Reasoning effort override for the local child task. Defaults to the selected preset, "
+            "or `medium` when no preset is supplied."
         ),
     )
     parser.add_argument(
         "--sandbox",
-        default=DEFAULT_SANDBOX,
+        default=None,
         choices=["read-only", "workspace-write", "danger-full-access"],
         help="Sandbox mode for the local child task.",
     )
     parser.add_argument(
         "--timeout-seconds",
         type=int,
-        default=DEFAULT_TIMEOUT_SECONDS,
+        default=None,
         help="Timeout for one local child task.",
     )
     parser.add_argument(
         "--timeout-retries",
         type=int,
-        default=DEFAULT_TIMEOUT_RETRIES,
+        default=None,
         help="How many times to retry a timed-out or transiently disconnected local child task.",
     )
     parser.add_argument(
         "--retry-timeout-multiplier",
         type=float,
-        default=DEFAULT_RETRY_TIMEOUT_MULTIPLIER,
+        default=None,
         help="Multiplier applied to the timeout on each retry after a timeout.",
     )
     parser.add_argument(
@@ -144,6 +175,7 @@ def check_local_exec(
     timeout_retries: int,
     retry_timeout_multiplier: float,
     ephemeral: bool,
+    preset_name: str | None = None,
 ) -> dict[str, Any]:
     response = run_local_codex_prompt(
         repo_root=repo_root,
@@ -168,6 +200,7 @@ def check_local_exec(
         "ready": True,
         "mode": "local_codex_exec",
         "repo_root": str(repo_root),
+        "preset": preset_name,
         "sandbox": sandbox,
         "model": model,
         "fallback_models": fallback_models or [],
@@ -313,7 +346,11 @@ def build_debate_reviewer_artifact_contract(*, prompt_input: dict[str, Any]) -> 
     if scenario == "reject_followup" and followup_round == 0:
         scenario_rule = "- Because this is the initial `reject_followup` validation round, `allow_final_decision` must be `false` and `required_followups` must be non-empty.\n"
     elif scenario == "reject_followup" and followup_round == 1:
-        scenario_rule = "- This is the rereview round after a required followup. Approve only if the followup resolves the requested gaps.\n"
+        scenario_rule = (
+            "- This is the rereview round after the only allowed followup. The result must be terminal.\n"
+            "- Approve only if the followup resolves the requested gaps.\n"
+            "- If the gaps are still unresolved, `allow_final_decision` must be `false` and `required_followups` must be an empty list because no further followup rounds are allowed.\n"
+        )
     return (
         "\n\nRuntime artifact contract:\n"
         "Do not return the human-oriented 8-item review memo.\n"
@@ -592,6 +629,69 @@ def parse_model_list(value: str | None) -> list[str]:
     if not value:
         return []
     return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def resolve_execution_settings(
+    *,
+    preset_name: str | None,
+    model: str | None,
+    fallback_models: list[str] | None,
+    profile: str | None,
+    reasoning_effort: str | None,
+    sandbox: str | None,
+    timeout_seconds: int | None,
+    timeout_retries: int | None,
+    retry_timeout_multiplier: float | None,
+    persist_session: bool,
+) -> dict[str, Any]:
+    resolved = {
+        "preset": preset_name,
+        "model": None,
+        "fallback_models": [],
+        "profile": None,
+        "reasoning_effort": DEFAULT_REASONING_EFFORT,
+        "sandbox": DEFAULT_SANDBOX,
+        "timeout_seconds": DEFAULT_TIMEOUT_SECONDS,
+        "timeout_retries": DEFAULT_TIMEOUT_RETRIES,
+        "retry_timeout_multiplier": DEFAULT_RETRY_TIMEOUT_MULTIPLIER,
+        "ephemeral": not persist_session,
+    }
+    if preset_name:
+        preset = LOCAL_CODEX_PRESETS.get(preset_name)
+        if preset is None:
+            raise ValueError(f"Unknown local Codex preset: {preset_name}")
+        resolved.update(
+            {
+                "model": preset["model"],
+                "fallback_models": list(preset["fallback_models"]),
+                "profile": preset["profile"],
+                "reasoning_effort": preset["reasoning_effort"],
+                "sandbox": preset["sandbox"],
+                "timeout_seconds": preset["timeout_seconds"],
+                "timeout_retries": preset["timeout_retries"],
+                "retry_timeout_multiplier": preset["retry_timeout_multiplier"],
+                "ephemeral": not preset.get("persist_session", False),
+            }
+        )
+    if model is not None:
+        resolved["model"] = model
+    if fallback_models is not None:
+        resolved["fallback_models"] = list(fallback_models)
+    if profile is not None:
+        resolved["profile"] = profile
+    if reasoning_effort is not None:
+        resolved["reasoning_effort"] = reasoning_effort
+    if sandbox is not None:
+        resolved["sandbox"] = sandbox
+    if timeout_seconds is not None:
+        resolved["timeout_seconds"] = timeout_seconds
+    if timeout_retries is not None:
+        resolved["timeout_retries"] = timeout_retries
+    if retry_timeout_multiplier is not None:
+        resolved["retry_timeout_multiplier"] = retry_timeout_multiplier
+    if persist_session:
+        resolved["ephemeral"] = False
+    return resolved
 
 
 def build_model_candidates(*, model: str | None, fallback_models: list[str] | None) -> list[str | None]:

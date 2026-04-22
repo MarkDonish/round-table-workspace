@@ -165,10 +165,7 @@ Run the local child-agent `/debate` E2E allow path:
 ```bash
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.4 \
-  --local-codex-fallback-models gpt-5.4-mini \
-  --local-codex-reasoning-effort low \
-  --local-codex-timeout-seconds 240 \
+  --local-codex-preset gpt54_family \
   --scenario allow \
   --state-root /tmp/round-table-debate-local-codex-allow
 ```
@@ -178,10 +175,7 @@ Run the local child-agent `/debate` reject-followup path:
 ```bash
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.4 \
-  --local-codex-fallback-models gpt-5.4-mini \
-  --local-codex-reasoning-effort low \
-  --local-codex-timeout-seconds 240 \
+  --local-codex-preset gpt54_family \
   --scenario reject_followup \
   --state-root /tmp/round-table-debate-local-codex-followup
 ```
@@ -191,10 +185,7 @@ Run the local child-agent `/room -> /debate` handoff path after `/room` produces
 ```bash
 python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.4 \
-  --local-codex-fallback-models gpt-5.4-mini \
-  --local-codex-reasoning-effort low \
-  --local-codex-timeout-seconds 240 \
+  --local-codex-preset gpt54_family \
   --scenario reject_followup \
   --state-root /tmp/round-table-room-debate-local-codex
 ```
