@@ -32,6 +32,12 @@ For the checked-in `/room -> /debate` integration runner:
 python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py --help
 ```
 
+For the checked-in local child-agent executor:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_executor.py --help
+```
+
 For the checked-in local mock Chat Completions provider:
 
 ```bash
@@ -66,6 +72,25 @@ python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
   --state-root /tmp/round-table-room-e2e
 ```
 
+Run a local child-agent smoke test:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_executor.py \
+  --check-local-exec \
+  --model gpt-5.3-codex-spark \
+  --timeout-seconds 180
+```
+
+Run the checked-in E2E validation flow through local child-agent tasks:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
+  --executor local_codex \
+  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-timeout-seconds 240 \
+  --state-root /tmp/round-table-room-local-codex
+```
+
 Check live provider config from an explicit env file:
 
 ```bash
@@ -98,6 +123,17 @@ Run the checked-in `/room -> /debate` integration flow through canonical fixture
 python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --executor fixture \
   --state-root /tmp/round-table-room-debate-e2e
+```
+
+Run the checked-in `/room -> /debate` integration flow through local child-agent tasks:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor local_codex \
+  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-timeout-seconds 240 \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-room-debate-local-codex
 ```
 
 Run the checked-in `/room -> /debate` integration flow against real providers:
@@ -189,7 +225,7 @@ Typical files:
 
 ## Scope Boundary
 
-This bridge is intentionally provider-agnostic.
+This bridge is intentionally host-agnostic.
 
 It assumes some host or operator already called:
 
@@ -200,11 +236,13 @@ It assumes some host or operator already called:
 
 The bridge then validates those JSON outputs and performs the state writeback that only the host is allowed to perform.
 
-`room_e2e_validation.py` is a checked-in validation harness above that bridge. It can drive the same flow through either canonical fixtures or a real Chat Completions-compatible provider, then persist evidence bundles for review.
+`local_codex_executor.py` is the checked-in local child-agent adapter. It reuses the local Codex host to run one prompt as one nested child task, then normalizes the resulting JSON back into the runtime contracts.
+
+`room_e2e_validation.py` is a checked-in validation harness above that bridge. It can drive the same flow through canonical fixtures, local child-agent execution, or a real Chat Completions-compatible provider, then persist evidence bundles for review.
 
 `room_debate_e2e_validation.py` is the checked-in orchestration layer above both runtime bridges. It first runs `/room`, then forwards the persisted handoff packet into `/debate`, so the full handoff chain can be exercised with one command.
 
-`mock_chat_completions_server.py` is a local-only validation aid. It serves the checked-in canonical fixtures behind a Chat Completions-compatible HTTP endpoint so the provider-backed path can be regression-checked without relying on external credentials.
+`mock_chat_completions_server.py` is a local-only fallback validation aid. It serves the checked-in canonical fixtures behind a Chat Completions-compatible HTTP endpoint so the provider-backed path can be regression-checked without relying on external credentials.
 
 `debate_packet_validator.py` is a checked-in `/debate`-side preflight. `/room` calls it before writing `handoff/debate-acceptance.json`, so handoff acceptance is no longer just a plain-text skill-entry check.
 

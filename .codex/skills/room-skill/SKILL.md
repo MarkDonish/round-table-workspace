@@ -179,16 +179,20 @@ description: |
 - `/room` 的协议层已完整进入真源
 - `.codex/skills/room-skill/WORKFLOW.md` 已提供 checked-in 的 runtime playbook
 - `.codex/skills/room-skill/runtime/room_runtime.py` 已提供 checked-in 的 host-side bridge
+- `.codex/skills/room-skill/runtime/local_codex_executor.py` 已提供 checked-in 的本地 child-agent 执行器
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 E2E validation runner
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 mock provider，用于验证 Chat Completions 路径
+- `/room local_codex` 已在 Mac 上通过 checked-in E2E 验证
+- `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证
 - canonical fixture 已可在 Mac 本地跑通 `/room -> /summary -> /upgrade-to-debate`
-- 但真实模型调用链上的 live host validation 仍未证明完成
+- 外部 provider 路径仍保留，但应视为 fallback；真实 provider live validation 仍未证明完成
 
 因此，当前状态应视为：
 
 - `protocol-complete`
 - `workflow-checked-in`
 - `bridge-checked-in`
+- `local-child-agent-mainline-validated-on-mac`
 - `e2e-runner-checked-in`
 - `fixture-validated-on-mac`
 - `mock-provider-validated-on-mac`

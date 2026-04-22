@@ -26,6 +26,7 @@
 - `prompts/room-chat.md` 已重建为可读版本
 - `docs/room-runtime-bridge.md` 已把缺失的 runtime bridge 责任边界锁成真源
 - `.codex/skills/room-skill/runtime/room_runtime.py` 已把 `/room` 的 host-side bridge 代码正式入仓
+- `.codex/skills/room-skill/runtime/local_codex_executor.py` 已提供 checked-in 的本地 child-agent 执行器，直接复用本机 Codex 作为 `/room` 和 `/debate` 的 prompt host
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
 - `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py` 已提供 checked-in 的 `/room -> /debate` 联调验证入口
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 provider-backed 链路
@@ -35,18 +36,21 @@
 - `.codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 `/debate` provider-backed 链路
 - `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/` 已提供 checked-in 的 debate execution fixtures
 - `.codex/skills/room-skill/runtime/fixtures/canonical/` 已提供 checked-in 的首轮验证 fixture
+- `/room local_codex` 已在 Mac 上通过 checked-in E2E 验证
+- `/debate local_codex` 的 `allow` 与 `reject_followup` 两条链都已在 Mac 上通过 checked-in E2E 验证
+- `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证，真实消费 `/room` 持久化 handoff packet
 
 ### 还没完成的核心能力
 
-- `/room` 的 provider-backed live host integration 还没和真实模型调用链完全接上线，但仓库里已经有 `.env` + Chat Completions-compatible adapter + checked-in E2E / integration runner + 本地 mock provider
-- 还没有完成一轮带真实 prompt 调用的 `/room -> /summary -> /upgrade-to-debate` live run
-- `/debate` 还没有完成真实外部 provider 的 roundtable / reviewer / followup live run，但 runtime 已支持直接消费真实 `/room` packet 做联调
-- 当前已完成的是 fixture-driven 验证 + mock provider-backed 验证；`/debate` 已有 checked-in reject-followup-rereview 验证链和 provider-backed 本地验证，但仍不应误报成所有宿主都已 100% 实战验证
+- `local_codex` 主链已经在 Mac 上打通，但当前通过证据来自显式 child-task 模型配置；若要把更重的默认宿主模型直接设为主跑配置，仍需要单独调优和再验证
+- `/room` 与 `/debate` 的 Chat Completions-compatible provider 路径仍然保留，但现在应视为 fallback / regression lane，而不是主线
+- 还没有完成真实外部 provider 的 `/room -> /summary -> /upgrade-to-debate -> /debate` live run
+- 当前已完成的是 fixture-driven 验证、mock provider-backed 验证、以及本地 child-agent 主链验证；仍不应误报成所有宿主配置都已 100% 实战验证
 
 简化结论：
 
-- `/debate`：checked-in bridge 完成，且本地 mock-provider prompt-host 已验证，但不是外部 live host 已完成
-- `/room`：协议完成、runtime implementation 已入仓并有 mock-provider 验证，但真实外部 live run 仍未完成
+- `/room`：协议完成、runtime implementation 已入仓，且本地 child-agent 主链已验证；外部 provider live run 仍未完成
+- `/debate`：checked-in bridge 完成，本地 child-agent 主链已验证；外部 live host 仍未完成
 
 ---
 
@@ -175,6 +179,7 @@ round-table-workspace/
 - bridge contract：`docs/room-runtime-bridge.md`
 - 当前边界：`docs/room-runtime-status.md`
 - runtime bridge：`.codex/skills/room-skill/runtime/README.md`
+- local child-agent executor：`.codex/skills/room-skill/runtime/local_codex_executor.py`
 - runtime validation：`.codex/skills/room-skill/runtime/room_e2e_validation.py`
 - mock provider：`.codex/skills/room-skill/runtime/mock_chat_completions_server.py`
 - live provider sample：`.env.room.example`

@@ -133,6 +133,7 @@ description: |
 - `runtime/debate_packet_validator.py`
 - `runtime/debate_runtime.py`
 - `runtime/debate_e2e_validation.py`
+- `../room-skill/runtime/local_codex_executor.py`
 - `runtime/mock_chat_completions_server.py`
 - `runtime/README.md`
 
@@ -140,8 +141,9 @@ description: |
 
 - 对 `/room -> /debate` packet 做结构校验与候选池平衡预检
 - 把 packet 变成 debate-side launch bundle、review packet、followup / rereview bridge artifacts
-- 运行 fixture / provider-aware 的 `/debate` prompt-host E2E 验证
+- 运行 fixture / local-child-agent / provider-aware 的 `/debate` prompt-host E2E 验证
 - 通过本地 Chat Completions-compatible mock provider 回放 canonical debate outputs
+- 当前 `allow` 与 `reject_followup` 两条 `local_codex` `/debate` 链都已在 Mac 上通过 checked-in 验证
 
 注意边界：
 

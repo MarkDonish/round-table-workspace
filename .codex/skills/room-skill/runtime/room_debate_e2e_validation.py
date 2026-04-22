@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import chat_completions_executor as provider_executor
+import local_codex_executor as local_executor
 import room_e2e_validation as room_validation
 
 
@@ -39,6 +40,7 @@ def main() -> int:
         room_validation.RoomE2EValidationError,
         debate_validation.DebateE2EValidationError,
         provider_executor.ProviderConfigError,
+        local_executor.LocalCodexExecutorError,
         urllib.error.URLError,
         ValueError,
         json.JSONDecodeError,
@@ -54,13 +56,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Run the checked-in /room -> /debate integration validation flow through either "
-            "canonical fixtures or Chat Completions-compatible providers."
+            "canonical fixtures, local Codex child tasks, or Chat Completions-compatible providers."
         )
     )
     parser.add_argument(
         "--executor",
         required=True,
-        choices=["fixture", "chat_completions"],
+        choices=["fixture", "local_codex", "chat_completions"],
         help="Execution backend for both /room and /debate prompt calls.",
     )
     parser.add_argument(
@@ -112,6 +114,25 @@ def build_parser() -> argparse.ArgumentParser:
         default=0.1,
         help="Sampling temperature for Chat Completions mode.",
     )
+    parser.add_argument("--local-codex-model", help="Optional model override for local Codex child tasks.")
+    parser.add_argument("--local-codex-profile", help="Optional Codex profile for local Codex child tasks.")
+    parser.add_argument(
+        "--local-codex-sandbox",
+        default=local_executor.DEFAULT_SANDBOX,
+        choices=["read-only", "workspace-write", "danger-full-access"],
+        help="Sandbox mode for local Codex child tasks.",
+    )
+    parser.add_argument(
+        "--local-codex-timeout-seconds",
+        type=int,
+        default=local_executor.DEFAULT_TIMEOUT_SECONDS,
+        help="Timeout for one local Codex child task.",
+    )
+    parser.add_argument(
+        "--local-codex-persist-session",
+        action="store_true",
+        help="Keep local Codex child sessions on disk instead of using --ephemeral.",
+    )
     return parser
 
 
@@ -133,6 +154,11 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         topic=args.topic,
         follow_up_input=args.follow_up_input,
         temperature=args.temperature,
+        local_codex_model=args.local_codex_model,
+        local_codex_profile=args.local_codex_profile,
+        local_codex_sandbox=args.local_codex_sandbox,
+        local_codex_timeout_seconds=args.local_codex_timeout_seconds,
+        local_codex_persist_session=args.local_codex_persist_session,
     )
     room_report = room_validation.run_validation(room_args)
     handoff_packet = room_report["artifacts"]["handoff_packet"]
@@ -146,6 +172,11 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         debate_id=debate_id,
         temperature=args.temperature,
         packet_json=handoff_packet,
+        local_codex_model=args.local_codex_model,
+        local_codex_profile=args.local_codex_profile,
+        local_codex_sandbox=args.local_codex_sandbox,
+        local_codex_timeout_seconds=args.local_codex_timeout_seconds,
+        local_codex_persist_session=args.local_codex_persist_session,
     )
     debate_report = debate_validation.run_validation(debate_args)
 

@@ -17,6 +17,7 @@ if str(ROOM_RUNTIME_DIR) not in sys.path:
     sys.path.insert(0, str(ROOM_RUNTIME_DIR))
 
 import chat_completions_executor as provider_executor
+import local_codex_executor as local_executor
 import debate_runtime as runtime
 
 
@@ -39,6 +40,7 @@ def main() -> int:
         DebateE2EValidationError,
         runtime.DebateRuntimeError,
         provider_executor.ProviderConfigError,
+        local_executor.LocalCodexExecutorError,
         urllib.error.URLError,
         ValueError,
         json.JSONDecodeError,
@@ -54,13 +56,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Run the checked-in /debate end-to-end validation flow through either "
-            "canonical fixtures or a Chat Completions-compatible provider."
+            "canonical fixtures, local Codex child tasks, or a Chat Completions-compatible provider."
         )
     )
     parser.add_argument(
         "--executor",
         required=True,
-        choices=["fixture", "chat_completions"],
+        choices=["fixture", "local_codex", "chat_completions"],
         help="Execution backend for prompt calls.",
     )
     parser.add_argument(
@@ -99,6 +101,25 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         default=0.1,
         help="Sampling temperature for Chat Completions mode.",
+    )
+    parser.add_argument("--local-codex-model", help="Optional model override for local Codex child tasks.")
+    parser.add_argument("--local-codex-profile", help="Optional Codex profile for local child tasks.")
+    parser.add_argument(
+        "--local-codex-sandbox",
+        default=local_executor.DEFAULT_SANDBOX,
+        choices=["read-only", "workspace-write", "danger-full-access"],
+        help="Sandbox mode for local Codex child tasks.",
+    )
+    parser.add_argument(
+        "--local-codex-timeout-seconds",
+        type=int,
+        default=local_executor.DEFAULT_TIMEOUT_SECONDS,
+        help="Timeout for one local Codex child task.",
+    )
+    parser.add_argument(
+        "--local-codex-persist-session",
+        action="store_true",
+        help="Keep local Codex child sessions on disk instead of using --ephemeral.",
     )
     return parser
 
@@ -341,7 +362,7 @@ def build_prompt_executor(args: argparse.Namespace, *, debate_id: str, room_id: 
     if args.executor == "fixture":
         fixtures_dir = Path(args.fixtures_dir).expanduser().resolve()
 
-        def execute(prompt_path: Path, prompt_input: dict[str, Any]) -> dict[str, Any]:
+        def execute(prompt_path: Path, prompt_input: dict[str, Any], trace_base: Path | None = None) -> dict[str, Any]:
             return load_fixture_output(
                 fixtures_dir=fixtures_dir,
                 debate_id=debate_id,
@@ -352,12 +373,29 @@ def build_prompt_executor(args: argparse.Namespace, *, debate_id: str, room_id: 
 
         return execute
 
+    if args.executor == "local_codex":
+        def execute(prompt_path: Path, prompt_input: dict[str, Any], trace_base: Path | None = None) -> dict[str, Any]:
+            return local_executor.call_local_codex(
+                prompt_path=prompt_path,
+                prompt_text=prompt_path.read_text(encoding="utf-8"),
+                prompt_input=prompt_input,
+                repo_root=REPO_ROOT,
+                model=args.local_codex_model,
+                profile=args.local_codex_profile,
+                sandbox=args.local_codex_sandbox,
+                timeout_seconds=args.local_codex_timeout_seconds,
+                ephemeral=not args.local_codex_persist_session,
+                trace_base=trace_base,
+            )
+
+        return execute
+
     env = dict(os.environ)
     if args.env_file:
         env.update(provider_executor.load_env_file(Path(args.env_file)))
     config = provider_executor.read_provider_config(env, provider_scope="debate")
 
-    def execute(prompt_path: Path, prompt_input: dict[str, Any]) -> dict[str, Any]:
+    def execute(prompt_path: Path, prompt_input: dict[str, Any], trace_base: Path | None = None) -> dict[str, Any]:
         return provider_executor.call_chat_completions(
             config=config,
             prompt_text=prompt_path.read_text(encoding="utf-8"),
@@ -373,6 +411,16 @@ def describe_executor(args: argparse.Namespace) -> dict[str, Any]:
         return {
             "mode": "fixture",
             "fixtures_dir": str(Path(args.fixtures_dir).expanduser().resolve()),
+        }
+
+    if args.executor == "local_codex":
+        return {
+            "mode": "local_codex",
+            "model": args.local_codex_model,
+            "profile": args.local_codex_profile,
+            "sandbox": args.local_codex_sandbox,
+            "timeout_seconds": args.local_codex_timeout_seconds,
+            "ephemeral": not args.local_codex_persist_session,
         }
 
     env = dict(os.environ)
@@ -399,39 +447,45 @@ def execute_prompt(
     step_name: str,
     prompt_input: dict[str, Any],
 ) -> dict[str, Any]:
-    output = executor(prompt_path, prompt_input)
-    persist_prompt_call(
-        debate_dir=debate_dir,
-        step_index=step_index,
-        step_name=step_name,
-        prompt_path=prompt_path,
-        prompt_input=prompt_input,
-        prompt_output=output,
-    )
-    return output
-
-
-def persist_prompt_call(
-    *,
-    debate_dir: Path,
-    step_index: int,
-    step_name: str,
-    prompt_path: Path,
-    prompt_input: dict[str, Any],
-    prompt_output: dict[str, Any],
-) -> None:
     call_dir = debate_dir / "prompt-calls"
     runtime.ensure_directory(call_dir)
     base_name = f"{step_index:03d}-{step_name.replace('.', '-')}"
     runtime.write_json(call_dir / f"{base_name}.input.json", prompt_input)
-    runtime.write_json(call_dir / f"{base_name}.output.json", prompt_output)
     runtime.write_json(
         call_dir / f"{base_name}.meta.json",
         {
             "step": step_name,
             "prompt_path": str(prompt_path),
+            "status": "started",
         },
     )
+    try:
+        output = executor(prompt_path, prompt_input, trace_base=call_dir / base_name)
+    except Exception as exc:
+        runtime.write_json(
+            call_dir / f"{base_name}.error.json",
+            {
+                "step": step_name,
+                "prompt_path": str(prompt_path),
+                "error": str(exc),
+            },
+        )
+        raise
+    output = local_executor.normalize_prompt_output(
+        prompt_path=prompt_path,
+        prompt_input=prompt_input,
+        payload=output,
+    )
+    runtime.write_json(call_dir / f"{base_name}.output.json", output)
+    runtime.write_json(
+        call_dir / f"{base_name}.meta.json",
+        {
+            "step": step_name,
+            "prompt_path": str(prompt_path),
+            "status": "completed",
+        },
+    )
+    return output
 
 
 def build_roundtable_input(*, launch_bundle: dict[str, Any], scenario: str) -> dict[str, Any]:

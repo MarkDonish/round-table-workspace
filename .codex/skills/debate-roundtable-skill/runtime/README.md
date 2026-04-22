@@ -8,6 +8,7 @@ It currently does 5 concrete jobs:
 - build debate launch bundles plus checked-in roundtable/reviewer artifacts for host wiring
 - validate one checked-in reject -> followup -> re-review loop for debate-side host wiring
 - run one fixture-backed `/debate` prompt-host E2E validation flow
+- run one local child-agent `/debate` prompt-host E2E validation flow
 - run one Chat Completions-compatible `/debate` prompt-host E2E validation flow against a local or external provider
 
 It still does not execute a live multi-agent `/debate` run by itself.
@@ -31,6 +32,10 @@ python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py -
 
 ```bash
 python3 .codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py --help
+```
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_executor.py --help
 ```
 
 Validate one persisted handoff packet:
@@ -155,6 +160,39 @@ python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --state-root /tmp/round-table-debate-from-room-packet
 ```
 
+Run the local child-agent `/debate` E2E allow path:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor local_codex \
+  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-timeout-seconds 240 \
+  --scenario allow \
+  --state-root /tmp/round-table-debate-local-codex-allow
+```
+
+Run the local child-agent `/debate` reject-followup path:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor local_codex \
+  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-timeout-seconds 240 \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-debate-local-codex-followup
+```
+
+Run the local child-agent `/room -> /debate` handoff path after `/room` produces a packet:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor local_codex \
+  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-timeout-seconds 240 \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-room-debate-local-codex
+```
+
 Run the local mock-provider `/debate` E2E path:
 
 ```bash
@@ -242,7 +280,7 @@ This runtime closes 3 specific gaps:
 
 - `/room` no longer relies on a plain-text grep over `debate-roundtable-skill/SKILL.md`
 - `/debate` now has a checked-in execution bridge for launch bundle -> roundtable record -> review packet -> review result -> followup record -> rereview packet -> final review result
-- `/debate` now has a checked-in prompt-host E2E runner plus a local mock provider for provider-backed regression
+- `/debate` now has a checked-in prompt-host E2E runner plus both local child-agent and local mock-provider execution lanes
 - `/debate` can now replay a real `/room` handoff packet through that E2E runner instead of starting only from canonical packet material
 
 It does not close the final live gap:
@@ -251,5 +289,6 @@ It does not close the final live gap:
 - a real reviewer still must pass or reject live debate outputs
 - a real prompt host still must execute `prompts/debate-followup.md` and feed the second review back into a live reviewer
 
-The local mock-provider path proves the host wiring.
-It does not count as a real external provider pass.
+The local child-agent path proves the checked-in local host wiring.
+The local mock-provider path proves the provider-compatible wiring.
+Neither one counts as a real external provider pass.

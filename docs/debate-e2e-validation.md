@@ -24,6 +24,34 @@ Use the checked-in runner in `.codex/skills/debate-roundtable-skill/runtime/deba
 By default it starts from the checked-in canonical `/room` upgrade fixture.
 If you already have a persisted `/room` handoff packet, pass `--packet-json` to validate the real handoff directly.
 
+Local Codex child-agent path:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor local_codex \
+  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-timeout-seconds 240 \
+  --scenario allow \
+  --state-root /tmp/round-table-debate-local-codex-allow
+
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor local_codex \
+  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-timeout-seconds 240 \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-debate-local-codex-followup
+
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor local_codex \
+  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-timeout-seconds 240 \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-room-debate-local-codex
+```
+
+This is the current mainline host path for `/debate`.
+It proves the checked-in prompts can be executed through local child-agent tasks and that `/debate` can consume a real persisted `/room` packet in one command.
+
 Fixture-backed smoke path:
 
 ```bash
@@ -41,7 +69,7 @@ python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
 This path validates the checked-in orchestration and writeback chain.
 It does not count as a live provider pass.
 
-Local mock provider path:
+Local mock provider fallback path:
 
 ```bash
 python3 .codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py --port 32124
@@ -57,7 +85,7 @@ python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
 This path proves the checked-in Chat Completions-compatible `/debate` prompt-call chain.
 It still does not count as a real external provider pass.
 
-Real `/room -> /debate` handoff path:
+External-provider `/room -> /debate` handoff path:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
@@ -70,7 +98,7 @@ python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
 
 This is the first checked-in one-command path that can consume a real `/room` packet instead of reusing only canonical packet material.
 
-Real provider path:
+External provider path:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/chat_completions_executor.py \

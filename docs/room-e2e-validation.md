@@ -23,6 +23,31 @@ Use the checked-in runner in `.codex/skills/room-skill/runtime/room_e2e_validati
 
 If you want the first checked-in `/room -> /debate` full-chain validation instead of `/room` alone, use `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py`.
 
+Local Codex child-agent path:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_executor.py \
+  --check-local-exec \
+  --model gpt-5.3-codex-spark \
+  --timeout-seconds 180
+
+python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
+  --executor local_codex \
+  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-timeout-seconds 240 \
+  --state-root /tmp/round-table-room-local-codex
+
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor local_codex \
+  --local-codex-model gpt-5.3-codex-spark \
+  --local-codex-timeout-seconds 240 \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-room-debate-local-codex
+```
+
+This is the current mainline host path for the repo.
+It proves the checked-in prompts can be executed directly by local child-agent tasks without going through an external provider URL.
+
 Fixture-backed smoke path:
 
 ```bash
@@ -31,7 +56,7 @@ python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
   --state-root /tmp/round-table-room-e2e
 ```
 
-Real provider path:
+External provider fallback path:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/chat_completions_executor.py \
@@ -53,7 +78,7 @@ python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
 ```
 
 The fixture path validates the checked-in orchestration and writeback chain.
-It does not count as a live provider pass.
+It does not count as a local child-agent or external provider pass.
 
 Local mock provider path:
 
@@ -68,7 +93,7 @@ python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
 ```
 
 This path proves the checked-in Chat Completions-compatible execution chain.
-It still does not count as a real external provider pass.
+It still does not count as a real external provider pass, and it is no longer the mainline runtime path.
 
 ---
 
