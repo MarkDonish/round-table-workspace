@@ -288,7 +288,7 @@ The bridge then validates those JSON outputs and performs the state writeback th
 
 `local_codex_executor.py` is the checked-in local child-agent adapter. It reuses the local Codex host to run one prompt as one nested child task, normalizes the resulting JSON back into the runtime contracts, and now exposes explicit child-task reasoning control so `/room` and `/debate` do not blindly inherit the host's global `xhigh` profile.
 
-It also exposes a checked-in `gpt54_family` preset. That preset freezes the currently validated Mac-local lane: `gpt-5.4` primary child-task model, `gpt-5.4-mini` same-family fallback, `low` reasoning effort, and bounded timeouts.
+It also exposes a checked-in `gpt54_family` preset. That preset freezes the currently validated Mac-local lane: `gpt-5.4` primary child-task model, `gpt-5.4-mini` same-family fallback, `low` reasoning effort, bounded timeouts, and prompt-level step policies.
 
 It now also exposes `--check-host-preflight`, which verifies the local `~/.codex` storage prerequisites that nested child tasks depend on, then runs the same checked-in smoke probe. This makes the host-side failure boundary explicit before `/room` or `/debate` work starts.
 
@@ -300,10 +300,17 @@ When `trace_base` is provided by `room_e2e_validation.py`, `room_debate_e2e_vali
 - per-attempt status
 - final child-task status
 - structured last-failure details when the child task fails
+- the applied step policy key when the preset supplied one
 
 If a local child task fails, the runner-level `prompt-calls/*.error.json` and `prompt-calls/*.meta.json` now include the same `failure_category` plus a direct `trace_manifest` pointer, so the host can jump from the failed step straight into the nested-child evidence bundle.
 
 The runner-level mainline now defaults to that preset. In practice, `room_e2e_validation.py`, `room_debate_e2e_validation.py`, and `local_codex_regression.py` all use `gpt54_family` unless you explicitly override the local child-task settings.
+
+The checked-in step policies currently do three things:
+
+- keep selection steps on the primary `gpt-5.4` lane but fail faster with shorter timeouts and no retry loop
+- leave heavier discussion steps like `room-chat`, `debate-roundtable`, and `debate-followup` on the primary `gpt-5.4` lane with a longer timeout window
+- route narrower structured steps like `room-summary`, `room-upgrade`, and `debate-reviewer` onto a lighter `gpt-5.4-mini -> gpt-5.4` same-family lane
 
 It also hardens two real local-host failure modes that showed up during Mac validation:
 

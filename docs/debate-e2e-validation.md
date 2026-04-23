@@ -183,7 +183,9 @@ A successful validation run should leave behind evidence that can be checked wit
 
 If one of these is missing, the run is incomplete.
 
-For the local child-agent lane, the trace manifest is now the shortest way to separate child-task execution failures from runtime-contract failures. It records model choice, retry behavior, and a structured `failure_category` such as `timeout`, `invalid_model`, or `invalid_json_output`.
+For the local child-agent lane, the trace manifest is now the shortest way to separate child-task execution failures from runtime-contract failures. It records model choice, retry behavior, the applied `task_policy_key`, and a structured `failure_category` such as `timeout`, `invalid_model`, or `invalid_json_output`.
+
+Under the checked-in `gpt54_family` preset, debate-side local execution is now stepwise: heavier `roundtable` / `followup` steps stay on `gpt-5.4` with a longer timeout window, while narrower reviewer steps move onto a lighter `gpt-5.4-mini -> gpt-5.4` lane.
 
 ---
 

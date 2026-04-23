@@ -32,11 +32,67 @@ LOCAL_CODEX_PRESETS = {
         "timeout_retries": 1,
         "retry_timeout_multiplier": DEFAULT_RETRY_TIMEOUT_MULTIPLIER,
         "persist_session": False,
+        "step_policies": {
+            "room_full_selection": {
+                "timeout_seconds": 180,
+                "timeout_retries": 0,
+            },
+            "room_turn_selection": {
+                "timeout_seconds": 180,
+                "timeout_retries": 0,
+            },
+            "room_chat": {
+                "timeout_seconds": 300,
+                "timeout_retries": 1,
+            },
+            "room_summary": {
+                "model": "gpt-5.4-mini",
+                "fallback_models": ["gpt-5.4"],
+                "timeout_seconds": 180,
+                "timeout_retries": 0,
+            },
+            "room_upgrade": {
+                "model": "gpt-5.4-mini",
+                "fallback_models": ["gpt-5.4"],
+                "timeout_seconds": 180,
+                "timeout_retries": 0,
+            },
+            "debate_roundtable": {
+                "timeout_seconds": 300,
+                "timeout_retries": 1,
+            },
+            "debate_reviewer_initial": {
+                "model": "gpt-5.4-mini",
+                "fallback_models": ["gpt-5.4"],
+                "timeout_seconds": 180,
+                "timeout_retries": 0,
+            },
+            "debate_followup": {
+                "timeout_seconds": 300,
+                "timeout_retries": 1,
+            },
+            "debate_reviewer_rereview": {
+                "model": "gpt-5.4-mini",
+                "fallback_models": ["gpt-5.4"],
+                "timeout_seconds": 180,
+                "timeout_retries": 0,
+            },
+        },
     }
 }
 SMOKE_RESPONSE = {"ok": True, "mode": "local_codex_exec"}
 HOST_PREFLIGHT_PROBE_PREFIX = ".round-table-host-preflight-"
 TRACE_MANIFEST_SUFFIX = ".child-trace.json"
+STEP_POLICY_OVERRIDE_FIELDS = (
+    "model",
+    "fallback_models",
+    "profile",
+    "reasoning_effort",
+    "sandbox",
+    "timeout_seconds",
+    "timeout_retries",
+    "retry_timeout_multiplier",
+)
 
 
 class LocalCodexExecutorError(Exception):
@@ -218,6 +274,7 @@ def check_local_exec(
         retry_timeout_multiplier=retry_timeout_multiplier,
         ephemeral=ephemeral,
         trace_base=None,
+        execution_metadata=None,
     )
     payload = parse_json_from_text(response)
     if payload != SMOKE_RESPONSE:
@@ -492,6 +549,7 @@ def call_local_codex(
     retry_timeout_multiplier: float,
     ephemeral: bool,
     trace_base: Path | None = None,
+    execution_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     response = run_local_codex_prompt(
         repo_root=repo_root,
@@ -506,6 +564,7 @@ def call_local_codex(
         retry_timeout_multiplier=retry_timeout_multiplier,
         ephemeral=ephemeral,
         trace_base=trace_base,
+        execution_metadata=execution_metadata,
     )
     repaired_response = repair_runtime_json_text(response)
     if repaired_response is None:
@@ -695,6 +754,7 @@ def run_local_codex_prompt(
     retry_timeout_multiplier: float,
     ephemeral: bool,
     trace_base: Path | None,
+    execution_metadata: dict[str, Any] | None,
 ) -> str:
     codex_path = shutil.which("codex")
     if not codex_path:
@@ -728,6 +788,7 @@ def run_local_codex_prompt(
                 "retry_timeout_multiplier": retry_timeout_multiplier,
                 "ephemeral": ephemeral,
             },
+            "task_strategy": execution_metadata or {},
             "attempts": [],
             "final_status": "started",
         }
@@ -1096,6 +1157,83 @@ def resolve_execution_settings(
     return resolved
 
 
+def resolve_task_execution_settings(
+    *,
+    base_settings: dict[str, Any],
+    preset_name: str | None,
+    prompt_path: Path,
+    prompt_input: dict[str, Any],
+) -> dict[str, Any]:
+    resolved = {
+        "preset": base_settings.get("preset"),
+        "model": base_settings.get("model"),
+        "fallback_models": list(base_settings.get("fallback_models") or []),
+        "profile": base_settings.get("profile"),
+        "reasoning_effort": base_settings.get("reasoning_effort"),
+        "sandbox": base_settings.get("sandbox"),
+        "timeout_seconds": base_settings.get("timeout_seconds"),
+        "timeout_retries": base_settings.get("timeout_retries"),
+        "retry_timeout_multiplier": base_settings.get("retry_timeout_multiplier"),
+        "ephemeral": base_settings.get("ephemeral"),
+    }
+    policy_key = derive_step_policy_key(prompt_path=prompt_path, prompt_input=prompt_input)
+    policy = get_step_policy(preset_name=preset_name, policy_key=policy_key)
+    for field in STEP_POLICY_OVERRIDE_FIELDS:
+        if field not in policy:
+            continue
+        value = policy[field]
+        if field == "fallback_models":
+            resolved[field] = list(value)
+        else:
+            resolved[field] = value
+    resolved["task_policy_key"] = policy_key
+    resolved["task_policy_applied"] = bool(policy)
+    return resolved
+
+
+def derive_step_policy_key(*, prompt_path: Path, prompt_input: dict[str, Any]) -> str | None:
+    prompt_name = prompt_path.name
+    mode = prompt_input.get("mode")
+    if prompt_name == "room-selection.md":
+        if mode == "room_full":
+            return "room_full_selection"
+        if mode == "room_turn":
+            return "room_turn_selection"
+    if prompt_name == "room-chat.md":
+        return "room_chat"
+    if prompt_name == "room-summary.md":
+        return "room_summary"
+    if prompt_name == "room-upgrade.md":
+        return "room_upgrade"
+    if prompt_name == "debate-roundtable.md":
+        return "debate_roundtable"
+    if prompt_name == "debate-followup.md":
+        return "debate_followup"
+    if prompt_name == "debate-reviewer.md":
+        followup_round = parse_int(prompt_input.get("followup_round"), default=0)
+        return "debate_reviewer_rereview" if followup_round > 0 else "debate_reviewer_initial"
+    return None
+
+
+def get_step_policy(*, preset_name: str | None, policy_key: str | None) -> dict[str, Any]:
+    if not preset_name or not policy_key:
+        return {}
+    preset = LOCAL_CODEX_PRESETS.get(preset_name) or {}
+    step_policies = preset.get("step_policies")
+    if not isinstance(step_policies, dict):
+        return {}
+    policy = step_policies.get(policy_key)
+    if not isinstance(policy, dict):
+        return {}
+    resolved: dict[str, Any] = {}
+    for field in STEP_POLICY_OVERRIDE_FIELDS:
+        if field not in policy:
+            continue
+        value = policy[field]
+        resolved[field] = list(value) if field == "fallback_models" else value
+    return resolved
+
+
 def build_model_candidates(*, model: str | None, fallback_models: list[str] | None) -> list[str | None]:
     candidates: list[str | None] = [model]
     for item in fallback_models or []:
@@ -1223,6 +1361,13 @@ def build_text_excerpt(text: str | None, *, limit: int = 280) -> str | None:
     if len(condensed) <= limit:
         return condensed
     return condensed[:limit] + "..."
+
+
+def parse_int(value: Any, *, default: int) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
 
 
 def should_try_next_model(*, stdout: str, stderr: str) -> bool:

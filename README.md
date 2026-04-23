@@ -43,7 +43,7 @@
 - `/room local_codex` 已在 Mac 上通过 checked-in E2E 验证
 - `/debate local_codex` 的 `allow` 与 `reject_followup` 两条链都已在 Mac 上通过 checked-in E2E 验证
 - `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证，真实消费 `/room` 持久化 handoff packet
-- 当前最稳定的 checked-in 本地主线配置已收敛到 `gpt54_family`：`gpt-5.4` 为主模型、`gpt-5.4-mini` 为同家族 fallback，并显式固定 child-task reasoning / timeout；`/room`、`/debate`、integration、regression 四条 local runner 默认都已落到这条 preset
+- 当前最稳定的 checked-in 本地主线配置已收敛到 `gpt54_family`：`gpt-5.4` 为主模型、`gpt-5.4-mini` 为同家族 fallback，并显式固定 child-task reasoning / timeout；现在还会按 prompt 分层执行，例如 selection 用更短 timeout，chat / roundtable / followup 留更长窗口，summary / upgrade / reviewer 会切到更轻的同家族 lane
 
 ### 还没完成的核心能力
 

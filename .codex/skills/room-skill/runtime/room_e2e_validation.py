@@ -301,24 +301,37 @@ def build_prompt_executor(args: argparse.Namespace, room_id: str):
         return execute
 
     if args.executor == "local_codex":
-        settings = resolve_local_codex_settings(args)
+        base_settings = resolve_local_codex_settings(args)
 
         def execute(prompt_path: Path, prompt_input: dict[str, Any], trace_base: Path | None = None) -> dict[str, Any]:
+            task_settings = local_executor.resolve_task_execution_settings(
+                base_settings=base_settings,
+                preset_name=args.local_codex_preset,
+                prompt_path=prompt_path,
+                prompt_input=prompt_input,
+            )
             return local_executor.call_local_codex(
                 prompt_path=prompt_path,
                 prompt_text=prompt_path.read_text(encoding="utf-8"),
                 prompt_input=prompt_input,
                 repo_root=REPO_ROOT,
-                model=settings["model"],
-                fallback_models=settings["fallback_models"],
-                profile=settings["profile"],
-                reasoning_effort=settings["reasoning_effort"],
-                sandbox=settings["sandbox"],
-                timeout_seconds=settings["timeout_seconds"],
-                timeout_retries=settings["timeout_retries"],
-                retry_timeout_multiplier=settings["retry_timeout_multiplier"],
-                ephemeral=settings["ephemeral"],
+                model=task_settings["model"],
+                fallback_models=task_settings["fallback_models"],
+                profile=task_settings["profile"],
+                reasoning_effort=task_settings["reasoning_effort"],
+                sandbox=task_settings["sandbox"],
+                timeout_seconds=task_settings["timeout_seconds"],
+                timeout_retries=task_settings["timeout_retries"],
+                retry_timeout_multiplier=task_settings["retry_timeout_multiplier"],
+                ephemeral=task_settings["ephemeral"],
                 trace_base=trace_base,
+                execution_metadata={
+                    "preset": task_settings["preset"],
+                    "task_policy_key": task_settings.get("task_policy_key"),
+                    "task_policy_applied": task_settings.get("task_policy_applied", False),
+                    "prompt_name": prompt_path.name,
+                    "mode": prompt_input.get("mode"),
+                },
             )
 
         return execute

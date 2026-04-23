@@ -309,3 +309,9 @@ For the local child-agent lane, failed prompt calls now leave two layers of chec
 - nested child-task `prompt-calls/*.child-trace.json`
 
 The trace manifest records per-attempt status, retry behavior, chosen model, and the final `failure_category`, so reviewer / followup failures can be distinguished from host or child-task execution failures without re-running the whole chain blindly.
+
+Under the checked-in `gpt54_family` preset, the debate-side local mainline is now stepwise rather than one-size-fits-all:
+
+- `debate-roundtable` and `debate-followup` stay on the heavier `gpt-5.4` lane with a longer timeout window
+- `debate-reviewer` steps move onto a lighter `gpt-5.4-mini -> gpt-5.4` same-family lane
+- the applied policy key is written into `prompt-calls/*.child-trace.json`

@@ -44,6 +44,8 @@ This is the current mainline host path for the repo.
 It proves the checked-in prompts can be executed directly by local child-agent tasks without going through an external provider URL.
 The checked-in runners now default to the validated `gpt54_family` preset, so the shortest local command path no longer needs explicit model flags unless you are deliberately overriding the child-task lane.
 
+That preset is now stepwise: selection keeps the primary `gpt-5.4` lane but uses a shorter timeout, `room-chat` keeps the heavier lane with a longer window, and narrower structured steps like `room-summary` / `room-upgrade` move onto a lighter same-family lane.
+
 Fixture-backed smoke path:
 
 ```bash
@@ -279,7 +281,7 @@ A successful validation run should leave behind evidence that can be checked wit
 
 If one of these is missing, the run is incomplete.
 
-For the local child-agent mainline, `prompt-calls/*.child-trace.json` is now the first debugging stop. It records per-attempt model choice, timeout / retry behavior, and a structured `failure_category` such as `timeout`, `invalid_model`, `invalid_json_output`, or `host_permission_or_sandbox_denied`.
+For the local child-agent mainline, `prompt-calls/*.child-trace.json` is now the first debugging stop. It records per-attempt model choice, timeout / retry behavior, the applied `task_policy_key`, and a structured `failure_category` such as `timeout`, `invalid_model`, `invalid_json_output`, or `host_permission_or_sandbox_denied`.
 
 ---
 
