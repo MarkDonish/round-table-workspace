@@ -274,6 +274,8 @@ Typical files:
 - `prompt-calls/*.input.json`
 - `prompt-calls/*.output.json`
 - `prompt-calls/*.meta.json`
+- `prompt-calls/*.child-trace.json`
+- `prompt-calls/*.error.json` when a prompt call fails
 - `validation-report.json`
 
 For `reject_followup`, the validation report now treats two end states as terminally valid after the single allowed follow-up round:
@@ -300,3 +302,10 @@ It does not close the final live gap:
 The local child-agent path proves the checked-in local host wiring.
 The local mock-provider path proves the provider-compatible wiring.
 Neither one counts as a real external provider pass.
+
+For the local child-agent lane, failed prompt calls now leave two layers of checked-in debug evidence:
+
+- runner-level `prompt-calls/*.error.json` and failed `*.meta.json`
+- nested child-task `prompt-calls/*.child-trace.json`
+
+The trace manifest records per-attempt status, retry behavior, chosen model, and the final `failure_category`, so reviewer / followup failures can be distinguished from host or child-task execution failures without re-running the whole chain blindly.

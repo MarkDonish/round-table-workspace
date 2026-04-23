@@ -36,10 +36,13 @@ LOCAL_CODEX_PRESETS = {
 }
 SMOKE_RESPONSE = {"ok": True, "mode": "local_codex_exec"}
 HOST_PREFLIGHT_PROBE_PREFIX = ".round-table-host-preflight-"
+TRACE_MANIFEST_SUFFIX = ".child-trace.json"
 
 
 class LocalCodexExecutorError(Exception):
-    pass
+    def __init__(self, message: str, *, details: dict[str, Any] | None = None) -> None:
+        super().__init__(message)
+        self.details = details or {}
 
 
 def main() -> int:
@@ -506,8 +509,25 @@ def call_local_codex(
     )
     repaired_response = repair_runtime_json_text(response)
     if repaired_response is None:
-        raise json.JSONDecodeError("Could not repair local Codex JSON response.", response, 0)
-    payload = parse_json_from_text(repaired_response)
+        raise LocalCodexExecutorError(
+            "Could not repair local Codex JSON response." + build_trace_hint(trace_base),
+            details=build_local_codex_error_details(
+                failure_category="invalid_json_output",
+                trace_base=trace_base,
+                response_excerpt=build_text_excerpt(response),
+            ),
+        )
+    try:
+        payload = parse_json_from_text(repaired_response)
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise LocalCodexExecutorError(
+            "local codex exec returned a non-parseable JSON object." + build_trace_hint(trace_base),
+            details=build_local_codex_error_details(
+                failure_category="invalid_json_output",
+                trace_base=trace_base,
+                response_excerpt=build_text_excerpt(repaired_response),
+            ),
+        ) from exc
     return normalize_prompt_output(prompt_path=prompt_path, prompt_input=prompt_input, payload=payload)
 
 
@@ -682,25 +702,43 @@ def run_local_codex_prompt(
     model_candidates = build_model_candidates(model=model, fallback_models=fallback_models)
 
     with tempfile.TemporaryDirectory(prefix="round-table-local-codex-") as temp_dir:
-        if trace_base is not None:
-            trace_base.parent.mkdir(parents=True, exist_ok=True)
-            output_path = Path(f"{trace_base}.child-last-message.txt")
-            stdout_path = Path(f"{trace_base}.child-stdout.jsonl")
-            stderr_path = Path(f"{trace_base}.child-stderr.txt")
-            prompt_path = Path(f"{trace_base}.child-task-prompt.md")
-            command_path = Path(f"{trace_base}.child-command.json")
-        else:
-            output_path = Path(temp_dir) / "last-message.txt"
-            stdout_path = None
-            stderr_path = None
-            prompt_path = None
-            command_path = None
+        trace_paths = build_trace_paths(trace_base=trace_base, temp_dir=Path(temp_dir))
+        output_path = trace_paths["last_message"] or (Path(temp_dir) / "last-message.txt")
+        stdout_path = trace_paths["stdout_jsonl"]
+        stderr_path = trace_paths["stderr"]
+        prompt_path = trace_paths["task_prompt"]
+        command_path = trace_paths["command"]
+        trace_manifest_path = trace_paths["trace_manifest"]
+        trace_manifest = {
+            "schema_version": "v0.1",
+            "mode": "local_codex_child_trace",
+            "repo_root": str(repo_root),
+            "trace_base": str(trace_base) if trace_base is not None else None,
+            "codex_binary": codex_path,
+            "artifacts": serialize_trace_paths(trace_paths),
+            "execution": {
+                "model": model,
+                "fallback_models": fallback_models or [],
+                "model_candidates": model_candidates,
+                "profile": profile,
+                "reasoning_effort": reasoning_effort,
+                "sandbox": sandbox,
+                "timeout_seconds": timeout_seconds,
+                "timeout_retries": timeout_retries,
+                "retry_timeout_multiplier": retry_timeout_multiplier,
+                "ephemeral": ephemeral,
+            },
+            "attempts": [],
+            "final_status": "started",
+        }
 
         if prompt_path is not None:
             prompt_path.write_text(task_prompt, encoding="utf-8")
+        write_trace_manifest(trace_manifest_path, trace_manifest)
         attempts: list[dict[str, Any]] = []
         last_timeout_error: LocalCodexExecutorError | None = None
         last_failure_message: str | None = None
+        last_failure_details: dict[str, Any] | None = None
         for model_index, candidate_model in enumerate(model_candidates):
             cmd = [
                 codex_path,
@@ -735,6 +773,14 @@ def run_local_codex_prompt(
                         "timeout_seconds": attempt_timeout,
                     }
                 )
+                trace_attempt = {
+                    "model_candidate_index": model_index + 1,
+                    "model": candidate_model,
+                    "attempt": attempt_index + 1,
+                    "timeout_seconds": attempt_timeout,
+                    "status": "started",
+                }
+                trace_manifest["attempts"].append(trace_attempt)
                 if command_path is not None:
                     command_path.write_text(
                         json.dumps(
@@ -755,6 +801,7 @@ def run_local_codex_prompt(
                         + "\n",
                         encoding="utf-8",
                     )
+                write_trace_manifest(trace_manifest_path, trace_manifest)
                 try:
                     completed = subprocess.run(
                         cmd,
@@ -768,10 +815,30 @@ def run_local_codex_prompt(
                 except subprocess.TimeoutExpired as exc:
                     write_trace_text(stdout_path, exc.stdout)
                     write_trace_text(stderr_path, exc.stderr)
+                    timeout_message = f"local codex exec timed out after {attempt_timeout}s on attempt {attempt_index + 1}"
+                    timeout_details = build_local_codex_error_details(
+                        failure_category="timeout",
+                        trace_base=trace_base,
+                        model=candidate_model,
+                        attempt=attempt_index + 1,
+                        timeout_seconds=attempt_timeout,
+                        retryable=attempt_index < timeout_retries,
+                    )
+                    trace_attempt.update(
+                        {
+                            "status": "timed_out",
+                            "failure_category": timeout_details["failure_category"],
+                            "error": timeout_message,
+                            "retryable": timeout_details.get("retryable", False),
+                        }
+                    )
+                    trace_manifest["final_status"] = "retrying_after_timeout" if attempt_index < timeout_retries else "failed"
+                    trace_manifest["last_failure"] = timeout_details
+                    write_trace_manifest(trace_manifest_path, trace_manifest)
                     if attempt_index >= timeout_retries:
                         last_timeout_error = LocalCodexExecutorError(
-                            f"local codex exec timed out after {attempt_timeout}s on attempt {attempt_index + 1}"
-                            + build_trace_hint(trace_base)
+                            timeout_message + build_trace_hint(trace_base),
+                            details=timeout_details,
                         )
                         break
                     continue
@@ -779,27 +846,86 @@ def run_local_codex_prompt(
                 write_trace_text(stdout_path, completed.stdout)
                 write_trace_text(stderr_path, completed.stderr)
                 if completed.returncode == 0:
-                    response_text = read_child_response_text(output_path=output_path, stdout_jsonl=completed.stdout)
+                    response_text, response_source = read_child_response_text(output_path=output_path, stdout_jsonl=completed.stdout)
+                    trace_attempt.update(
+                        {
+                            "status": "completed",
+                            "returncode": completed.returncode,
+                            "response_source": response_source,
+                        }
+                    )
                     if response_text is None:
+                        missing_message = "local codex exec completed but did not yield a recoverable last message."
+                        missing_details = build_local_codex_error_details(
+                            failure_category="missing_child_message",
+                            trace_base=trace_base,
+                            model=candidate_model,
+                            attempt=attempt_index + 1,
+                            response_source=response_source,
+                        )
+                        trace_attempt.update(
+                            {
+                                "status": "failed",
+                                "failure_category": missing_details["failure_category"],
+                                "error": missing_message,
+                            }
+                        )
+                        trace_manifest["final_status"] = "failed"
+                        trace_manifest["last_failure"] = missing_details
+                        write_trace_manifest(trace_manifest_path, trace_manifest)
                         raise LocalCodexExecutorError(
-                            "local codex exec completed but did not yield a recoverable last message."
-                            + build_trace_hint(trace_base)
+                            missing_message + build_trace_hint(trace_base),
+                            details=missing_details,
                         )
                     existing_output = output_path.read_text(encoding="utf-8") if output_path.exists() else None
                     if existing_output != response_text:
                         output_path.write_text(response_text, encoding="utf-8")
+                    trace_manifest["final_status"] = "child_task_succeeded"
+                    trace_manifest["final_model"] = candidate_model
+                    trace_manifest["response_source"] = response_source
+                    write_trace_manifest(trace_manifest_path, trace_manifest)
                     return response_text
 
+                failure_info = classify_command_failure(stdout=completed.stdout, stderr=completed.stderr, returncode=completed.returncode)
                 last_failure_message = (
                     "local codex exec failed: "
-                    + summarize_command_failure(completed.stdout, completed.stderr, completed.returncode)
+                    + failure_info["summary"]
                     + build_trace_hint(trace_base)
                 )
+                last_failure_details = build_local_codex_error_details(
+                    failure_category=failure_info["failure_category"],
+                    trace_base=trace_base,
+                    model=candidate_model,
+                    attempt=attempt_index + 1,
+                    returncode=completed.returncode,
+                    retryable=failure_info["retryable"],
+                    try_next_model=failure_info["try_next_model"],
+                    summary=failure_info["summary"],
+                )
+                trace_attempt.update(
+                    {
+                        "status": "failed",
+                        "returncode": completed.returncode,
+                        "failure_category": failure_info["failure_category"],
+                        "summary": failure_info["summary"],
+                        "retryable": failure_info["retryable"],
+                        "try_next_model": failure_info["try_next_model"],
+                    }
+                )
+                trace_manifest["last_failure"] = last_failure_details
                 if should_retry_transient_failure(stdout=completed.stdout, stderr=completed.stderr) and attempt_index < timeout_retries:
+                    trace_attempt["retry_decision"] = "retry_same_model"
+                    trace_manifest["final_status"] = "retrying_after_failure"
+                    write_trace_manifest(trace_manifest_path, trace_manifest)
                     continue
                 if should_try_next_model(stdout=completed.stdout, stderr=completed.stderr) and model_index + 1 < len(model_candidates):
+                    trace_attempt["retry_decision"] = "switch_model"
+                    trace_manifest["final_status"] = "switching_model"
+                    write_trace_manifest(trace_manifest_path, trace_manifest)
                     break
-                raise LocalCodexExecutorError(last_failure_message)
+                trace_manifest["final_status"] = "failed"
+                write_trace_manifest(trace_manifest_path, trace_manifest)
+                raise LocalCodexExecutorError(last_failure_message, details=last_failure_details)
 
             if last_timeout_error is not None and model_index + 1 < len(model_candidates):
                 last_timeout_error = None
@@ -807,8 +933,18 @@ def run_local_codex_prompt(
             if last_timeout_error is not None:
                 raise last_timeout_error
         if last_failure_message:
-            raise LocalCodexExecutorError(last_failure_message)
-        raise LocalCodexExecutorError("local codex exec failed without a usable attempt result." + build_trace_hint(trace_base))
+            raise LocalCodexExecutorError(last_failure_message, details=last_failure_details)
+        generic_details = build_local_codex_error_details(
+            failure_category="command_failed",
+            trace_base=trace_base,
+        )
+        trace_manifest["final_status"] = "failed"
+        trace_manifest["last_failure"] = generic_details
+        write_trace_manifest(trace_manifest_path, trace_manifest)
+        raise LocalCodexExecutorError(
+            "local codex exec failed without a usable attempt result." + build_trace_hint(trace_base),
+            details=generic_details,
+        )
 
 
 def summarize_command_failure(stdout: str, stderr: str, returncode: int) -> str:
@@ -819,20 +955,26 @@ def summarize_command_failure(stdout: str, stderr: str, returncode: int) -> str:
     return f"exit={returncode}; output={condensed or '信息缺失'}"
 
 
-def read_child_response_text(*, output_path: Path, stdout_jsonl: str) -> str | None:
+def read_child_response_text(*, output_path: Path, stdout_jsonl: str) -> tuple[str | None, str | None]:
     raw_last_message = output_path.read_text(encoding="utf-8") if output_path.exists() else None
     repaired_raw = repair_runtime_json_text(raw_last_message)
     if repaired_raw is not None:
-        return repaired_raw
+        source = "output_last_message" if repaired_raw == raw_last_message else "output_last_message_repaired"
+        return repaired_raw, source
 
     recovered_from_stdout = extract_last_agent_message_from_stdout_jsonl(stdout_jsonl)
     repaired_stdout = repair_runtime_json_text(recovered_from_stdout)
     if repaired_stdout is not None:
-        return repaired_stdout
+        source = "stdout_agent_message" if repaired_stdout == recovered_from_stdout else "stdout_agent_message_repaired"
+        return repaired_stdout, source
 
     if raw_last_message and recovered_from_stdout and len(recovered_from_stdout) > len(raw_last_message):
-        return recovered_from_stdout
-    return raw_last_message or recovered_from_stdout
+        return recovered_from_stdout, "stdout_agent_message_raw_fallback"
+    if raw_last_message:
+        return raw_last_message, "output_last_message_raw_fallback"
+    if recovered_from_stdout:
+        return recovered_from_stdout, "stdout_agent_message_raw_only"
+    return None, None
 
 
 def is_valid_runtime_json_text(text: str | None) -> bool:
@@ -961,6 +1103,126 @@ def build_model_candidates(*, model: str | None, fallback_models: list[str] | No
             continue
         candidates.append(item)
     return candidates
+
+
+def build_trace_paths(*, trace_base: Path | None, temp_dir: Path) -> dict[str, Path | None]:
+    if trace_base is not None:
+        trace_base.parent.mkdir(parents=True, exist_ok=True)
+        return {
+            "last_message": Path(f"{trace_base}.child-last-message.txt"),
+            "stdout_jsonl": Path(f"{trace_base}.child-stdout.jsonl"),
+            "stderr": Path(f"{trace_base}.child-stderr.txt"),
+            "task_prompt": Path(f"{trace_base}.child-task-prompt.md"),
+            "command": Path(f"{trace_base}.child-command.json"),
+            "trace_manifest": Path(f"{trace_base}{TRACE_MANIFEST_SUFFIX}"),
+        }
+    return {
+        "last_message": temp_dir / "last-message.txt",
+        "stdout_jsonl": None,
+        "stderr": None,
+        "task_prompt": None,
+        "command": None,
+        "trace_manifest": None,
+    }
+
+
+def serialize_trace_paths(paths: dict[str, Path | None]) -> dict[str, str]:
+    return {key: str(path) for key, path in paths.items() if path is not None}
+
+
+def write_trace_manifest(path: Path | None, payload: dict[str, Any]) -> None:
+    if path is None:
+        return
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def build_local_codex_error_details(
+    *,
+    failure_category: str,
+    trace_base: Path | None,
+    model: str | None = None,
+    attempt: int | None = None,
+    timeout_seconds: int | None = None,
+    returncode: int | None = None,
+    retryable: bool | None = None,
+    try_next_model: bool | None = None,
+    response_source: str | None = None,
+    summary: str | None = None,
+    response_excerpt: str | None = None,
+) -> dict[str, Any]:
+    details: dict[str, Any] = {
+        "failure_category": failure_category,
+    }
+    if trace_base is not None:
+        details["trace_base"] = str(trace_base)
+        details["trace_manifest"] = str(Path(f"{trace_base}{TRACE_MANIFEST_SUFFIX}"))
+    if model is not None:
+        details["model"] = model
+    if attempt is not None:
+        details["attempt"] = attempt
+    if timeout_seconds is not None:
+        details["timeout_seconds"] = timeout_seconds
+    if returncode is not None:
+        details["returncode"] = returncode
+    if retryable is not None:
+        details["retryable"] = retryable
+    if try_next_model is not None:
+        details["try_next_model"] = try_next_model
+    if response_source is not None:
+        details["response_source"] = response_source
+    if summary is not None:
+        details["summary"] = summary
+    if response_excerpt is not None:
+        details["response_excerpt"] = response_excerpt
+    return details
+
+
+def serialize_local_codex_error(exc: Exception, *, trace_base: Path | None = None) -> dict[str, Any]:
+    payload = {
+        "error": str(exc),
+        "error_type": type(exc).__name__,
+    }
+    if trace_base is not None:
+        payload["trace_base"] = str(trace_base)
+        payload["trace_manifest"] = str(Path(f"{trace_base}{TRACE_MANIFEST_SUFFIX}"))
+    if isinstance(exc, LocalCodexExecutorError) and exc.details:
+        payload["failure_category"] = exc.details.get("failure_category")
+        payload["local_codex"] = exc.details
+        payload["trace_base"] = exc.details.get("trace_base", payload.get("trace_base"))
+        payload["trace_manifest"] = exc.details.get("trace_manifest", payload.get("trace_manifest"))
+    return payload
+
+
+def classify_command_failure(*, stdout: str, stderr: str, returncode: int) -> dict[str, Any]:
+    summary = summarize_command_failure(stdout, stderr, returncode)
+    combined = "\n".join(part.strip() for part in (stdout, stderr) if part and part.strip()).lower()
+    retryable = should_retry_transient_failure(stdout=stdout, stderr=stderr)
+    try_next_model = should_try_next_model(stdout=stdout, stderr=stderr)
+    if retryable:
+        failure_category = "transient_transport_failure"
+    elif any(token in combined for token in ("permission denied", "operation not permitted", "sandbox", "write access", "not writable")):
+        failure_category = "host_permission_or_sandbox_denied"
+    elif any(token in combined for token in ("unknown model", "model not found", "invalid model", "unrecognized model")):
+        failure_category = "invalid_model"
+    elif try_next_model:
+        failure_category = "rate_limit_or_model_overloaded"
+    else:
+        failure_category = "command_failed"
+    return {
+        "failure_category": failure_category,
+        "summary": summary,
+        "retryable": retryable,
+        "try_next_model": try_next_model,
+    }
+
+
+def build_text_excerpt(text: str | None, *, limit: int = 280) -> str | None:
+    if not text:
+        return None
+    condensed = " ".join(text.split())
+    if len(condensed) <= limit:
+        return condensed
+    return condensed[:limit] + "..."
 
 
 def should_try_next_model(*, stdout: str, stderr: str) -> bool:

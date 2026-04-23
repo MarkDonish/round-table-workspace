@@ -274,8 +274,12 @@ A successful validation run should leave behind evidence that can be checked wit
 - a persisted summary snapshot
 - a generated handoff packet
 - proof that the checked-in `/debate` packet preflight accepted the packet shape
+- for `local_codex`, a persisted `prompt-calls/*.child-trace.json` per prompt call
+- for failed `local_codex` runs, a persisted `prompt-calls/*.error.json` plus failed `prompt-calls/*.meta.json`
 
 If one of these is missing, the run is incomplete.
+
+For the local child-agent mainline, `prompt-calls/*.child-trace.json` is now the first debugging stop. It records per-attempt model choice, timeout / retry behavior, and a structured `failure_category` such as `timeout`, `invalid_model`, `invalid_json_output`, or `host_permission_or_sandbox_denied`.
 
 ---
 

@@ -264,6 +264,7 @@ Typical files:
 - `state.json`
 - `prompt-calls/001-room_full-selection.input.json`
 - `prompt-calls/001-room_full-selection.output.json`
+- `prompt-calls/001-room_full-selection.child-trace.json`
 - `turns/turn-001.selection.json`
 - `turns/turn-001.chat.json`
 - `turns/turn-001.turn.json`
@@ -291,6 +292,17 @@ It also exposes a checked-in `gpt54_family` preset. That preset freezes the curr
 
 It now also exposes `--check-host-preflight`, which verifies the local `~/.codex` storage prerequisites that nested child tasks depend on, then runs the same checked-in smoke probe. This makes the host-side failure boundary explicit before `/room` or `/debate` work starts.
 
+When `trace_base` is provided by `room_e2e_validation.py`, `room_debate_e2e_validation.py`, or `debate_e2e_validation.py`, the local child-task lane now also writes a checked-in trace manifest at `prompt-calls/*.child-trace.json`. That manifest records:
+
+- the exact child-task artifact paths
+- model and fallback lane selection
+- timeout / retry settings
+- per-attempt status
+- final child-task status
+- structured last-failure details when the child task fails
+
+If a local child task fails, the runner-level `prompt-calls/*.error.json` and `prompt-calls/*.meta.json` now include the same `failure_category` plus a direct `trace_manifest` pointer, so the host can jump from the failed step straight into the nested-child evidence bundle.
+
 The runner-level mainline now defaults to that preset. In practice, `room_e2e_validation.py`, `room_debate_e2e_validation.py`, and `local_codex_regression.py` all use `gpt54_family` unless you explicitly override the local child-task settings.
 
 It also hardens two real local-host failure modes that showed up during Mac validation:
@@ -298,6 +310,17 @@ It also hardens two real local-host failure modes that showed up during Mac vali
 - recover the final child message from `stdout.jsonl` when `--output-last-message` is truncated
 - repair truncated JSON when a string loses its closing quote either at EOF or right before the next structural delimiter such as `},{"text": ...`
 - normalize object-style evidence buckets like `{text, source}` back into the string lists expected by the runtime validators
+
+The local failure categories now surfaced by the executor are:
+
+- `timeout`
+- `transient_transport_failure`
+- `rate_limit_or_model_overloaded`
+- `host_permission_or_sandbox_denied`
+- `invalid_model`
+- `missing_child_message`
+- `invalid_json_output`
+- `command_failed`
 
 `local_codex_regression.py` is the checked-in local mainline regression runner. It now runs the host preflight first, then sequences `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration into one evidence bundle. It defaults to the `gpt54_family` preset, so a bare regression command already lands on the validated Mac-local lane and persists a checked-in `host-preflight.json` alongside the regression report.
 

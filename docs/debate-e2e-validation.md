@@ -178,8 +178,12 @@ A successful validation run should leave behind evidence that can be checked wit
 - a persisted reviewer result
 - for reject-followup scenario: a persisted `followup-record.json` and `rereview-packet.json`
 - prompt-call input/output snapshots under `prompt-calls/`
+- for `local_codex`, a persisted `prompt-calls/*.child-trace.json` per prompt call
+- for failed `local_codex` runs, a persisted `prompt-calls/*.error.json` plus failed `prompt-calls/*.meta.json`
 
 If one of these is missing, the run is incomplete.
+
+For the local child-agent lane, the trace manifest is now the shortest way to separate child-task execution failures from runtime-contract failures. It records model choice, retry behavior, and a structured `failure_category` such as `timeout`, `invalid_model`, or `invalid_json_output`.
 
 ---
 

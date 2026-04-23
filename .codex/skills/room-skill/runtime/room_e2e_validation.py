@@ -394,6 +394,7 @@ def execute_prompt(
     call_dir = room_dir / "prompt-calls"
     runtime.ensure_directory(call_dir)
     base_name = f"{step_index:03d}-{step_name.replace('.', '-')}"
+    trace_base = call_dir / base_name
     runtime.write_json(call_dir / f"{base_name}.input.json", prompt_input)
     runtime.write_json(
         call_dir / f"{base_name}.meta.json",
@@ -404,14 +405,28 @@ def execute_prompt(
         },
     )
     try:
-        output = executor(prompt_path, prompt_input, trace_base=call_dir / base_name)
+        output = executor(prompt_path, prompt_input, trace_base=trace_base)
     except Exception as exc:
-        runtime.write_json(
-            call_dir / f"{base_name}.error.json",
+        error_payload = local_executor.serialize_local_codex_error(exc, trace_base=trace_base)
+        error_payload.update(
             {
                 "step": step_name,
                 "prompt_path": str(prompt_path),
-                "error": str(exc),
+            }
+        )
+        runtime.write_json(
+            call_dir / f"{base_name}.error.json",
+            error_payload,
+        )
+        runtime.write_json(
+            call_dir / f"{base_name}.meta.json",
+            {
+                "step": step_name,
+                "prompt_path": str(prompt_path),
+                "status": "failed",
+                "error_type": type(exc).__name__,
+                "failure_category": error_payload.get("failure_category"),
+                "trace_manifest": error_payload.get("trace_manifest"),
             },
         )
         raise

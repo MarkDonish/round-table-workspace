@@ -74,6 +74,8 @@ The repository already contains a largely complete source layer for `/room`:
 - the local `/room`, `/debate`, integration, and regression runners now default to that validated `gpt54_family` preset unless the caller explicitly overrides it
 - a checked-in local host preflight in `.codex/skills/room-skill/runtime/local_codex_executor.py` that verifies `~/.codex`, `~/.codex/sessions`, `session_index.jsonl`, and discovered state/log/sqlite DB locations before nested child-task work begins
 - the checked-in local regression runner now persists `host-preflight.json` and fails fast when those host prerequisites are not ready
+- a checked-in local child-task trace manifest at `prompt-calls/*.child-trace.json`, written by `local_codex_executor.py` whenever the runner supplies a `trace_base`
+- structured local prompt-call failure payloads in `prompt-calls/*.error.json` and failed `prompt-calls/*.meta.json`, including `failure_category` and `trace_manifest` pointers
 - a checked-in `/debate` packet preflight in `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py`
 - a checked-in `/debate` execution bridge in `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`, including reject-followup-rereview validation
 - a checked-in `/debate` prompt-host E2E runner in `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py`
@@ -151,6 +153,7 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 ## Current Risks
 
 - The host-side `/room` execution path now exists and the local child-agent path is validated. The remaining latency risk is the unbounded host-default path; the checked-in child-task mainline should use explicit reasoning/timing controls instead of inheriting the host's heaviest profile.
+- The local child-agent path is now easier to debug, but the longest-running steps can still consume the full child timeout window before the trace manifest flips from `started` to a terminal state.
 - The local child-agent path depends on the host being allowed to write its Codex session/state files under `~/.codex/`; the checked-in host preflight now surfaces that boundary earlier, but a tighter outer sandbox can still block nested child-task execution before prompt validation begins.
 - `/room -> /debate` handoff is no longer a plain-text contract grep, and the repo now has a checked-in integration runner plus direct `--packet-json` intake on the debate side; the remaining runtime gap is now mainly external-provider proof, not local chain design.
 - Historical reports still reference old Windows runtime paths, which can mislead future continuation if read as implementation truth.
