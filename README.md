@@ -30,6 +30,7 @@
 - `.codex/skills/room-skill/runtime/local_codex_executor.py` 现在也已提供 checked-in 的 local host preflight，可先验证 `~/.codex` 宿主写入条件和 nested child-agent smoke
 - `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口，可一条命令跑 host preflight + room + debate + integration；已内建 `gpt54_family` 默认 preset
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口，可自动拉起本地 room/debate mock provider，并一条命令跑 provider preflight + room + debate + integration
+- `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper，可先做 room/debate 双侧 preflight，再一键触发真实 `/room -> /debate` integration
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
 - `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py` 已提供 checked-in 的 `/room -> /debate` 联调验证入口
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 provider-backed 链路
@@ -187,6 +188,7 @@ round-table-workspace/
 - local mainline regression：`.codex/skills/room-skill/runtime/local_codex_regression.py`
 - local host preflight：`python3 .codex/skills/room-skill/runtime/local_codex_executor.py --check-host-preflight --preset gpt54_family`
 - provider fallback regression：`.codex/skills/room-skill/runtime/chat_completions_regression.py`
+- provider live validation：`.codex/skills/room-skill/runtime/chat_completions_live_validation.py`
 - runtime validation：`.codex/skills/room-skill/runtime/room_e2e_validation.py`
 - mock provider：`.codex/skills/room-skill/runtime/mock_chat_completions_server.py`
 - live provider sample：`.env.room.example`

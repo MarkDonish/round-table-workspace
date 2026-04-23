@@ -105,6 +105,17 @@ python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --state-root /tmp/round-table-room-debate-live
 ```
 
+Checked-in real-provider live wrapper:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_live_validation.py \
+  --room-env-file .env.room \
+  --debate-env-file .env.debate \
+  --state-root /tmp/round-table-chat-completions-live
+```
+
+This is the shortest checked-in entry for the real external-provider lane. It first runs room/debate provider preflight, rejects unchanged template placeholders, then launches the integrated `/room -> /debate` live path only when both scopes are ready.
+
 This is the first checked-in one-command path that can consume a real `/room` packet instead of reusing only canonical packet material.
 
 External provider path:

@@ -8,12 +8,20 @@ import re
 import sys
 import urllib.error
 import urllib.request
+import urllib.parse
 from pathlib import Path
 from typing import Any
 
 
 class ProviderConfigError(Exception):
     pass
+
+
+PLACEHOLDER_EXACT_VALUES = {
+    "EMPTY",
+    "your-model-name",
+    "your-provider-token",
+}
 
 
 def main() -> int:
@@ -122,6 +130,10 @@ def read_provider_config(env: dict[str, str], *, provider_scope: str = "room") -
         raise ProviderConfigError(missing_config_message(primary_prefix, "CHAT_COMPLETIONS_URL", fallback_prefixes))
     if not model:
         raise ProviderConfigError(missing_config_message(primary_prefix, "CHAT_COMPLETIONS_MODEL", fallback_prefixes))
+    ensure_non_placeholder_config_value(url, f"{primary_prefix}_CHAT_COMPLETIONS_URL")
+    ensure_non_placeholder_config_value(model, f"{primary_prefix}_CHAT_COMPLETIONS_MODEL")
+    if auth_bearer:
+        ensure_non_placeholder_config_value(auth_bearer, f"{primary_prefix}_PROVIDER_AUTH_BEARER")
     try:
         timeout_seconds = int(timeout_raw)
     except ValueError as exc:
@@ -133,6 +145,18 @@ def read_provider_config(env: dict[str, str], *, provider_scope: str = "room") -
         "timeout_seconds": timeout_seconds,
         "provider_scope": provider_scope,
     }
+
+
+def ensure_non_placeholder_config_value(value: str, key: str) -> None:
+    stripped = value.strip()
+    if not stripped:
+        return
+    if stripped in PLACEHOLDER_EXACT_VALUES:
+        raise ProviderConfigError(f"{key} is still using the example placeholder value `{stripped}`.")
+    if key.endswith("_CHAT_COMPLETIONS_URL"):
+        parsed = urllib.parse.urlparse(stripped)
+        if parsed.hostname and parsed.hostname.endswith(".example"):
+            raise ProviderConfigError(f"{key} is still using the example placeholder URL `{stripped}`.")
 
 
 def provider_keys(primary_prefix: str, suffix: str, fallback_prefixes: tuple[str, ...]) -> list[str]:

@@ -73,6 +73,17 @@ python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --debate-env-file .env.debate
 ```
 
+Checked-in real-provider live wrapper:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_live_validation.py \
+  --room-env-file .env.room \
+  --debate-env-file .env.debate \
+  --state-root /tmp/round-table-chat-completions-live
+```
+
+This is the shortest checked-in entry for the real external-provider lane. It first runs room/debate provider preflight, treats template placeholder values as not-configured, then launches the one-command `/room -> /debate` integration flow only when both scopes are ready.
+
 The fixture path validates the checked-in orchestration and writeback chain.
 It does not count as a local child-agent or external provider pass.
 

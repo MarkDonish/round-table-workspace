@@ -33,6 +33,7 @@ The current source-of-truth files for `/room` are:
 - `.codex/skills/room-skill/runtime/local_codex_executor.py`
 - `.codex/skills/room-skill/runtime/local_codex_regression.py`
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py`
+- `.codex/skills/room-skill/runtime/chat_completions_live_validation.py`
 - `.codex/skills/room-skill/runtime/chat_completions_executor.py`
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py`
 - `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py`
@@ -68,6 +69,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in local child-agent executor in `.codex/skills/room-skill/runtime/local_codex_executor.py`
 - a checked-in local mainline regression runner in `.codex/skills/room-skill/runtime/local_codex_regression.py`
 - a checked-in Chat Completions fallback regression runner in `.codex/skills/room-skill/runtime/chat_completions_regression.py`
+- a checked-in Chat Completions live validation wrapper in `.codex/skills/room-skill/runtime/chat_completions_live_validation.py`
 - a checked-in `gpt54_family` local preset exposed across `local_codex_executor.py`, `room_e2e_validation.py`, `debate_e2e_validation.py`, `room_debate_e2e_validation.py`, and `local_codex_regression.py`
 - the local `/room`, `/debate`, integration, and regression runners now default to that validated `gpt54_family` preset unless the caller explicitly overrides it
 - a checked-in local host preflight in `.codex/skills/room-skill/runtime/local_codex_executor.py` that verifies `~/.codex`, `~/.codex/sessions`, `session_index.jsonl`, and discovered state/log/sqlite DB locations before nested child-task work begins
@@ -83,6 +85,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in local mock Chat Completions provider in `.codex/skills/room-skill/runtime/mock_chat_completions_server.py`
 - a checked-in provider fallback regression path that boots both mock providers, writes scope-specific mock env files, and validates room, debate, and integration through `--executor chat_completions`
 - a Mac-validated Chat Completions fallback full regression suite using the checked-in local mock providers for both `/room` and `/debate`
+- a checked-in live wrapper that now rejects unchanged example placeholder values in `.env.room` / `.env.debate`, persists preflight evidence, and can launch the real `/room -> /debate` provider-backed integration flow from one command
 - a Mac-validated `local_codex` `/room` E2E path
 - a Mac-validated `local_codex` `/debate` allow path plus reject-followup-rereview path
 - a Mac-validated `local_codex` `/room -> /debate` full-chain integration path that consumes the persisted room packet directly
@@ -115,7 +118,7 @@ The remaining unfinished part is no longer the checked-in bridge itself.
 The remaining gap is now narrower and sits in two places:
 
 1. the checked-in local child-agent path is now proven on Mac and the checked-in executor can explicitly control child-task reasoning effort through either per-flag overrides or the frozen `gpt54_family` preset; what is still not a target is blindly inheriting the host's heaviest default profile without child-task tuning
-2. the external Chat Completions-compatible provider path still has value as fallback / regression coverage, and the repo now has a checked-in one-command mock-provider regression runner for that lane; what is still not proven is a real external `/room -> /summary -> /upgrade-to-debate -> /debate` run
+2. the external Chat Completions-compatible provider path still has value as fallback / regression coverage, and the repo now has both a checked-in one-command mock-provider regression runner and a checked-in real-provider live wrapper for that lane; what is still not proven is a real external `/room -> /summary -> /upgrade-to-debate -> /debate` run against an actual non-mock endpoint
 3. debate handoff is executable-preflight-validated and the checked-in debate-side execution plus reject-followup-rereview bridge is now locally provable through fixture, mock-provider, or local child-agent execution, but still not yet proven by a real external `/debate` execution chain
 
 In short:
@@ -164,7 +167,7 @@ The most reasonable continuation path is:
 3. use `.codex/skills/room-skill/runtime/local_codex_regression.py` as the shortest checked-in regression command for the passing Mac-local mainline
 4. use `.codex/skills/room-skill/runtime/chat_completions_regression.py` as the shortest checked-in regression command for the provider fallback lane
 5. keep validating the desired `GPT-5.4` family child-task settings without regressing back to the host's unbounded default `xhigh` profile
-6. if external-provider fallback still matters, run `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py --executor chat_completions --room-env-file .env.room --debate-env-file .env.debate`
+6. when real provider credentials are available, run `.codex/skills/room-skill/runtime/chat_completions_live_validation.py --room-env-file .env.room --debate-env-file .env.debate`
 
 This keeps the repository structure stable:
 

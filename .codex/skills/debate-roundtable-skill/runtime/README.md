@@ -42,6 +42,10 @@ python3 .codex/skills/room-skill/runtime/local_codex_executor.py --help
 python3 .codex/skills/room-skill/runtime/chat_completions_regression.py --help
 ```
 
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_live_validation.py --help
+```
+
 Validate one persisted handoff packet:
 
 ```bash
