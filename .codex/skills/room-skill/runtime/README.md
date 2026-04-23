@@ -120,6 +120,20 @@ python3 .codex/skills/room-skill/runtime/local_codex_second_host_validation.py \
   --state-root /tmp/round-table-local-codex-second-host
 ```
 
+Prepare a checked-in cross-machine validation bundle, then verify imported evidence from another machine:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py \
+  prepare \
+  --state-root /tmp/round-table-local-codex-cross-machine
+
+python3 .codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py \
+  verify \
+  --manifest-json /tmp/round-table-local-codex-cross-machine/<run-id>/cross-machine-validation-manifest.json \
+  --report-json /path/to/imported/local-codex-regression-report.json \
+  --runtime-profile-json /path/to/imported/runtime-profile.json
+```
+
 Run the checked-in full Chat Completions fallback regression suite with local mock providers:
 
 ```bash
@@ -349,6 +363,12 @@ It now also persists a checked-in `runtime-profile.json` next to the regression 
 - aggregated child-task timing by prompt policy key
 - the slowest child-task manifests for quick inspection
 
+The regression report itself now also persists:
+
+- host metadata for the machine that produced the evidence
+- repo metadata including current commit and branch
+- the exact topic and follow-up input used for that run
+
 `local_codex_second_host_validation.py` is the checked-in wrapper for the second-host lane. It launches a standalone shell-level `codex exec` host, instructs that host to run `local_codex_regression.py`, then persists:
 
 - the outer host command payload
@@ -357,6 +377,14 @@ It now also persists a checked-in `runtime-profile.json` next to the regression 
 - a wrapper-level `second-host-validation-report.json`
 
 This turns the previously manual “独立宿主复验” flow into a stable checked-in command.
+
+`local_codex_cross_machine_validation.py` is the checked-in cross-machine lane. It has two modes:
+
+- `prepare`: freeze the source machine's expected commit, local mainline config, target command, and a short runbook
+- `verify`: compare imported `local-codex-regression-report.json` and `runtime-profile.json` against that prepared manifest
+
+This means the source machine no longer has to treat imported target-machine evidence as anonymous JSON. The verifier can now check commit match, config match, input match, and whether the evidence actually came from a different machine.
+For a real handoff, `prepare` should be run from a clean committed tree; when the source repo is dirty, the bundle now records that warning explicitly.
 
 `chat_completions_regression.py` is the checked-in provider fallback regression runner. It boots one local `/room` mock provider plus one local `/debate` mock provider, writes checked-in `.env.room.mock` and `.env.debate.mock` files into the evidence bundle, runs provider preflight for both scopes, then sequences `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration through `--executor chat_completions`.
 

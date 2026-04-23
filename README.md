@@ -30,6 +30,7 @@
 - `.codex/skills/room-skill/runtime/local_codex_executor.py` 现在也已提供 checked-in 的 local host preflight，可先验证 `~/.codex` 宿主写入条件和 nested child-agent smoke
 - `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口，可一条命令跑 host preflight + room + debate + integration；已内建 `gpt54_family` 默认 preset，并会额外产出 `runtime-profile.json`
 - `.codex/skills/room-skill/runtime/local_codex_second_host_validation.py` 已提供 checked-in 的第二宿主复验入口，可用独立 `codex exec` 宿主重跑整套本地主线，并把外层宿主证据与 nested runtime profile 一起落盘
+- `.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py` 已提供 checked-in 的跨机器验证 lane，可先准备 manifest/runbook，再校验另一台机器回传的 regression report 与 runtime profile
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口，可自动拉起本地 room/debate mock provider，并一条命令跑 provider preflight + room + debate + integration
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper，可先做 room/debate 双侧 preflight，再一键触发真实 `/room -> /debate` integration
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
@@ -46,6 +47,7 @@
 - `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证，真实消费 `/room` 持久化 handoff packet
 - 当前最稳定的 checked-in 本地主线配置已收敛到 `gpt54_family`：`gpt-5.4` 为主模型、`gpt-5.4-mini` 为同家族 fallback，并显式固定 child-task reasoning / timeout；现在还会按 prompt 分层执行，例如 selection 用更短 timeout，chat / roundtable / followup 留更长窗口，summary / upgrade / reviewer 会切到更轻的同家族 lane
 - 同一台 Mac 上，除了当前桌面线程，这条本地主线也已通过独立 shell-level `codex exec` 第二宿主复验；当前剩下的不是“第二入口能不能跑”，而是“跨机器是否仍然稳定”
+- 本仓库现在已经把“跨机器验证”本身固化成 checked-in 流程：source 机先生成 manifest/runbook，target 机跑本地主线并回传 evidence，source 机再做 schema/commit/config 校验；但真正的非同机证据仍待执行
 
 ### 还没完成的核心能力
 
@@ -189,6 +191,7 @@ round-table-workspace/
 - local child-agent executor：`.codex/skills/room-skill/runtime/local_codex_executor.py`
 - local mainline regression：`.codex/skills/room-skill/runtime/local_codex_regression.py`
 - local second-host validation：`.codex/skills/room-skill/runtime/local_codex_second_host_validation.py`
+- local cross-machine validation：`.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py`
 - local host preflight：`python3 .codex/skills/room-skill/runtime/local_codex_executor.py --check-host-preflight --preset gpt54_family`
 - provider fallback regression：`.codex/skills/room-skill/runtime/chat_completions_regression.py`
 - provider live validation：`.codex/skills/room-skill/runtime/chat_completions_live_validation.py`

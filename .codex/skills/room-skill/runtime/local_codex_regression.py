@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import platform
+import socket
+import subprocess
 import sys
 import time
 import uuid
@@ -271,12 +274,16 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
 
     suite_finished_at = utc_now_iso()
     suite_wall_time_seconds = round(max(time.monotonic() - suite_started_monotonic, 0.0), 3)
+    host_metadata = build_host_metadata()
+    repo_metadata = build_repo_metadata(REPO_ROOT)
     runtime_profile = build_runtime_profile(
         regression_dir=regression_dir,
         stage_timings=stage_timings,
         suite_started_at=suite_started_at,
         suite_finished_at=suite_finished_at,
         suite_wall_time_seconds=suite_wall_time_seconds,
+        host_metadata=host_metadata,
+        repo_metadata=repo_metadata,
     )
     write_json(regression_dir / "runtime-profile.json", runtime_profile)
 
@@ -287,6 +294,12 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
         "started_at": suite_started_at,
         "finished_at": suite_finished_at,
         "wall_time_seconds": suite_wall_time_seconds,
+        "host": host_metadata,
+        "repo": repo_metadata,
+        "inputs": {
+            "topic": args.topic,
+            "follow_up_input": args.follow_up_input,
+        },
         "provider_config": {
             "mode": "local_codex",
             **settings,
@@ -358,6 +371,8 @@ def build_runtime_profile(
     suite_started_at: str,
     suite_finished_at: str,
     suite_wall_time_seconds: float,
+    host_metadata: dict[str, Any],
+    repo_metadata: dict[str, Any],
 ) -> dict[str, Any]:
     child_trace_records = collect_child_trace_records(regression_dir)
     stage_ranking = sorted_stage_timings(stage_timings)
@@ -367,6 +382,8 @@ def build_runtime_profile(
         "mode": "local_codex_runtime_profile",
         "generated_at": utc_now_iso(),
         "regression_dir": str(regression_dir),
+        "host": host_metadata,
+        "repo": repo_metadata,
         "suite": {
             "started_at": suite_started_at,
             "finished_at": suite_finished_at,
@@ -510,6 +527,41 @@ def parse_float(value: Any) -> float | None:
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def build_host_metadata() -> dict[str, Any]:
+    return {
+        "machine": socket.gethostname(),
+        "platform": platform.platform(),
+        "system": platform.system(),
+        "release": platform.release(),
+        "machine_arch": platform.machine(),
+        "python_version": platform.python_version(),
+    }
+
+
+def build_repo_metadata(repo_root: Path) -> dict[str, Any]:
+    return {
+        "root": str(repo_root),
+        "head_commit": git_output(repo_root, "rev-parse", "HEAD"),
+        "short_commit": git_output(repo_root, "rev-parse", "--short", "HEAD"),
+        "branch": git_output(repo_root, "rev-parse", "--abbrev-ref", "HEAD"),
+        "dirty": bool(git_output(repo_root, "status", "--porcelain")),
+    }
+
+
+def git_output(repo_root: Path, *args: str) -> str | None:
+    completed = subprocess.run(
+        ["git", *args],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return None
+    output = completed.stdout.strip()
+    return output or None
 
 
 def resolve_local_codex_settings(args: argparse.Namespace) -> dict[str, Any]:

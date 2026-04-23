@@ -69,6 +69,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in local child-agent executor in `.codex/skills/room-skill/runtime/local_codex_executor.py`
 - a checked-in local mainline regression runner in `.codex/skills/room-skill/runtime/local_codex_regression.py`
 - a checked-in second-host validation runner in `.codex/skills/room-skill/runtime/local_codex_second_host_validation.py`
+- a checked-in cross-machine validation lane in `.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py`
 - a checked-in Chat Completions fallback regression runner in `.codex/skills/room-skill/runtime/chat_completions_regression.py`
 - a checked-in Chat Completions live validation wrapper in `.codex/skills/room-skill/runtime/chat_completions_live_validation.py`
 - a checked-in `gpt54_family` local preset exposed across `local_codex_executor.py`, `room_e2e_validation.py`, `debate_e2e_validation.py`, `room_debate_e2e_validation.py`, and `local_codex_regression.py`
@@ -77,6 +78,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in local host preflight in `.codex/skills/room-skill/runtime/local_codex_executor.py` that verifies `~/.codex`, `~/.codex/sessions`, `session_index.jsonl`, and discovered state/log/sqlite DB locations before nested child-task work begins
 - the checked-in local regression runner now persists `host-preflight.json` and fails fast when those host prerequisites are not ready
 - the checked-in local regression runner now also persists `runtime-profile.json`, including top-level stage timings plus child-task timing aggregates by scope and policy key
+- the checked-in local regression runner now also persists host / repo / input metadata, so imported evidence from another machine can be compared against the source manifest instead of being treated as anonymous JSON
 - a checked-in local child-task trace manifest at `prompt-calls/*.child-trace.json`, written by `local_codex_executor.py` whenever the runner supplies a `trace_base`
 - those `*.child-trace.json` manifests now include attempt-level timestamps and wall times, plus full child-task wall time on completion
 - structured local prompt-call failure payloads in `prompt-calls/*.error.json` and failed `prompt-calls/*.meta.json`, including `failure_category` and `trace_manifest` pointers
@@ -100,6 +102,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in `gpt54_family` preset that freezes the currently validated Mac-local mainline: `gpt-5.4` primary child-task model, `gpt-5.4-mini` same-family fallback, `low` reasoning effort, and bounded timeouts
 - a Mac-validated stepwise local execution policy under `gpt54_family`, verified by the full local regression suite
 - a same-Mac second-host validation path through standalone `codex exec`, validated against the full local regression suite rather than a shortened smoke lane
+- a checked-in source->target->source cross-machine handoff flow: prepare manifest/runbook on the source machine, run `local_codex_regression.py` on the target machine, then verify imported evidence back on the source machine
 - a Mac-validated `GPT-5.4` local mainline configuration for the full `/room -> /debate reject_followup` chain, with `gpt-5.4` as the primary child-task model and `gpt-5.4-mini` available as same-family fallback
 - a checked-in `/room` host fallback for explicit `/upgrade-to-debate` requests when the upgrade prompt still returns `room_too_fresh`; that fallback reuses persisted room state and writes the required `user_forced_early_upgrade` packet warning
 - a checked-in `/debate` terminal-outcome rule for the single follow-up cap: the second review may either allow the decision or end in a blocked conclusion with no further required followups
@@ -175,9 +178,11 @@ The most reasonable continuation path is:
 2. use `.codex/skills/room-skill/runtime/local_codex_executor.py --check-host-preflight --preset gpt54_family` as the shortest checked-in host readiness command
 3. use `.codex/skills/room-skill/runtime/local_codex_regression.py` as the shortest checked-in regression command for the passing Mac-local mainline
 4. use `.codex/skills/room-skill/runtime/local_codex_second_host_validation.py` when the question is no longer “当前线程能不能跑”，而是“独立宿主入口能不能把整套本地主线再跑一遍”
-4. use `.codex/skills/room-skill/runtime/chat_completions_regression.py` as the shortest checked-in regression command for the provider fallback lane
-5. keep validating the desired `GPT-5.4` family child-task settings without regressing back to the host's unbounded default `xhigh` profile
-6. when real provider credentials are available, run `.codex/skills/room-skill/runtime/chat_completions_live_validation.py --room-env-file .env.room --debate-env-file .env.debate`
+5. use `.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py prepare` to freeze the exact commit, config, and target command before handing the work to another machine
+6. use `.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py verify` after the target machine returns `local-codex-regression-report.json` and `runtime-profile.json`
+7. use `.codex/skills/room-skill/runtime/chat_completions_regression.py` as the shortest checked-in regression command for the provider fallback lane
+8. keep validating the desired `GPT-5.4` family child-task settings without regressing back to the host's unbounded default `xhigh` profile
+9. when real provider credentials are available, run `.codex/skills/room-skill/runtime/chat_completions_live_validation.py --room-env-file .env.room --debate-env-file .env.debate`
 
 This keeps the repository structure stable:
 
