@@ -1192,9 +1192,13 @@ def validate_review_result(payload: dict[str, Any], review_packet: dict[str, Any
         require(len(payload["severe_red_flags"]) == 0, "review result cannot allow final decision with severe red flags.")
         require(len(required_followups) == 0, "review result cannot allow final decision while still requiring followups.")
     else:
+        terminal_rejection = is_terminal_rereview_packet(review_packet) and len(required_followups) == 0
         require(
-            len(required_followups) >= 1 or payload["overall_score"] < 7 or len(payload["severe_red_flags"]) >= 1,
-            "review result rejection must include followups, a low score, or severe red flags.",
+            terminal_rejection
+            or len(required_followups) >= 1
+            or payload["overall_score"] < 7
+            or len(payload["severe_red_flags"]) >= 1,
+            "review result rejection must include followups, a low score, severe red flags, or be a terminal re-review after the follow-up cap.",
         )
 
     return {
@@ -1203,7 +1207,26 @@ def validate_review_result(payload: dict[str, Any], review_packet: dict[str, Any
         "review_applicable": payload["review_applicable"],
         "reason": "review result satisfies the checked-in reviewer decision contract.",
         "allow_final_decision": payload["allow_final_decision"],
+        "terminal_rejection_after_followup_cap": (
+            payload["allow_final_decision"] is False
+            and is_terminal_rereview_packet(review_packet)
+            and len(required_followups) == 0
+        ),
     }
+
+
+def is_terminal_rereview_packet(review_packet: dict[str, Any]) -> bool:
+    boundaries = review_packet.get("review_boundaries")
+    if not isinstance(boundaries, dict):
+        return False
+    followup_round = boundaries.get("followup_round")
+    followup_cap = boundaries.get("followup_cap", 1)
+    return (
+        boundaries.get("rereview_required") is True
+        and isinstance(followup_round, int)
+        and isinstance(followup_cap, int)
+        and followup_round >= followup_cap
+    )
 
 
 def validate_followup_record(

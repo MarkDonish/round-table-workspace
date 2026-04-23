@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import shlex
+import shutil
 import sys
 import uuid
 from datetime import datetime, timezone
@@ -69,6 +70,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--target-state-root",
         default=DEFAULT_TARGET_STATE_ROOT,
         help="Suggested state-root for the target machine's local regression run.",
+    )
+    prepare.add_argument(
+        "--target-python",
+        default=resolve_default_python_launcher(),
+        help="Python launcher for the target machine command, for example `python`, `py -3`, or `python3`.",
     )
     add_regression_config_args(prepare)
 
@@ -198,6 +204,7 @@ def prepare_bundle(args: argparse.Namespace) -> dict[str, Any]:
                 "follow_up_input": args.follow_up_input,
             },
             "provider_config": provider_config,
+            "python_launcher": args.target_python,
             "target_state_root_hint": args.target_state_root,
             "target_command": target_command,
             "target_command_text": " ".join(shlex.quote(part) for part in target_command),
@@ -317,7 +324,7 @@ def build_target_regression_command(
     target_run_id: str,
 ) -> list[str]:
     command = [
-        "python3",
+        *split_python_launcher(args.target_python),
         ".codex/skills/room-skill/runtime/local_codex_regression.py",
         "--state-root",
         target_state_root,
@@ -349,6 +356,7 @@ def build_target_regression_command(
 
 def build_runbook(manifest: dict[str, Any]) -> str:
     target_command = manifest["expected_regression"]["target_command_text"]
+    python_launcher = manifest["expected_regression"].get("python_launcher") or "python3"
     warning_block = ""
     if manifest.get("warnings"):
         warning_lines = "\n".join(f"- {warning}" for warning in manifest["warnings"])
@@ -368,7 +376,7 @@ def build_runbook(manifest: dict[str, Any]) -> str:
         "- `runtime-profile.json`\n\n"
         "5. On the source machine, verify the imported evidence with:\n\n"
         "```bash\n"
-        "python3 .codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py \\\n"
+        f"{python_launcher} .codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py \\\n"
         "  verify \\\n"
         f"  --manifest-json {shlex.quote(manifest['artifacts']['manifest_json'])} \\\n"
         "  --report-json /path/to/imported/local-codex-regression-report.json \\\n"
@@ -423,6 +431,22 @@ def append_optional_arg(command: list[str], flag: str, value: Any) -> None:
     if value is None:
         return
     command.extend([flag, str(value)])
+
+
+def resolve_default_python_launcher() -> str:
+    if sys.platform == "win32":
+        if shutil.which("python"):
+            return "python"
+        if shutil.which("py"):
+            return "py -3"
+    return "python3"
+
+
+def split_python_launcher(value: str) -> list[str]:
+    parts = shlex.split(value, posix=(sys.platform != "win32"))
+    if not parts:
+        raise LocalCodexCrossMachineValidationError("Python launcher cannot be empty.")
+    return parts
 
 
 def load_json_dict(path: Path) -> dict[str, Any]:

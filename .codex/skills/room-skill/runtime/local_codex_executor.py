@@ -814,10 +814,11 @@ def run_local_codex_prompt(
                 "--skip-git-repo-check",
                 "--sandbox",
                 sandbox,
-                "--ignore-rules",
                 "--output-last-message",
                 str(output_path),
             ]
+            if codex_exec_supports_flag(codex_path, "--ignore-rules"):
+                cmd.append("--ignore-rules")
             if ephemeral:
                 cmd.append("--ephemeral")
             if candidate_model:
@@ -874,6 +875,7 @@ def run_local_codex_prompt(
                         cmd,
                         input=task_prompt,
                         text=True,
+                        encoding="utf-8",
                         capture_output=True,
                         cwd=temp_dir,
                         timeout=attempt_timeout,
@@ -1365,6 +1367,30 @@ def build_local_codex_error_details(
     if response_excerpt is not None:
         details["response_excerpt"] = response_excerpt
     return details
+
+
+_CODEX_EXEC_FLAG_SUPPORT_CACHE: dict[tuple[str, str], bool] = {}
+
+
+def codex_exec_supports_flag(codex_path: str, flag: str) -> bool:
+    cache_key = (codex_path, flag)
+    if cache_key in _CODEX_EXEC_FLAG_SUPPORT_CACHE:
+        return _CODEX_EXEC_FLAG_SUPPORT_CACHE[cache_key]
+    try:
+        completed = subprocess.run(
+            [codex_path, "exec", "--help"],
+            text=True,
+            capture_output=True,
+            timeout=10,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        _CODEX_EXEC_FLAG_SUPPORT_CACHE[cache_key] = False
+        return False
+    help_text = f"{completed.stdout}\n{completed.stderr}"
+    supported = completed.returncode == 0 and flag in help_text
+    _CODEX_EXEC_FLAG_SUPPORT_CACHE[cache_key] = supported
+    return supported
 
 
 def serialize_local_codex_error(exc: Exception, *, trace_base: Path | None = None) -> dict[str, Any]:

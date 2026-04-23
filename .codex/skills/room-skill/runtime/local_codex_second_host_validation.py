@@ -80,6 +80,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Timeout for the full outer standalone `codex exec` host run.",
     )
     parser.add_argument(
+        "--nested-python",
+        default=resolve_default_python_launcher(),
+        help="Python launcher for the nested regression command, for example `python`, `py -3`, or `python3`.",
+    )
+    parser.add_argument(
         "--local-codex-preset",
         choices=sorted(local_executor.LOCAL_CODEX_PRESETS),
         default=DEFAULT_LOCAL_CODEX_PRESET,
@@ -191,6 +196,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
             codex_exec_command,
             input=host_prompt,
             text=True,
+            encoding="utf-8",
             capture_output=True,
             cwd=REPO_ROOT,
             timeout=args.host_timeout_seconds,
@@ -325,7 +331,7 @@ def build_nested_regression_command(
     nested_run_id: str,
 ) -> list[str]:
     command = [
-        "python3",
+        *split_python_launcher(args.nested_python),
         ".codex/skills/room-skill/runtime/local_codex_regression.py",
         "--state-root",
         str(nested_state_root),
@@ -478,6 +484,22 @@ def append_optional_arg(command: list[str], flag: str, value: Any) -> None:
     if value is None:
         return
     command.extend([flag, str(value)])
+
+
+def resolve_default_python_launcher() -> str:
+    if sys.platform == "win32":
+        if shutil.which("python"):
+            return "python"
+        if shutil.which("py"):
+            return "py -3"
+    return "python3"
+
+
+def split_python_launcher(value: str) -> list[str]:
+    parts = shlex.split(value, posix=(sys.platform != "win32"))
+    if not parts:
+        raise LocalCodexSecondHostValidationError("Python launcher cannot be empty.")
+    return parts
 
 
 def load_optional_json(path: Path) -> dict[str, Any] | None:
