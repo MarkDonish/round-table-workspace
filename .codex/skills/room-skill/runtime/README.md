@@ -113,6 +113,13 @@ python3 .codex/skills/room-skill/runtime/local_codex_regression.py \
   --state-root /tmp/round-table-local-codex-regression
 ```
 
+Run the checked-in second-host validation wrapper through a standalone `codex exec` host:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_second_host_validation.py \
+  --state-root /tmp/round-table-local-codex-second-host
+```
+
 Run the checked-in full Chat Completions fallback regression suite with local mock providers:
 
 ```bash
@@ -297,8 +304,11 @@ When `trace_base` is provided by `room_e2e_validation.py`, `room_debate_e2e_vali
 - the exact child-task artifact paths
 - model and fallback lane selection
 - timeout / retry settings
+- per-attempt started/finished timestamps
+- per-attempt wall time
 - per-attempt status
 - final child-task status
+- full child-task wall time
 - structured last-failure details when the child task fails
 - the applied step policy key when the preset supplied one
 
@@ -330,6 +340,23 @@ The local failure categories now surfaced by the executor are:
 - `command_failed`
 
 `local_codex_regression.py` is the checked-in local mainline regression runner. It now runs the host preflight first, then sequences `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration into one evidence bundle. It defaults to the `gpt54_family` preset, so a bare regression command already lands on the validated Mac-local lane and persists a checked-in `host-preflight.json` alongside the regression report.
+
+It now also persists a checked-in `runtime-profile.json` next to the regression report. That profile records:
+
+- suite started/finished timestamps
+- wall time per top-level stage: `host_preflight`, `room`, `debate_allow`, `debate_followup`, `integration`
+- aggregated child-task timing by top-level scope
+- aggregated child-task timing by prompt policy key
+- the slowest child-task manifests for quick inspection
+
+`local_codex_second_host_validation.py` is the checked-in wrapper for the second-host lane. It launches a standalone shell-level `codex exec` host, instructs that host to run `local_codex_regression.py`, then persists:
+
+- the outer host command payload
+- outer host stdout / stderr / last-message evidence
+- the nested regression report and nested runtime profile
+- a wrapper-level `second-host-validation-report.json`
+
+This turns the previously manual “独立宿主复验” flow into a stable checked-in command.
 
 `chat_completions_regression.py` is the checked-in provider fallback regression runner. It boots one local `/room` mock provider plus one local `/debate` mock provider, writes checked-in `.env.room.mock` and `.env.debate.mock` files into the evidence bundle, runs provider preflight for both scopes, then sequences `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration through `--executor chat_completions`.
 

@@ -4,7 +4,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -136,18 +138,26 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
     regression_dir.mkdir(parents=True, exist_ok=True)
     settings = resolve_local_codex_settings(args)
 
-    host_preflight = local_executor.check_local_host_preflight(
-        repo_root=REPO_ROOT,
-        model=settings["model"],
-        fallback_models=settings["fallback_models"],
-        profile=settings["profile"],
-        reasoning_effort=settings["reasoning_effort"],
-        sandbox=settings["sandbox"],
-        timeout_seconds=settings["timeout_seconds"],
-        timeout_retries=settings["timeout_retries"],
-        retry_timeout_multiplier=settings["retry_timeout_multiplier"],
-        ephemeral=settings["ephemeral"],
-        preset_name=settings["preset"],
+    suite_started_at = utc_now_iso()
+    suite_started_monotonic = time.monotonic()
+    stage_timings: dict[str, dict[str, Any]] = {}
+
+    host_preflight = run_timed_stage(
+        stage_timings,
+        "host_preflight",
+        lambda: local_executor.check_local_host_preflight(
+            repo_root=REPO_ROOT,
+            model=settings["model"],
+            fallback_models=settings["fallback_models"],
+            profile=settings["profile"],
+            reasoning_effort=settings["reasoning_effort"],
+            sandbox=settings["sandbox"],
+            timeout_seconds=settings["timeout_seconds"],
+            timeout_retries=settings["timeout_retries"],
+            retry_timeout_multiplier=settings["retry_timeout_multiplier"],
+            ephemeral=settings["ephemeral"],
+            preset_name=settings["preset"],
+        ),
     )
     smoke_result = host_preflight["smoke"]
     write_json(regression_dir / "host-preflight.json", host_preflight)
@@ -176,7 +186,7 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
         local_codex_retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
         local_codex_persist_session=args.local_codex_persist_session,
     )
-    room_report = room_validation.run_validation(room_args)
+    room_report = run_timed_stage(stage_timings, "room", lambda: room_validation.run_validation(room_args))
 
     debate_allow_args = argparse.Namespace(
         executor="local_codex",
@@ -198,7 +208,11 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
         local_codex_retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
         local_codex_persist_session=args.local_codex_persist_session,
     )
-    debate_allow_report = debate_validation.run_validation(debate_allow_args)
+    debate_allow_report = run_timed_stage(
+        stage_timings,
+        "debate_allow",
+        lambda: debate_validation.run_validation(debate_allow_args),
+    )
 
     debate_followup_args = argparse.Namespace(
         executor="local_codex",
@@ -220,7 +234,11 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
         local_codex_retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
         local_codex_persist_session=args.local_codex_persist_session,
     )
-    debate_followup_report = debate_validation.run_validation(debate_followup_args)
+    debate_followup_report = run_timed_stage(
+        stage_timings,
+        "debate_followup",
+        lambda: debate_validation.run_validation(debate_followup_args),
+    )
 
     integration_args = argparse.Namespace(
         executor="local_codex",
@@ -245,12 +263,30 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
         local_codex_retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
         local_codex_persist_session=args.local_codex_persist_session,
     )
-    integration_report = integration_validation.run_validation(integration_args)
+    integration_report = run_timed_stage(
+        stage_timings,
+        "integration",
+        lambda: integration_validation.run_validation(integration_args),
+    )
+
+    suite_finished_at = utc_now_iso()
+    suite_wall_time_seconds = round(max(time.monotonic() - suite_started_monotonic, 0.0), 3)
+    runtime_profile = build_runtime_profile(
+        regression_dir=regression_dir,
+        stage_timings=stage_timings,
+        suite_started_at=suite_started_at,
+        suite_finished_at=suite_finished_at,
+        suite_wall_time_seconds=suite_wall_time_seconds,
+    )
+    write_json(regression_dir / "runtime-profile.json", runtime_profile)
 
     report = {
         "ok": True,
         "action": "local-codex-regression",
         "run_id": run_id,
+        "started_at": suite_started_at,
+        "finished_at": suite_finished_at,
+        "wall_time_seconds": suite_wall_time_seconds,
         "provider_config": {
             "mode": "local_codex",
             **settings,
@@ -258,11 +294,19 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
         "artifacts": {
             "regression_dir": str(regression_dir),
             "regression_report": str(regression_dir / "local-codex-regression-report.json"),
+            "runtime_profile": str(regression_dir / "runtime-profile.json"),
             "host_preflight_report": str(regression_dir / "host-preflight.json"),
             "room_validation_report": str(Path(room_report["artifacts"]["room_dir"]) / "validation-report.json"),
             "debate_allow_validation_report": str(Path(debate_allow_report["artifacts"]["debate_dir"]) / "validation-report.json"),
             "debate_followup_validation_report": str(Path(debate_followup_report["artifacts"]["debate_dir"]) / "validation-report.json"),
             "integration_report": integration_report["artifacts"]["integration_report"],
+        },
+        "timings": stage_timings,
+        "runtime_profile": {
+            "suite_wall_time_seconds": runtime_profile["suite"]["wall_time_seconds"],
+            "slowest_stage": runtime_profile["summary"]["slowest_stage"],
+            "slowest_policy_key": runtime_profile["summary"]["slowest_policy_key"],
+            "timed_child_traces": runtime_profile["child_traces"]["timed_traces"],
         },
         "checks": {
             "host_preflight": host_preflight,
@@ -289,6 +333,183 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def run_timed_stage(
+    timings: dict[str, dict[str, Any]],
+    stage_name: str,
+    runner: Any,
+) -> Any:
+    started_at = utc_now_iso()
+    started_monotonic = time.monotonic()
+    result = runner()
+    timings[stage_name] = {
+        "started_at": started_at,
+        "finished_at": utc_now_iso(),
+        "wall_time_seconds": round(max(time.monotonic() - started_monotonic, 0.0), 3),
+    }
+    return result
+
+
+def build_runtime_profile(
+    *,
+    regression_dir: Path,
+    stage_timings: dict[str, dict[str, Any]],
+    suite_started_at: str,
+    suite_finished_at: str,
+    suite_wall_time_seconds: float,
+) -> dict[str, Any]:
+    child_trace_records = collect_child_trace_records(regression_dir)
+    stage_ranking = sorted_stage_timings(stage_timings)
+    policy_ranking = sorted_policy_timings(child_trace_records)
+    return {
+        "schema_version": "v0.1",
+        "mode": "local_codex_runtime_profile",
+        "generated_at": utc_now_iso(),
+        "regression_dir": str(regression_dir),
+        "suite": {
+            "started_at": suite_started_at,
+            "finished_at": suite_finished_at,
+            "wall_time_seconds": suite_wall_time_seconds,
+        },
+        "stages": stage_timings,
+        "child_traces": summarize_child_traces(child_trace_records),
+        "summary": {
+            "slowest_stage": stage_ranking[0] if stage_ranking else None,
+            "slowest_policy_key": policy_ranking[0] if policy_ranking else None,
+        },
+    }
+
+
+def collect_child_trace_records(regression_dir: Path) -> list[dict[str, Any]]:
+    suffix = local_executor.TRACE_MANIFEST_SUFFIX
+    records: list[dict[str, Any]] = []
+    for trace_path in sorted(regression_dir.rglob(f"*{suffix}")):
+        payload = json.loads(trace_path.read_text(encoding="utf-8"))
+        relative_path = trace_path.relative_to(regression_dir)
+        task_strategy = payload.get("task_strategy") if isinstance(payload.get("task_strategy"), dict) else {}
+        records.append(
+            {
+                "trace_manifest": str(trace_path),
+                "relative_trace_manifest": str(relative_path),
+                "scope": relative_path.parts[0] if relative_path.parts else "unknown",
+                "task_policy_key": task_strategy.get("task_policy_key") or "unlabeled",
+                "prompt_name": task_strategy.get("prompt_name"),
+                "mode": task_strategy.get("mode"),
+                "final_status": payload.get("final_status"),
+                "final_model": payload.get("final_model"),
+                "attempt_count": len(payload.get("attempts", [])) if isinstance(payload.get("attempts"), list) else 0,
+                "wall_time_seconds": resolve_trace_wall_time(payload),
+            }
+        )
+    return records
+
+
+def summarize_child_traces(records: list[dict[str, Any]]) -> dict[str, Any]:
+    timed_records = [record for record in records if record.get("wall_time_seconds") is not None]
+    total_wall_time_seconds = round(
+        sum(float(record["wall_time_seconds"]) for record in timed_records),
+        3,
+    ) if timed_records else 0.0
+    completed_traces = sum(1 for record in records if record.get("final_status") == "child_task_succeeded")
+    failed_traces = sum(1 for record in records if record.get("final_status") == "failed")
+    return {
+        "total_traces": len(records),
+        "timed_traces": len(timed_records),
+        "completed_traces": completed_traces,
+        "failed_traces": failed_traces,
+        "total_wall_time_seconds": total_wall_time_seconds,
+        "average_wall_time_seconds": round(total_wall_time_seconds / len(timed_records), 3) if timed_records else None,
+        "by_scope": sorted_scope_timings(records),
+        "by_policy_key": sorted_policy_timings(records),
+        "slowest_tasks": sorted_slowest_tasks(records),
+    }
+
+
+def sorted_scope_timings(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    bucket: dict[str, dict[str, Any]] = {}
+    for record in records:
+        duration = record.get("wall_time_seconds")
+        if duration is None:
+            continue
+        scope = str(record.get("scope") or "unknown")
+        entry = bucket.setdefault(
+            scope,
+            {"scope": scope, "count": 0, "total_wall_time_seconds": 0.0, "max_wall_time_seconds": 0.0},
+        )
+        entry["count"] += 1
+        entry["total_wall_time_seconds"] += float(duration)
+        entry["max_wall_time_seconds"] = max(entry["max_wall_time_seconds"], float(duration))
+    ranked = []
+    for entry in bucket.values():
+        entry["total_wall_time_seconds"] = round(entry["total_wall_time_seconds"], 3)
+        entry["average_wall_time_seconds"] = round(entry["total_wall_time_seconds"] / entry["count"], 3)
+        entry["max_wall_time_seconds"] = round(entry["max_wall_time_seconds"], 3)
+        ranked.append(entry)
+    ranked.sort(key=lambda item: item["total_wall_time_seconds"], reverse=True)
+    return ranked
+
+
+def sorted_policy_timings(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    bucket: dict[str, dict[str, Any]] = {}
+    for record in records:
+        duration = record.get("wall_time_seconds")
+        if duration is None:
+            continue
+        policy_key = str(record.get("task_policy_key") or "unlabeled")
+        entry = bucket.setdefault(
+            policy_key,
+            {"task_policy_key": policy_key, "count": 0, "total_wall_time_seconds": 0.0, "max_wall_time_seconds": 0.0},
+        )
+        entry["count"] += 1
+        entry["total_wall_time_seconds"] += float(duration)
+        entry["max_wall_time_seconds"] = max(entry["max_wall_time_seconds"], float(duration))
+    ranked = []
+    for entry in bucket.values():
+        entry["total_wall_time_seconds"] = round(entry["total_wall_time_seconds"], 3)
+        entry["average_wall_time_seconds"] = round(entry["total_wall_time_seconds"] / entry["count"], 3)
+        entry["max_wall_time_seconds"] = round(entry["max_wall_time_seconds"], 3)
+        ranked.append(entry)
+    ranked.sort(key=lambda item: item["total_wall_time_seconds"], reverse=True)
+    return ranked
+
+
+def sorted_stage_timings(stage_timings: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    ranked = []
+    for stage_name, timing in stage_timings.items():
+        ranked.append({"stage": stage_name, **timing})
+    ranked.sort(key=lambda item: item.get("wall_time_seconds", 0.0), reverse=True)
+    return ranked
+
+
+def sorted_slowest_tasks(records: list[dict[str, Any]], *, limit: int = 10) -> list[dict[str, Any]]:
+    timed_records = [record for record in records if record.get("wall_time_seconds") is not None]
+    ranked = sorted(timed_records, key=lambda item: float(item["wall_time_seconds"]), reverse=True)
+    return ranked[:limit]
+
+
+def resolve_trace_wall_time(payload: dict[str, Any]) -> float | None:
+    direct = parse_float(payload.get("wall_time_seconds"))
+    if direct is not None:
+        return round(direct, 3)
+    attempts = payload.get("attempts")
+    if not isinstance(attempts, list):
+        return None
+    durations = [parse_float(item.get("duration_seconds")) for item in attempts if isinstance(item, dict)]
+    timed_durations = [value for value in durations if value is not None]
+    if not timed_durations:
+        return None
+    return round(sum(timed_durations), 3)
+
+
+def parse_float(value: Any) -> float | None:
+    if isinstance(value, (int, float)):
+        return float(value)
+    return None
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def resolve_local_codex_settings(args: argparse.Namespace) -> dict[str, Any]:

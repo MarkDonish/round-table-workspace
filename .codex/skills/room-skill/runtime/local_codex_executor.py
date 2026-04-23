@@ -8,6 +8,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -760,6 +762,7 @@ def run_local_codex_prompt(
     if not codex_path:
         raise LocalCodexExecutorError("Could not find `codex` on PATH.")
     model_candidates = build_model_candidates(model=model, fallback_models=fallback_models)
+    prompt_started_monotonic = time.monotonic()
 
     with tempfile.TemporaryDirectory(prefix="round-table-local-codex-") as temp_dir:
         trace_paths = build_trace_paths(trace_base=trace_base, temp_dir=Path(temp_dir))
@@ -791,6 +794,7 @@ def run_local_codex_prompt(
             "task_strategy": execution_metadata or {},
             "attempts": [],
             "final_status": "started",
+            "started_at": utc_now_iso(),
         }
 
         if prompt_path is not None:
@@ -826,6 +830,7 @@ def run_local_codex_prompt(
             for attempt_index in range(timeout_retries + 1):
                 attempt_timeout = int(round(timeout_seconds * (retry_timeout_multiplier ** attempt_index)))
                 attempt_timeout = max(attempt_timeout, timeout_seconds)
+                attempt_started_monotonic = time.monotonic()
                 attempts.append(
                     {
                         "model_candidate_index": model_index + 1,
@@ -840,6 +845,7 @@ def run_local_codex_prompt(
                     "attempt": attempt_index + 1,
                     "timeout_seconds": attempt_timeout,
                     "status": "started",
+                    "started_at": utc_now_iso(),
                 }
                 trace_manifest["attempts"].append(trace_attempt)
                 if command_path is not None:
@@ -891,10 +897,18 @@ def run_local_codex_prompt(
                             "failure_category": timeout_details["failure_category"],
                             "error": timeout_message,
                             "retryable": timeout_details.get("retryable", False),
+                            "finished_at": utc_now_iso(),
+                            "duration_seconds": round(time.monotonic() - attempt_started_monotonic, 3),
                         }
                     )
                     trace_manifest["final_status"] = "retrying_after_timeout" if attempt_index < timeout_retries else "failed"
                     trace_manifest["last_failure"] = timeout_details
+                    if attempt_index >= timeout_retries:
+                        set_trace_manifest_finished(
+                            trace_manifest,
+                            final_status="failed",
+                            started_monotonic=prompt_started_monotonic,
+                        )
                     write_trace_manifest(trace_manifest_path, trace_manifest)
                     if attempt_index >= timeout_retries:
                         last_timeout_error = LocalCodexExecutorError(
@@ -913,6 +927,8 @@ def run_local_codex_prompt(
                             "status": "completed",
                             "returncode": completed.returncode,
                             "response_source": response_source,
+                            "finished_at": utc_now_iso(),
+                            "duration_seconds": round(time.monotonic() - attempt_started_monotonic, 3),
                         }
                     )
                     if response_text is None:
@@ -929,10 +945,16 @@ def run_local_codex_prompt(
                                 "status": "failed",
                                 "failure_category": missing_details["failure_category"],
                                 "error": missing_message,
+                                "finished_at": utc_now_iso(),
+                                "duration_seconds": round(time.monotonic() - attempt_started_monotonic, 3),
                             }
                         )
-                        trace_manifest["final_status"] = "failed"
                         trace_manifest["last_failure"] = missing_details
+                        set_trace_manifest_finished(
+                            trace_manifest,
+                            final_status="failed",
+                            started_monotonic=prompt_started_monotonic,
+                        )
                         write_trace_manifest(trace_manifest_path, trace_manifest)
                         raise LocalCodexExecutorError(
                             missing_message + build_trace_hint(trace_base),
@@ -941,9 +963,13 @@ def run_local_codex_prompt(
                     existing_output = output_path.read_text(encoding="utf-8") if output_path.exists() else None
                     if existing_output != response_text:
                         output_path.write_text(response_text, encoding="utf-8")
-                    trace_manifest["final_status"] = "child_task_succeeded"
                     trace_manifest["final_model"] = candidate_model
                     trace_manifest["response_source"] = response_source
+                    set_trace_manifest_finished(
+                        trace_manifest,
+                        final_status="child_task_succeeded",
+                        started_monotonic=prompt_started_monotonic,
+                    )
                     write_trace_manifest(trace_manifest_path, trace_manifest)
                     return response_text
 
@@ -971,6 +997,8 @@ def run_local_codex_prompt(
                         "summary": failure_info["summary"],
                         "retryable": failure_info["retryable"],
                         "try_next_model": failure_info["try_next_model"],
+                        "finished_at": utc_now_iso(),
+                        "duration_seconds": round(time.monotonic() - attempt_started_monotonic, 3),
                     }
                 )
                 trace_manifest["last_failure"] = last_failure_details
@@ -984,7 +1012,11 @@ def run_local_codex_prompt(
                     trace_manifest["final_status"] = "switching_model"
                     write_trace_manifest(trace_manifest_path, trace_manifest)
                     break
-                trace_manifest["final_status"] = "failed"
+                set_trace_manifest_finished(
+                    trace_manifest,
+                    final_status="failed",
+                    started_monotonic=prompt_started_monotonic,
+                )
                 write_trace_manifest(trace_manifest_path, trace_manifest)
                 raise LocalCodexExecutorError(last_failure_message, details=last_failure_details)
 
@@ -999,8 +1031,12 @@ def run_local_codex_prompt(
             failure_category="command_failed",
             trace_base=trace_base,
         )
-        trace_manifest["final_status"] = "failed"
         trace_manifest["last_failure"] = generic_details
+        set_trace_manifest_finished(
+            trace_manifest,
+            final_status="failed",
+            started_monotonic=prompt_started_monotonic,
+        )
         write_trace_manifest(trace_manifest_path, trace_manifest)
         raise LocalCodexExecutorError(
             "local codex exec failed without a usable attempt result." + build_trace_hint(trace_base),
@@ -1271,7 +1307,23 @@ def serialize_trace_paths(paths: dict[str, Path | None]) -> dict[str, str]:
 def write_trace_manifest(path: Path | None, payload: dict[str, Any]) -> None:
     if path is None:
         return
+    payload["updated_at"] = utc_now_iso()
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def set_trace_manifest_finished(
+    payload: dict[str, Any],
+    *,
+    final_status: str,
+    started_monotonic: float,
+) -> None:
+    payload["final_status"] = final_status
+    payload["finished_at"] = utc_now_iso()
+    payload["wall_time_seconds"] = round(max(time.monotonic() - started_monotonic, 0.0), 3)
+
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def build_local_codex_error_details(
