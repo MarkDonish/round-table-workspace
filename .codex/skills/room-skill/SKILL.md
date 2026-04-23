@@ -182,6 +182,7 @@ description: |
 - `.codex/skills/room-skill/runtime/local_codex_executor.py` 已提供 checked-in 的本地 child-agent 执行器
 - `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口
 - checked-in runtime 现在已暴露 `gpt54_family` preset，可把当前验证通过的 `GPT-5.4` 主线参数冻结成最短命令
+- `.codex/skills/room-skill/runtime/local_codex_executor.py` 现在也已暴露 checked-in 的 local host preflight，可先验证 `~/.codex` 宿主写入条件和 nested child-agent smoke
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 E2E validation runner
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 mock provider，用于验证 Chat Completions 路径
 - `/room local_codex` 已在 Mac 上通过 checked-in E2E 验证

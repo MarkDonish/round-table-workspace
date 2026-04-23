@@ -136,7 +136,7 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
     regression_dir.mkdir(parents=True, exist_ok=True)
     settings = resolve_local_codex_settings(args)
 
-    smoke_result = local_executor.check_local_exec(
+    host_preflight = local_executor.check_local_host_preflight(
         repo_root=REPO_ROOT,
         model=settings["model"],
         fallback_models=settings["fallback_models"],
@@ -149,6 +149,12 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
         ephemeral=settings["ephemeral"],
         preset_name=settings["preset"],
     )
+    smoke_result = host_preflight["smoke"]
+    write_json(regression_dir / "host-preflight.json", host_preflight)
+    if not host_preflight.get("ready"):
+        raise LocalCodexRegressionError(
+            f"Local Codex host preflight failed before regression execution. See {regression_dir / 'host-preflight.json'}"
+        )
 
     room_args = argparse.Namespace(
         executor="local_codex",
@@ -252,12 +258,14 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
         "artifacts": {
             "regression_dir": str(regression_dir),
             "regression_report": str(regression_dir / "local-codex-regression-report.json"),
+            "host_preflight_report": str(regression_dir / "host-preflight.json"),
             "room_validation_report": str(Path(room_report["artifacts"]["room_dir"]) / "validation-report.json"),
             "debate_allow_validation_report": str(Path(debate_allow_report["artifacts"]["debate_dir"]) / "validation-report.json"),
             "debate_followup_validation_report": str(Path(debate_followup_report["artifacts"]["debate_dir"]) / "validation-report.json"),
             "integration_report": integration_report["artifacts"]["integration_report"],
         },
         "checks": {
+            "host_preflight": host_preflight,
             "smoke": smoke_result,
             "room": room_report,
             "debate_allow": debate_allow_report,
@@ -265,6 +273,7 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
             "integration": integration_report,
         },
         "pass_criteria": {
+            "host_preflight_ready": bool(host_preflight.get("ready")),
             "smoke_ready": bool(smoke_result.get("ready")),
             "room_passed": all(bool(value) for value in room_report["pass_criteria"].values()),
             "debate_allow_passed": debate_validation.debate_report_passed(debate_allow_report),

@@ -27,7 +27,8 @@
 - `docs/room-runtime-bridge.md` 已把缺失的 runtime bridge 责任边界锁成真源
 - `.codex/skills/room-skill/runtime/room_runtime.py` 已把 `/room` 的 host-side bridge 代码正式入仓
 - `.codex/skills/room-skill/runtime/local_codex_executor.py` 已提供 checked-in 的本地 child-agent 执行器，直接复用本机 Codex 作为 `/room` 和 `/debate` 的 prompt host
-- `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口，可一条命令跑 smoke + room + debate + integration；已内建 `--local-codex-preset gpt54_family`
+- `.codex/skills/room-skill/runtime/local_codex_executor.py` 现在也已提供 checked-in 的 local host preflight，可先验证 `~/.codex` 宿主写入条件和 nested child-agent smoke
+- `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口，可一条命令跑 host preflight + room + debate + integration；已内建 `gpt54_family` 默认 preset
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
 - `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py` 已提供 checked-in 的 `/room -> /debate` 联调验证入口
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 provider-backed 链路
@@ -183,6 +184,7 @@ round-table-workspace/
 - runtime bridge：`.codex/skills/room-skill/runtime/README.md`
 - local child-agent executor：`.codex/skills/room-skill/runtime/local_codex_executor.py`
 - local mainline regression：`.codex/skills/room-skill/runtime/local_codex_regression.py`
+- local host preflight：`python3 .codex/skills/room-skill/runtime/local_codex_executor.py --check-host-preflight --preset gpt54_family`
 - runtime validation：`.codex/skills/room-skill/runtime/room_e2e_validation.py`
 - mock provider：`.codex/skills/room-skill/runtime/mock_chat_completions_server.py`
 - live provider sample：`.env.room.example`

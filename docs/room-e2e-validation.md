@@ -1,7 +1,7 @@
 # Room End-to-End Validation
 
 > Purpose: define the first production-style validation flow for `/room`, so the project can move from source alignment to runtime confidence.
-> Last reviewed: 2026-04-21
+> Last reviewed: 2026-04-23
 
 ---
 
@@ -27,26 +27,22 @@ Local Codex child-agent path:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/local_codex_executor.py \
-  --check-local-exec \
-  --model gpt-5.3-codex-spark \
-  --timeout-seconds 180
+  --check-host-preflight \
+  --preset gpt54_family
 
 python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.3-codex-spark \
-  --local-codex-timeout-seconds 240 \
   --state-root /tmp/round-table-room-local-codex
 
 python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.3-codex-spark \
-  --local-codex-timeout-seconds 240 \
   --scenario reject_followup \
   --state-root /tmp/round-table-room-debate-local-codex
 ```
 
 This is the current mainline host path for the repo.
 It proves the checked-in prompts can be executed directly by local child-agent tasks without going through an external provider URL.
+The checked-in runners now default to the validated `gpt54_family` preset, so the shortest local command path no longer needs explicit model flags unless you are deliberately overriding the child-task lane.
 
 Fixture-backed smoke path:
 

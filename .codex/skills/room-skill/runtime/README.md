@@ -86,6 +86,14 @@ python3 .codex/skills/room-skill/runtime/local_codex_executor.py \
   --preset gpt54_family
 ```
 
+Run the checked-in local host preflight before starting the local mainline:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_executor.py \
+  --check-host-preflight \
+  --preset gpt54_family
+```
+
 Run the checked-in full local mainline regression suite:
 
 ```bash
@@ -253,6 +261,8 @@ The bridge then validates those JSON outputs and performs the state writeback th
 
 It also exposes a checked-in `gpt54_family` preset. That preset freezes the currently validated Mac-local lane: `gpt-5.4` primary child-task model, `gpt-5.4-mini` same-family fallback, `low` reasoning effort, and bounded timeouts.
 
+It now also exposes `--check-host-preflight`, which verifies the local `~/.codex` storage prerequisites that nested child tasks depend on, then runs the same checked-in smoke probe. This makes the host-side failure boundary explicit before `/room` or `/debate` work starts.
+
 The runner-level mainline now defaults to that preset. In practice, `room_e2e_validation.py`, `room_debate_e2e_validation.py`, and `local_codex_regression.py` all use `gpt54_family` unless you explicitly override the local child-task settings.
 
 It also hardens two real local-host failure modes that showed up during Mac validation:
@@ -261,7 +271,7 @@ It also hardens two real local-host failure modes that showed up during Mac vali
 - repair truncated JSON when a string loses its closing quote either at EOF or right before the next structural delimiter such as `},{"text": ...`
 - normalize object-style evidence buckets like `{text, source}` back into the string lists expected by the runtime validators
 
-`local_codex_regression.py` is the checked-in local mainline regression runner. It sequences the smoke check, `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration into one evidence bundle. It now defaults to the `gpt54_family` preset, so a bare regression command already lands on the validated Mac-local lane.
+`local_codex_regression.py` is the checked-in local mainline regression runner. It now runs the host preflight first, then sequences `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration into one evidence bundle. It defaults to the `gpt54_family` preset, so a bare regression command already lands on the validated Mac-local lane and persists a checked-in `host-preflight.json` alongside the regression report.
 
 Because nested child tasks persist session and state data under `~/.codex/`, the `local_codex` mainline should be run from a normal local terminal or any host environment that permits writing `~/.codex/sessions` and the local Codex state DB. A tighter sandbox can make the chain fail before prompt execution even starts.
 

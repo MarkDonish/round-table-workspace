@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -14,6 +15,7 @@ from chat_completions_executor import parse_json_from_text
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parents[3]
+CODEX_HOME = Path.home() / ".codex"
 DEFAULT_SANDBOX = "read-only"
 DEFAULT_TIMEOUT_SECONDS = 900
 DEFAULT_TIMEOUT_RETRIES = 1
@@ -33,6 +35,7 @@ LOCAL_CODEX_PRESETS = {
     }
 }
 SMOKE_RESPONSE = {"ok": True, "mode": "local_codex_exec"}
+HOST_PREFLIGHT_PROBE_PREFIX = ".round-table-host-preflight-"
 
 
 class LocalCodexExecutorError(Exception):
@@ -56,7 +59,21 @@ def main() -> int:
     )
 
     try:
-        if args.check_local_exec:
+        if args.check_host_preflight:
+            result = check_local_host_preflight(
+                repo_root=REPO_ROOT,
+                model=resolved["model"],
+                fallback_models=resolved["fallback_models"],
+                profile=resolved["profile"],
+                reasoning_effort=resolved["reasoning_effort"],
+                sandbox=resolved["sandbox"],
+                timeout_seconds=resolved["timeout_seconds"],
+                timeout_retries=resolved["timeout_retries"],
+                retry_timeout_multiplier=resolved["retry_timeout_multiplier"],
+                ephemeral=resolved["ephemeral"],
+                preset_name=resolved["preset"],
+            )
+        elif args.check_local_exec:
             result = check_local_exec(
                 repo_root=REPO_ROOT,
                 model=resolved["model"],
@@ -72,7 +89,9 @@ def main() -> int:
             )
         else:
             if not args.prompt_file or not args.input_json:
-                raise LocalCodexExecutorError("--prompt-file and --input-json are required unless --check-local-exec is used.")
+                raise LocalCodexExecutorError(
+                    "--prompt-file and --input-json are required unless --check-local-exec or --check-host-preflight is used."
+                )
             prompt_path = Path(args.prompt_file).expanduser().resolve()
             input_path = Path(args.input_json).expanduser().resolve()
             result = call_local_codex(
@@ -108,7 +127,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run checked-in round-table prompts through local Codex child-agent tasks."
     )
-    parser.add_argument("--check-local-exec", action="store_true", help="Run a minimal local child-agent smoke test.")
+    check_group = parser.add_mutually_exclusive_group()
+    check_group.add_argument("--check-local-exec", action="store_true", help="Run a minimal local child-agent smoke test.")
+    check_group.add_argument(
+        "--check-host-preflight",
+        action="store_true",
+        help="Run local host storage checks plus the nested child-agent smoke test.",
+    )
     parser.add_argument("--prompt-file", help="Prompt markdown file to execute.")
     parser.add_argument("--input-json", help="Structured JSON input file for the prompt.")
     parser.add_argument("--output-json", help="Optional path for the parsed JSON output.")
@@ -211,6 +236,241 @@ def check_local_exec(
         "retry_timeout_multiplier": retry_timeout_multiplier,
         "ephemeral": ephemeral,
     }
+
+
+def check_local_host_preflight(
+    *,
+    repo_root: Path,
+    model: str | None,
+    fallback_models: list[str] | None,
+    profile: str | None,
+    reasoning_effort: str | None,
+    sandbox: str,
+    timeout_seconds: int,
+    timeout_retries: int,
+    retry_timeout_multiplier: float,
+    ephemeral: bool,
+    preset_name: str | None = None,
+) -> dict[str, Any]:
+    codex_path = shutil.which("codex")
+    if not codex_path:
+        raise LocalCodexExecutorError("Could not find `codex` on PATH.")
+
+    storage = inspect_local_codex_storage()
+    required_ready = all(bool(item.get("ready")) for item in storage["required_targets"])
+    smoke: dict[str, Any]
+    if required_ready:
+        smoke = check_local_exec(
+            repo_root=repo_root,
+            model=model,
+            fallback_models=fallback_models,
+            profile=profile,
+            reasoning_effort=reasoning_effort,
+            sandbox=sandbox,
+            timeout_seconds=timeout_seconds,
+            timeout_retries=timeout_retries,
+            retry_timeout_multiplier=retry_timeout_multiplier,
+            ephemeral=ephemeral,
+            preset_name=preset_name,
+        )
+    else:
+        smoke = {
+            "ready": False,
+            "mode": "local_codex_exec",
+            "skipped": True,
+            "reason": "Skipped because required local Codex host storage checks failed.",
+        }
+
+    warnings = build_storage_warnings(storage=storage)
+    return {
+        "ready": required_ready and bool(smoke.get("ready")),
+        "mode": "local_codex_host_preflight",
+        "repo_root": str(repo_root),
+        "codex_binary": codex_path,
+        "codex_home": str(CODEX_HOME),
+        "preset": preset_name,
+        "model": model,
+        "fallback_models": fallback_models or [],
+        "profile": profile,
+        "reasoning_effort": reasoning_effort,
+        "sandbox": sandbox,
+        "timeout_seconds": timeout_seconds,
+        "timeout_retries": timeout_retries,
+        "retry_timeout_multiplier": retry_timeout_multiplier,
+        "ephemeral": ephemeral,
+        "storage": storage,
+        "smoke": smoke,
+        "warnings": warnings,
+    }
+
+
+def inspect_local_codex_storage() -> dict[str, Any]:
+    required_targets = [
+        inspect_directory_target(CODEX_HOME, label="codex_home", required=True),
+        inspect_directory_target(CODEX_HOME / "sessions", label="sessions_dir", required=True),
+    ]
+    recommended_targets = [
+        inspect_file_target(CODEX_HOME / "session_index.jsonl", label="session_index", required=False),
+        inspect_directory_target(CODEX_HOME / "sqlite", label="sqlite_dir", required=False),
+    ]
+    state_databases = inspect_glob_targets(CODEX_HOME, "state_*.sqlite", label_prefix="state_db")
+    log_databases = inspect_glob_targets(CODEX_HOME, "logs_*.sqlite", label_prefix="log_db")
+    sqlite_databases = inspect_glob_targets(CODEX_HOME / "sqlite", "*.db", label_prefix="sqlite_db")
+    return {
+        "required_targets": required_targets,
+        "recommended_targets": recommended_targets,
+        "state_databases": state_databases,
+        "log_databases": log_databases,
+        "sqlite_databases": sqlite_databases,
+    }
+
+
+def inspect_directory_target(path: Path, *, label: str, required: bool) -> dict[str, Any]:
+    info = {
+        "label": label,
+        "path": str(path),
+        "target_type": "directory",
+        "required": required,
+        "exists": path.exists(),
+    }
+    if path.exists():
+        info["is_directory"] = path.is_dir()
+        if not path.is_dir():
+            info["ready"] = False
+            info["status"] = "not_a_directory"
+            return info
+        info["status"] = "present"
+        info["readable"] = os.access(path, os.R_OK | os.X_OK)
+        info["writable"] = os.access(path, os.W_OK | os.X_OK)
+        probe = probe_directory_write(path)
+        info.update(probe)
+        info["ready"] = bool(probe["ready"])
+        return info
+
+    parent = path.parent
+    info["status"] = "missing"
+    info["parent"] = str(parent)
+    probe = probe_directory_write(parent)
+    info["parent_probe"] = probe
+    info["ready"] = bool(probe["ready"])
+    if info["ready"]:
+        info["status"] = "missing_but_parent_writable"
+    else:
+        info["status"] = "missing_and_parent_not_writable"
+    return info
+
+
+def inspect_file_target(path: Path, *, label: str, required: bool) -> dict[str, Any]:
+    info = {
+        "label": label,
+        "path": str(path),
+        "target_type": "file",
+        "required": required,
+        "exists": path.exists(),
+    }
+    if path.exists():
+        info["is_file"] = path.is_file()
+        if not path.is_file():
+            info["ready"] = False
+            info["status"] = "not_a_file"
+            return info
+        info["status"] = "present"
+        info["readable"] = os.access(path, os.R_OK)
+        info["writable"] = os.access(path, os.W_OK)
+        info["ready"] = bool(info["writable"])
+        return info
+
+    parent = path.parent
+    info["status"] = "missing"
+    info["parent"] = str(parent)
+    probe = probe_directory_write(parent)
+    info["parent_probe"] = probe
+    info["ready"] = bool(probe["ready"])
+    if info["ready"]:
+        info["status"] = "missing_but_parent_writable"
+    else:
+        info["status"] = "missing_and_parent_not_writable"
+    return info
+
+
+def inspect_glob_targets(base_dir: Path, pattern: str, *, label_prefix: str) -> list[dict[str, Any]]:
+    if not base_dir.exists() or not base_dir.is_dir():
+        return []
+    entries: list[dict[str, Any]] = []
+    for index, path in enumerate(sorted(base_dir.glob(pattern)), start=1):
+        if not path.is_file():
+            continue
+        entries.append(
+            {
+                "label": f"{label_prefix}_{index}",
+                "path": str(path),
+                "target_type": "file",
+                "required": False,
+                "exists": True,
+                "status": "present",
+                "readable": os.access(path, os.R_OK),
+                "writable": os.access(path, os.W_OK),
+                "ready": bool(os.access(path, os.W_OK)),
+            }
+        )
+    return entries
+
+
+def probe_directory_write(path: Path) -> dict[str, Any]:
+    info = {
+        "probe_dir": str(path),
+        "ready": False,
+    }
+    if not path.exists():
+        info["status"] = "missing"
+        return info
+    if not path.is_dir():
+        info["status"] = "not_a_directory"
+        return info
+
+    probe_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path,
+            prefix=HOST_PREFLIGHT_PROBE_PREFIX,
+            suffix=".tmp",
+            delete=False,
+        ) as handle:
+            handle.write("ok\n")
+            probe_path = Path(handle.name)
+    except OSError as exc:
+        info["status"] = "write_probe_failed"
+        info["error"] = str(exc)
+        return info
+    finally:
+        if probe_path is not None and probe_path.exists():
+            probe_path.unlink(missing_ok=True)
+
+    info["status"] = "write_probe_ok"
+    info["ready"] = True
+    return info
+
+
+def build_storage_warnings(*, storage: dict[str, Any]) -> list[str]:
+    warnings: list[str] = []
+    for item in storage["recommended_targets"]:
+        if not item.get("ready"):
+            warnings.append(f"Recommended local Codex target not ready: {item['label']} -> {item['status']}")
+    for category, label in (
+        ("state_databases", "state database"),
+        ("log_databases", "log database"),
+        ("sqlite_databases", "sqlite database"),
+    ):
+        entries = storage[category]
+        if not entries:
+            warnings.append(f"No existing local Codex {label} files were discovered; child tasks may still work if Codex creates them on demand.")
+            continue
+        for item in entries:
+            if not item.get("ready"):
+                warnings.append(f"Existing local Codex {label} is not writable: {item['path']}")
+    return warnings
 
 
 def call_local_codex(

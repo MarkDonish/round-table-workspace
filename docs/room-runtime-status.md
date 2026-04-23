@@ -68,6 +68,8 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in local mainline regression runner in `.codex/skills/room-skill/runtime/local_codex_regression.py`
 - a checked-in `gpt54_family` local preset exposed across `local_codex_executor.py`, `room_e2e_validation.py`, `debate_e2e_validation.py`, `room_debate_e2e_validation.py`, and `local_codex_regression.py`
 - the local `/room`, `/debate`, integration, and regression runners now default to that validated `gpt54_family` preset unless the caller explicitly overrides it
+- a checked-in local host preflight in `.codex/skills/room-skill/runtime/local_codex_executor.py` that verifies `~/.codex`, `~/.codex/sessions`, `session_index.jsonl`, and discovered state/log/sqlite DB locations before nested child-task work begins
+- the checked-in local regression runner now persists `host-preflight.json` and fails fast when those host prerequisites are not ready
 - a checked-in `/debate` packet preflight in `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py`
 - a checked-in `/debate` execution bridge in `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`, including reject-followup-rereview validation
 - a checked-in `/debate` prompt-host E2E runner in `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py`
@@ -142,7 +144,7 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 ## Current Risks
 
 - The host-side `/room` execution path now exists and the local child-agent path is validated. The remaining latency risk is the unbounded host-default path; the checked-in child-task mainline should use explicit reasoning/timing controls instead of inheriting the host's heaviest profile.
-- The local child-agent path depends on the host being allowed to write its Codex session/state files under `~/.codex/`; if the outer sandbox blocks that directory, nested child-task execution will fail before prompt validation begins.
+- The local child-agent path depends on the host being allowed to write its Codex session/state files under `~/.codex/`; the checked-in host preflight now surfaces that boundary earlier, but a tighter outer sandbox can still block nested child-task execution before prompt validation begins.
 - `/room -> /debate` handoff is no longer a plain-text contract grep, and the repo now has a checked-in integration runner plus direct `--packet-json` intake on the debate side; the remaining runtime gap is now mainly external-provider proof, not local chain design.
 - Historical reports still reference old Windows runtime paths, which can mislead future continuation if read as implementation truth.
 - The generated room bundles under `artifacts/runtime/rooms/` are outputs and must not be treated as new source-of-truth files.
@@ -154,10 +156,11 @@ The same rule applies to `artifacts/`: they are outputs, not authoring source.
 The most reasonable continuation path is:
 
 1. keep `.codex/skills/room-skill/runtime/local_codex_executor.py` as the main portable host path for `/room` and `/debate`
-2. use `.codex/skills/room-skill/runtime/local_codex_regression.py --local-codex-preset gpt54_family` as the shortest checked-in regression command for the passing Mac-local mainline
-3. keep validating the desired `GPT-5.4` family child-task settings without regressing back to the host's unbounded default `xhigh` profile
-4. keep `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` plus the `--executor chat_completions` runners as fallback / regression coverage
-5. if external-provider fallback still matters, run `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py --executor chat_completions --room-env-file .env.room --debate-env-file .env.debate`
+2. use `.codex/skills/room-skill/runtime/local_codex_executor.py --check-host-preflight --preset gpt54_family` as the shortest checked-in host readiness command
+3. use `.codex/skills/room-skill/runtime/local_codex_regression.py` as the shortest checked-in regression command for the passing Mac-local mainline
+4. keep validating the desired `GPT-5.4` family child-task settings without regressing back to the host's unbounded default `xhigh` profile
+5. keep `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` plus the `--executor chat_completions` runners as fallback / regression coverage
+6. if external-provider fallback still matters, run `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py --executor chat_completions --room-env-file .env.room --debate-env-file .env.debate`
 
 This keeps the repository structure stable:
 
