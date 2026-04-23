@@ -22,6 +22,7 @@ import debate_runtime as runtime
 
 
 DEFAULT_FIXTURES_DIR = RUNTIME_DIR / "fixtures" / "canonical"
+DEFAULT_LOCAL_CODEX_PRESET = "gpt54_family"
 DEBATE_ROUNDTABLE_PROMPT = REPO_ROOT / "prompts" / "debate-roundtable.md"
 DEBATE_REVIEWER_PROMPT = REPO_ROOT / "prompts" / "debate-reviewer.md"
 DEBATE_FOLLOWUP_PROMPT = REPO_ROOT / "prompts" / "debate-followup.md"
@@ -105,7 +106,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--local-codex-preset",
         choices=sorted(local_executor.LOCAL_CODEX_PRESETS),
-        help="Optional checked-in local Codex preset.",
+        default=DEFAULT_LOCAL_CODEX_PRESET,
+        help="Checked-in local Codex preset. Defaults to the validated local mainline preset.",
     )
     parser.add_argument("--local-codex-model", help="Optional model override for local Codex child tasks.")
     parser.add_argument(

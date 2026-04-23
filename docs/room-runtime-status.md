@@ -67,6 +67,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in local child-agent executor in `.codex/skills/room-skill/runtime/local_codex_executor.py`
 - a checked-in local mainline regression runner in `.codex/skills/room-skill/runtime/local_codex_regression.py`
 - a checked-in `gpt54_family` local preset exposed across `local_codex_executor.py`, `room_e2e_validation.py`, `debate_e2e_validation.py`, `room_debate_e2e_validation.py`, and `local_codex_regression.py`
+- the local `/room`, `/debate`, integration, and regression runners now default to that validated `gpt54_family` preset unless the caller explicitly overrides it
 - a checked-in `/debate` packet preflight in `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py`
 - a checked-in `/debate` execution bridge in `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`, including reject-followup-rereview validation
 - a checked-in `/debate` prompt-host E2E runner in `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py`

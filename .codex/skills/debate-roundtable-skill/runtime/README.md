@@ -165,7 +165,6 @@ Run the local child-agent `/debate` E2E allow path:
 ```bash
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-preset gpt54_family \
   --scenario allow \
   --state-root /tmp/round-table-debate-local-codex-allow
 ```
@@ -175,7 +174,6 @@ Run the local child-agent `/debate` reject-followup path:
 ```bash
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-preset gpt54_family \
   --scenario reject_followup \
   --state-root /tmp/round-table-debate-local-codex-followup
 ```
@@ -185,7 +183,6 @@ Run the local child-agent `/room -> /debate` handoff path after `/room` produces
 ```bash
 python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-preset gpt54_family \
   --scenario reject_followup \
   --state-root /tmp/round-table-room-debate-local-codex
 ```

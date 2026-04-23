@@ -24,6 +24,7 @@ import debate_e2e_validation as debate_validation
 
 
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "room-debate-e2e"
+DEFAULT_LOCAL_CODEX_PRESET = "gpt54_family"
 
 
 class RoomDebateE2EValidationError(Exception):
@@ -117,7 +118,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--local-codex-preset",
         choices=sorted(local_executor.LOCAL_CODEX_PRESETS),
-        help="Optional checked-in local Codex preset.",
+        default=DEFAULT_LOCAL_CODEX_PRESET,
+        help="Checked-in local Codex preset. Defaults to the validated local mainline preset.",
     )
     parser.add_argument("--local-codex-model", help="Optional model override for local Codex child tasks.")
     parser.add_argument(
