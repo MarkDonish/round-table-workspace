@@ -44,6 +44,12 @@ For the checked-in local mainline regression runner:
 python3 .codex/skills/room-skill/runtime/local_codex_regression.py --help
 ```
 
+For the checked-in Chat Completions fallback regression runner:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_regression.py --help
+```
+
 For the checked-in local mock Chat Completions provider:
 
 ```bash
@@ -99,6 +105,13 @@ Run the checked-in full local mainline regression suite:
 ```bash
 python3 .codex/skills/room-skill/runtime/local_codex_regression.py \
   --state-root /tmp/round-table-local-codex-regression
+```
+
+Run the checked-in full Chat Completions fallback regression suite with local mock providers:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_regression.py \
+  --state-root /tmp/round-table-chat-completions-regression
 ```
 
 Run the checked-in E2E validation flow through local child-agent tasks:
@@ -272,6 +285,8 @@ It also hardens two real local-host failure modes that showed up during Mac vali
 - normalize object-style evidence buckets like `{text, source}` back into the string lists expected by the runtime validators
 
 `local_codex_regression.py` is the checked-in local mainline regression runner. It now runs the host preflight first, then sequences `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration into one evidence bundle. It defaults to the `gpt54_family` preset, so a bare regression command already lands on the validated Mac-local lane and persists a checked-in `host-preflight.json` alongside the regression report.
+
+`chat_completions_regression.py` is the checked-in provider fallback regression runner. It boots one local `/room` mock provider plus one local `/debate` mock provider, writes checked-in `.env.room.mock` and `.env.debate.mock` files into the evidence bundle, runs provider preflight for both scopes, then sequences `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration through `--executor chat_completions`.
 
 Because nested child tasks persist session and state data under `~/.codex/`, the `local_codex` mainline should be run from a normal local terminal or any host environment that permits writing `~/.codex/sessions` and the local Codex state DB. A tighter sandbox can make the chain fail before prompt execution even starts.
 

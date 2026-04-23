@@ -91,6 +91,15 @@ python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
 This path proves the checked-in Chat Completions-compatible execution chain.
 It still does not count as a real external provider pass, and it is no longer the mainline runtime path.
 
+Checked-in provider fallback regression path:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_regression.py \
+  --state-root /tmp/round-table-chat-completions-regression
+```
+
+This is the shortest checked-in fallback regression command. It boots local mock providers for both `/room` and `/debate`, runs provider preflight for both scopes, then validates room, debate, and full integration in one evidence bundle.
+
 ---
 
 ## Validation Goal

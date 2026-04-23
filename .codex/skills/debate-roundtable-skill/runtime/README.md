@@ -38,6 +38,10 @@ python3 .codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_serv
 python3 .codex/skills/room-skill/runtime/local_codex_executor.py --help
 ```
 
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_regression.py --help
+```
+
 Validate one persisted handoff packet:
 
 ```bash

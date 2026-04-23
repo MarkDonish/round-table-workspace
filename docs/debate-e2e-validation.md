@@ -1,7 +1,7 @@
 # Debate End-to-End Validation
 
 > Purpose: define the first production-style validation flow for `/debate`, so the project can move from bridge completeness to prompt-host execution confidence.
-> Last reviewed: 2026-04-22
+> Last reviewed: 2026-04-23
 
 ---
 
@@ -84,6 +84,15 @@ python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
 
 This path proves the checked-in Chat Completions-compatible `/debate` prompt-call chain.
 It still does not count as a real external provider pass.
+
+Checked-in provider fallback regression path:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_regression.py \
+  --state-root /tmp/round-table-chat-completions-regression
+```
+
+This is the shortest checked-in fallback regression command for the provider-backed lane. It boots local mock providers for both `/room` and `/debate`, validates standalone `/debate allow`, standalone `/debate reject_followup`, and the integrated `/room -> /debate` handoff path, then writes one shared regression report.
 
 External-provider `/room -> /debate` handoff path:
 
