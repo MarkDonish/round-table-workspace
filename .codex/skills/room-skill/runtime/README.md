@@ -38,6 +38,12 @@ For the checked-in local child-agent executor:
 python3 .codex/skills/room-skill/runtime/local_codex_executor.py --help
 ```
 
+For the checked-in generic local agent CLI adapter:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_executor.py --help
+```
+
 For the checked-in local mainline regression runner:
 
 ```bash
@@ -96,6 +102,14 @@ Run a local child-agent smoke test:
 python3 .codex/skills/room-skill/runtime/local_codex_executor.py \
   --check-local-exec \
   --preset gpt54_family
+```
+
+Run a generic local agent CLI smoke test:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_executor.py \
+  --check-agent-exec \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py"
 ```
 
 Run the checked-in local host preflight before starting the local mainline:
@@ -158,6 +172,15 @@ python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
   --state-root /tmp/round-table-room-local-codex
 ```
 
+Run the checked-in E2E validation flow through a generic local agent CLI:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
+  --executor generic_cli \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py" \
+  --state-root /tmp/round-table-room-generic-cli
+```
+
 Check live provider config from an explicit env file:
 
 ```bash
@@ -204,6 +227,24 @@ python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --local-codex-timeout-retries 1 \
   --scenario reject_followup \
   --state-root /tmp/round-table-room-debate-local-codex
+```
+
+Run the checked-in `/room -> /debate` integration flow through a generic local agent CLI:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor generic_cli \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py" \
+  --state-root /tmp/round-table-room-debate-generic-cli
+```
+
+Run the same adapter route under the Claude Code executor name:
+
+```bash
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor claude_code \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py" \
+  --state-root /tmp/round-table-room-debate-claude-code-adapter
 ```
 
 Run the checked-in `/room -> /debate` integration flow against real providers:

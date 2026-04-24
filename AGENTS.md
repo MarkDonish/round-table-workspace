@@ -60,6 +60,7 @@ On `/room`, use:
 - Supporting docs:
   - `docs/room-runtime-status.md`
   - `docs/room-runtime-bridge.md`
+  - `docs/host-adapter-architecture.md`
   - `docs/room-architecture.md`
   - `docs/room-selection-policy.md`
   - `docs/room-chat-contract.md`
@@ -79,6 +80,7 @@ On `/debate`, use:
 - Skill: `.codex/skills/debate-roundtable-skill/SKILL.md`
 - Supporting docs:
   - `docs/debate-runtime-bridge.md`
+  - `docs/host-adapter-architecture.md`
   - `docs/debate-skill-architecture.md`
   - `docs/agent-role-map.md`
   - `docs/reviewer-protocol.md`

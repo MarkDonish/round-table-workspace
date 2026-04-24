@@ -31,6 +31,8 @@
 - `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口，可一条命令跑 host preflight + room + debate + integration；已内建 `gpt54_family` 默认 preset，并会额外产出 `runtime-profile.json`
 - `.codex/skills/room-skill/runtime/local_codex_second_host_validation.py` 已提供 checked-in 的第二宿主复验入口，可用独立 `codex exec` 宿主重跑整套本地主线，并把外层宿主证据与 nested runtime profile 一起落盘
 - `.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py` 已提供 checked-in 的跨机器验证 lane，可先准备 manifest/runbook，再校验另一台机器回传的 regression report 与 runtime profile
+- `.codex/skills/room-skill/runtime/generic_agent_executor.py` 已提供 host-neutral 的本地 CLI agent adapter，可把同一套 prompt task 对接到 Codex、Claude Code 或其他能从 stdin 接任务并返回 JSON 的本地 agent
+- `.codex/skills/room-skill/runtime/generic_fixture_agent.py` 已提供 checked-in 的本地 fixture agent，用于验证 generic CLI / Claude Code adapter 路由而不依赖真实第三方 CLI
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口，可自动拉起本地 room/debate mock provider，并一条命令跑 provider preflight + room + debate + integration
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper，可先做 room/debate 双侧 preflight，再一键触发真实 `/room -> /debate` integration
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
@@ -45,9 +47,11 @@
 - `/room local_codex` 已在 Mac 上通过 checked-in E2E 验证
 - `/debate local_codex` 的 `allow` 与 `reject_followup` 两条链都已在 Mac 上通过 checked-in E2E 验证
 - `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证，真实消费 `/room` 持久化 handoff packet
+- `/room -> /debate generic_cli` 已通过 checked-in fixture agent 跑通完整 adapter integration
+- `/room -> /debate claude_code` 已通过 checked-in fixture agent 跑通 executor route；真实 Claude Code CLI live run 仍需单独验证
 - 当前最稳定的 checked-in 本地主线配置已收敛到 `gpt54_family`：`gpt-5.4` 为主模型、`gpt-5.4-mini` 为同家族 fallback，并显式固定 child-task reasoning / timeout；现在还会按 prompt 分层执行，例如 selection 用更短 timeout，chat / roundtable / followup 留更长窗口，summary / upgrade / reviewer 会切到更轻的同家族 lane
 - 同一台 Mac 上，除了当前桌面线程，这条本地主线也已通过独立 shell-level `codex exec` 第二宿主复验；当前剩下的不是“第二入口能不能跑”，而是“跨机器是否仍然稳定”
-- 本仓库现在已经把“跨机器验证”本身固化成 checked-in 流程：source 机先生成 manifest/runbook，target 机跑本地主线并回传 evidence，source 机再做 schema/commit/config 校验；但真正的非同机证据仍待执行
+- 本仓库现在已经把“跨机器验证”本身固化成 checked-in 流程：source 机先生成 manifest/runbook，target 机跑本地主线并回传 evidence，source 机再做 schema/commit/config 校验；Windows 本地主线与增强验证证据已落到 `reports/WINDOWS_LOCAL_MAINLINE_VALIDATION.md` 和 `reports/WINDOWS_ENHANCED_VALIDATION.md`
 
 ### 还没完成的核心能力
 
@@ -55,6 +59,7 @@
 - `/room` 与 `/debate` 的 Chat Completions-compatible provider 路径仍然保留，但现在应视为 fallback / regression lane，而不是主线
 - 还没有完成真实外部 provider 的 `/room -> /summary -> /upgrade-to-debate -> /debate` live run
 - 当前已完成的是 fixture-driven 验证、mock provider-backed 验证、以及本地 child-agent 主链验证；仍不应误报成所有宿主配置都已 100% 实战验证
+- generic CLI adapter 已证明 host abstraction 可以跑完整 `/room -> /debate` 链路，但真实 Claude Code 和其他第三方本地 agent 仍需要各自 live validation
 
 简化结论：
 
@@ -107,6 +112,7 @@ round-table-workspace/
 │  ├─ room-chat-contract.md
 │  ├─ room-runtime-bridge.md
 │  ├─ room-runtime-status.md
+│  ├─ host-adapter-architecture.md
 │  └─ superpowers/specs/
 ├─ prompts/
 │  ├─ debate-roundtable.md
@@ -186,8 +192,11 @@ round-table-workspace/
 - handoff：`docs/room-to-debate-handoff.md`
 - chat contract：`docs/room-chat-contract.md`
 - bridge contract：`docs/room-runtime-bridge.md`
+- host adapters：`docs/host-adapter-architecture.md`
 - 当前边界：`docs/room-runtime-status.md`
 - runtime bridge：`.codex/skills/room-skill/runtime/README.md`
+- generic local agent adapter：`.codex/skills/room-skill/runtime/generic_agent_executor.py`
+- generic fixture agent：`.codex/skills/room-skill/runtime/generic_fixture_agent.py`
 - local child-agent executor：`.codex/skills/room-skill/runtime/local_codex_executor.py`
 - local mainline regression：`.codex/skills/room-skill/runtime/local_codex_regression.py`
 - local second-host validation：`.codex/skills/room-skill/runtime/local_codex_second_host_validation.py`

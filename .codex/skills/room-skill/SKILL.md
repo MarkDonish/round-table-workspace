@@ -180,6 +180,8 @@ description: |
 - `.codex/skills/room-skill/WORKFLOW.md` 已提供 checked-in 的 runtime playbook
 - `.codex/skills/room-skill/runtime/room_runtime.py` 已提供 checked-in 的 host-side bridge
 - `.codex/skills/room-skill/runtime/local_codex_executor.py` 已提供 checked-in 的本地 child-agent 执行器
+- `.codex/skills/room-skill/runtime/generic_agent_executor.py` 已提供 checked-in 的 host-neutral 本地 CLI agent adapter，用于 Codex 之外的 Claude Code / 其他本地 agent 适配
+- `.codex/skills/room-skill/runtime/generic_fixture_agent.py` 已提供 checked-in 的 fixture agent，用于验证 generic CLI / Claude Code adapter 路由
 - `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper
@@ -189,6 +191,7 @@ description: |
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 mock provider，用于验证 Chat Completions 路径
 - `/room local_codex` 已在 Mac 上通过 checked-in E2E 验证
 - `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证
+- `/room -> /debate generic_cli` 和 `claude_code` executor route 已通过 checked-in fixture agent 验证 adapter contract；真实 Claude Code / 其他第三方本地 agent live run 仍需单独证明
 - checked-in child-agent 执行器现在可显式控制 child task 的 reasoning effort，不必继承宿主全局 `xhigh`
 - 当前最稳定的 Mac 本地主线配置已验证 `gpt-5.4` 主模型；`gpt-5.4-mini` 可作为同家族 fallback
 - canonical fixture 已可在 Mac 本地跑通 `/room -> /summary -> /upgrade-to-debate`
@@ -200,6 +203,7 @@ description: |
 - `workflow-checked-in`
 - `bridge-checked-in`
 - `local-child-agent-mainline-validated-on-mac`
+- `generic-cli-adapter-validated-with-fixture-agent`
 - `e2e-runner-checked-in`
 - `fixture-validated-on-mac`
 - `mock-provider-validated-on-mac`

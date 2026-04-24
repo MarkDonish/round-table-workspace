@@ -9,6 +9,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+import generic_agent_executor as generic_executor
 import chat_completions_executor as provider_executor
 import local_codex_executor as local_executor
 import room_e2e_validation as room_validation
@@ -41,6 +42,7 @@ def main() -> int:
         room_validation.RoomE2EValidationError,
         debate_validation.DebateE2EValidationError,
         provider_executor.ProviderConfigError,
+        generic_executor.GenericAgentExecutorError,
         local_executor.LocalCodexExecutorError,
         urllib.error.URLError,
         ValueError,
@@ -57,13 +59,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Run the checked-in /room -> /debate integration validation flow through either "
-            "canonical fixtures, local Codex child tasks, or Chat Completions-compatible providers."
+            "canonical fixtures, local agent CLIs, local Codex child tasks, or Chat Completions-compatible providers."
         )
     )
     parser.add_argument(
         "--executor",
         required=True,
-        choices=["fixture", "local_codex", "chat_completions"],
+        choices=["fixture", "generic_cli", "claude_code", "local_codex", "chat_completions"],
         help="Execution backend for both /room and /debate prompt calls.",
     )
     parser.add_argument(
@@ -161,6 +163,19 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Keep local Codex child sessions on disk instead of using --ephemeral.",
     )
+    parser.add_argument(
+        "--agent-command",
+        help=(
+            "Local agent CLI command for generic_cli or claude_code mode. The adapter passes the task prompt on stdin "
+            "and supports {prompt_file}, {input_file}, {output_file}, and {repo_root} placeholders."
+        ),
+    )
+    parser.add_argument(
+        "--agent-timeout-seconds",
+        type=int,
+        default=generic_executor.DEFAULT_TIMEOUT_SECONDS,
+        help="Timeout for one generic local agent CLI prompt call.",
+    )
     return parser
 
 
@@ -192,6 +207,8 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         local_codex_timeout_retries=args.local_codex_timeout_retries,
         local_codex_retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
         local_codex_persist_session=args.local_codex_persist_session,
+        agent_command=args.agent_command,
+        agent_timeout_seconds=args.agent_timeout_seconds,
     )
     room_report = room_validation.run_validation(room_args)
     handoff_packet = room_report["artifacts"]["handoff_packet"]
@@ -215,6 +232,8 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         local_codex_timeout_retries=args.local_codex_timeout_retries,
         local_codex_retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
         local_codex_persist_session=args.local_codex_persist_session,
+        agent_command=args.agent_command,
+        agent_timeout_seconds=args.agent_timeout_seconds,
     )
     debate_report = debate_validation.run_validation(debate_args)
 

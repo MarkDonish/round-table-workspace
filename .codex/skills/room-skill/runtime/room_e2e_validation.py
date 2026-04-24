@@ -10,6 +10,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+import generic_agent_executor as generic_executor
 import chat_completions_executor as provider_executor
 import local_codex_executor as local_executor
 import room_runtime as runtime
@@ -40,6 +41,7 @@ def main() -> int:
         RoomE2EValidationError,
         runtime.RoomRuntimeError,
         provider_executor.ProviderConfigError,
+        generic_executor.GenericAgentExecutorError,
         local_executor.LocalCodexExecutorError,
         urllib.error.URLError,
         ValueError,
@@ -56,13 +58,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Run the checked-in /room end-to-end validation flow through either "
-            "canonical fixtures, local Codex child tasks, or a Chat Completions-compatible provider."
+            "canonical fixtures, local agent CLIs, local Codex child tasks, or a Chat Completions-compatible provider."
         )
     )
     parser.add_argument(
         "--executor",
         required=True,
-        choices=["fixture", "local_codex", "chat_completions"],
+        choices=["fixture", "generic_cli", "claude_code", "local_codex", "chat_completions"],
         help="Execution backend for prompt calls.",
     )
     parser.add_argument(
@@ -144,6 +146,19 @@ def build_parser() -> argparse.ArgumentParser:
         "--local-codex-persist-session",
         action="store_true",
         help="Keep local Codex child sessions on disk instead of using --ephemeral.",
+    )
+    parser.add_argument(
+        "--agent-command",
+        help=(
+            "Local agent CLI command for generic_cli or claude_code mode. The adapter passes the task prompt on stdin "
+            "and supports {prompt_file}, {input_file}, {output_file}, and {repo_root} placeholders."
+        ),
+    )
+    parser.add_argument(
+        "--agent-timeout-seconds",
+        type=int,
+        default=generic_executor.DEFAULT_TIMEOUT_SECONDS,
+        help="Timeout for one generic local agent CLI prompt call.",
     )
     return parser
 
@@ -336,6 +351,36 @@ def build_prompt_executor(args: argparse.Namespace, room_id: str):
 
         return execute
 
+    if args.executor in ("generic_cli", "claude_code"):
+        command = generic_executor.resolve_agent_command(
+            executor_name=args.executor,
+            command=getattr(args, "agent_command", None),
+        )
+        timeout_seconds = getattr(args, "agent_timeout_seconds", generic_executor.DEFAULT_TIMEOUT_SECONDS)
+
+        def execute(prompt_path: Path, prompt_input: dict[str, Any], trace_base: Path | None = None) -> dict[str, Any]:
+            return generic_executor.call_generic_agent_cli(
+                prompt_path=prompt_path,
+                prompt_text=prompt_path.read_text(encoding="utf-8"),
+                prompt_input=prompt_input,
+                repo_root=REPO_ROOT,
+                command=command,
+                host_name=args.executor,
+                timeout_seconds=timeout_seconds,
+                trace_base=trace_base,
+                extra_env={
+                    "ROUND_TABLE_ROOM_ID": room_id,
+                    "ROUND_TABLE_ROOM_FIXTURES_DIR": str(Path(args.fixtures_dir).expanduser().resolve()),
+                },
+                execution_metadata={
+                    "prompt_name": prompt_path.name,
+                    "mode": prompt_input.get("mode"),
+                    "room_id": room_id,
+                },
+            )
+
+        return execute
+
     env = dict(os.environ)
     if args.env_file:
         env.update(provider_executor.load_env_file(Path(args.env_file)))
@@ -362,6 +407,13 @@ def describe_executor(args: argparse.Namespace) -> dict[str, Any]:
     if args.executor == "local_codex":
         settings = resolve_local_codex_settings(args)
         return {"mode": "local_codex", **settings}
+
+    if args.executor in ("generic_cli", "claude_code"):
+        return generic_executor.describe_agent_executor(
+            executor_name=args.executor,
+            command=getattr(args, "agent_command", None),
+            timeout_seconds=getattr(args, "agent_timeout_seconds", generic_executor.DEFAULT_TIMEOUT_SECONDS),
+        )
 
     env = dict(os.environ)
     if args.env_file:
@@ -420,7 +472,7 @@ def execute_prompt(
     try:
         output = executor(prompt_path, prompt_input, trace_base=trace_base)
     except Exception as exc:
-        error_payload = local_executor.serialize_local_codex_error(exc, trace_base=trace_base)
+        error_payload = generic_executor.serialize_prompt_executor_error(exc, trace_base=trace_base)
         error_payload.update(
             {
                 "step": step_name,

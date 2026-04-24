@@ -62,11 +62,14 @@ The repository already contains a largely complete source layer for `/room`:
 - `/room -> /debate` handoff schema in `docs/room-to-debate-handoff.md`
 - a checked-in portable agent registry in `docs/agent-registry.md`
 - an implementation-facing runtime bridge contract in `docs/room-runtime-bridge.md`
+- a host adapter architecture source in `docs/host-adapter-architecture.md`
 - a checked-in runtime workflow playbook in `.codex/skills/room-skill/WORKFLOW.md`
 - a checked-in `/room` runtime entry in `.codex/skills/room-skill/SKILL.md`
 - a checked-in end-to-end validation guide in `docs/room-e2e-validation.md`
 - a checked-in host bridge implementation in `.codex/skills/room-skill/runtime/room_runtime.py`
 - a checked-in local child-agent executor in `.codex/skills/room-skill/runtime/local_codex_executor.py`
+- a checked-in host-neutral local CLI agent adapter in `.codex/skills/room-skill/runtime/generic_agent_executor.py`
+- a checked-in generic fixture agent in `.codex/skills/room-skill/runtime/generic_fixture_agent.py`
 - a checked-in local mainline regression runner in `.codex/skills/room-skill/runtime/local_codex_regression.py`
 - a checked-in second-host validation runner in `.codex/skills/room-skill/runtime/local_codex_second_host_validation.py`
 - a checked-in cross-machine validation lane in `.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py`
@@ -80,6 +83,7 @@ The repository already contains a largely complete source layer for `/room`:
 - the checked-in local regression runner now also persists `runtime-profile.json`, including top-level stage timings plus child-task timing aggregates by scope and policy key
 - the checked-in local regression runner now also persists host / repo / input metadata, so imported evidence from another machine can be compared against the source manifest instead of being treated as anonymous JSON
 - a checked-in local child-task trace manifest at `prompt-calls/*.child-trace.json`, written by `local_codex_executor.py` whenever the runner supplies a `trace_base`
+- a checked-in generic local agent trace manifest at `prompt-calls/*.agent-trace.json`, written by `generic_agent_executor.py` whenever the runner supplies a `trace_base`
 - those `*.child-trace.json` manifests now include attempt-level timestamps and wall times, plus full child-task wall time on completion
 - structured local prompt-call failure payloads in `prompt-calls/*.error.json` and failed `prompt-calls/*.meta.json`, including `failure_category` and `trace_manifest` pointers
 - a checked-in `/debate` packet preflight in `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py`
@@ -103,6 +107,9 @@ The repository already contains a largely complete source layer for `/room`:
 - a Mac-validated stepwise local execution policy under `gpt54_family`, verified by the full local regression suite
 - a same-Mac second-host validation path through standalone `codex exec`, validated against the full local regression suite rather than a shortened smoke lane
 - a checked-in source->target->source cross-machine handoff flow: prepare manifest/runbook on the source machine, run `local_codex_regression.py` on the target machine, then verify imported evidence back on the source machine
+- Windows local mainline and enhanced validation evidence are now checked into `reports/WINDOWS_LOCAL_MAINLINE_VALIDATION.md` and `reports/WINDOWS_ENHANCED_VALIDATION.md`
+- a validated `generic_cli` `/room -> /debate` adapter integration path using the checked-in fixture agent
+- a validated `claude_code` executor route using the checked-in fixture agent; real Claude Code CLI execution remains a separate host-live validation
 - a Mac-validated `GPT-5.4` local mainline configuration for the full `/room -> /debate reject_followup` chain, with `gpt-5.4` as the primary child-task model and `gpt-5.4-mini` available as same-family fallback
 - a checked-in `/room` host fallback for explicit `/upgrade-to-debate` requests when the upgrade prompt still returns `room_too_fresh`; that fallback reuses persisted room state and writes the required `user_forced_early_upgrade` packet warning
 - a checked-in `/debate` terminal-outcome rule for the single follow-up cap: the second review may either allow the decision or end in a blocked conclusion with no further required followups
@@ -128,13 +135,14 @@ The remaining unfinished part is no longer the checked-in bridge itself.
 
 The remaining gap is now narrower and sits in two places:
 
-1. the checked-in local child-agent path is now proven on Mac and the checked-in executor can explicitly control child-task reasoning effort through either per-flag overrides or the frozen `gpt54_family` preset; what is still not a target is blindly inheriting the host's heaviest default profile without child-task tuning
-2. the external Chat Completions-compatible provider path still has value as fallback / regression coverage, and the repo now has both a checked-in one-command mock-provider regression runner and a checked-in real-provider live wrapper for that lane; what is still not proven is a real external `/room -> /summary -> /upgrade-to-debate -> /debate` run against an actual non-mock endpoint
-3. debate handoff is executable-preflight-validated and the checked-in debate-side execution plus reject-followup-rereview bridge is now locally provable through fixture, mock-provider, or local child-agent execution, but still not yet proven by a real external `/debate` execution chain
+1. the checked-in local child-agent path is now proven on Mac and Windows, and the checked-in executor can explicitly control child-task reasoning effort through either per-flag overrides or the frozen `gpt54_family` preset; what is still not a target is blindly inheriting the host's heaviest default profile without child-task tuning
+2. the generic local CLI adapter is proven at the adapter-contract layer through a fixture agent; real Claude Code and other third-party local agent CLIs still need their own host-live validation
+3. the external Chat Completions-compatible provider path still has value as fallback / regression coverage, and the repo now has both a checked-in one-command mock-provider regression runner and a checked-in real-provider live wrapper for that lane; what is still not proven is a real external `/room -> /summary -> /upgrade-to-debate -> /debate` run against an actual non-mock endpoint
+4. debate handoff is executable-preflight-validated and the checked-in debate-side execution plus reject-followup-rereview bridge is now locally provable through fixture, generic local CLI, mock-provider, or local child-agent execution, but still not yet proven by a real external `/debate` execution chain
 
 In short:
 
-`/room` is protocol-complete, prompt-cleaned, workflow-checked-in, bridge-checked-in, fixture-backed E2E-validated on Mac, and now also validated through the checked-in local child-agent path. `/debate` now matches that local confidence level for both allow and reject-followup execution chains, and the unified `/room -> /debate` local child-agent flow has one passing Mac validation. The external provider lane still exists, but it is fallback coverage rather than the mainline.
+`/room` is protocol-complete, prompt-cleaned, workflow-checked-in, bridge-checked-in, fixture-backed E2E-validated, and validated through the checked-in local child-agent path. `/debate` now matches that local confidence level for both allow and reject-followup execution chains, and the unified `/room -> /debate` flow has passing local child-agent plus generic CLI adapter validation. The external provider lane still exists, but it is fallback coverage rather than the mainline.
 
 ---
 

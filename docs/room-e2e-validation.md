@@ -46,6 +46,21 @@ The checked-in runners now default to the validated `gpt54_family` preset, so th
 
 That preset is now stepwise: selection keeps the primary `gpt-5.4` lane but uses a shorter timeout, `room-chat` keeps the heavier lane with a longer window, and narrower structured steps like `room-summary` / `room-upgrade` move onto a lighter same-family lane.
 
+Generic local agent CLI path:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_executor.py \
+  --check-agent-exec \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py"
+
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor generic_cli \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py" \
+  --state-root /tmp/round-table-room-debate-generic-cli
+```
+
+This is the portability adapter path for Claude Code and other local agent CLIs. The checked-in fixture agent validates the adapter contract; each real third-party CLI still needs a live host validation run.
+
 Fixture-backed smoke path:
 
 ```bash
@@ -277,11 +292,14 @@ A successful validation run should leave behind evidence that can be checked wit
 - a generated handoff packet
 - proof that the checked-in `/debate` packet preflight accepted the packet shape
 - for `local_codex`, a persisted `prompt-calls/*.child-trace.json` per prompt call
+- for `generic_cli` or `claude_code`, a persisted `prompt-calls/*.agent-trace.json` per prompt call
 - for failed `local_codex` runs, a persisted `prompt-calls/*.error.json` plus failed `prompt-calls/*.meta.json`
 
 If one of these is missing, the run is incomplete.
 
 For the local child-agent mainline, `prompt-calls/*.child-trace.json` is now the first debugging stop. It records per-attempt model choice, timeout / retry behavior, the applied `task_policy_key`, and a structured `failure_category` such as `timeout`, `invalid_model`, `invalid_json_output`, or `host_permission_or_sandbox_denied`.
+
+For the generic local CLI adapter, `prompt-calls/*.agent-trace.json` records the command, response source, host name, timeout, and failure category. This is the first debugging stop for Claude Code or other local agent CLI integration failures.
 
 ---
 
@@ -339,6 +357,7 @@ As of 2026-04-21, the main blockers before this validation can fully pass are:
 
 - the checked-in E2E runner and mock provider now exist, but a real external `--executor chat_completions --env-file .env.room` run is still missing
 - `/debate` handoff is now checked by a checked-in executable preflight, but not yet by a real live `/debate` execution chain
+- generic CLI and Claude Code adapter routes are fixture-validated, but real Claude Code / third-party local agent live runs are still separate validation tasks
 - local terminal Git access on this Mac still depends on GitHub trust for the generated SSH key
 
 ---

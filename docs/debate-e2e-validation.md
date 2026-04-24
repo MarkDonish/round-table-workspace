@@ -29,28 +29,23 @@ Local Codex child-agent path:
 ```bash
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.3-codex-spark \
-  --local-codex-timeout-seconds 240 \
   --scenario allow \
   --state-root /tmp/round-table-debate-local-codex-allow
 
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.3-codex-spark \
-  --local-codex-timeout-seconds 240 \
   --scenario reject_followup \
   --state-root /tmp/round-table-debate-local-codex-followup
 
 python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --executor local_codex \
-  --local-codex-model gpt-5.3-codex-spark \
-  --local-codex-timeout-seconds 240 \
   --scenario reject_followup \
   --state-root /tmp/round-table-room-debate-local-codex
 ```
 
 This is the current mainline host path for `/debate`.
 It proves the checked-in prompts can be executed through local child-agent tasks and that `/debate` can consume a real persisted `/room` packet in one command.
+The checked-in runners default to the validated `gpt54_family` preset, so the shortest path uses `gpt-5.4` plus same-family fallback unless the caller deliberately overrides it.
 
 Fixture-backed smoke path:
 
@@ -68,6 +63,24 @@ python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
 
 This path validates the checked-in orchestration and writeback chain.
 It does not count as a live provider pass.
+
+Generic local agent CLI path:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor generic_cli \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py" \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-debate-generic-cli-followup
+
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor claude_code \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py" \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-room-debate-claude-code-adapter
+```
+
+This path validates the local agent CLI adapter contract. The `claude_code` executor name is available for Claude Code routing, but a real Claude Code CLI run still needs separate live validation.
 
 Local mock provider fallback path:
 
@@ -179,6 +192,7 @@ A successful validation run should leave behind evidence that can be checked wit
 - for reject-followup scenario: a persisted `followup-record.json` and `rereview-packet.json`
 - prompt-call input/output snapshots under `prompt-calls/`
 - for `local_codex`, a persisted `prompt-calls/*.child-trace.json` per prompt call
+- for `generic_cli` or `claude_code`, a persisted `prompt-calls/*.agent-trace.json` per prompt call
 - for failed `local_codex` runs, a persisted `prompt-calls/*.error.json` plus failed `prompt-calls/*.meta.json`
 
 If one of these is missing, the run is incomplete.
@@ -186,6 +200,8 @@ If one of these is missing, the run is incomplete.
 For the local child-agent lane, the trace manifest is now the shortest way to separate child-task execution failures from runtime-contract failures. It records model choice, retry behavior, the applied `task_policy_key`, and a structured `failure_category` such as `timeout`, `invalid_model`, or `invalid_json_output`.
 
 Under the checked-in `gpt54_family` preset, debate-side local execution is now stepwise: heavier `roundtable` / `followup` steps stay on `gpt-5.4` with a longer timeout window, while narrower reviewer steps move onto a lighter `gpt-5.4-mini -> gpt-5.4` lane.
+
+For the generic local CLI adapter, `prompt-calls/*.agent-trace.json` records the host name, command, response source, timeout, and failure category.
 
 ---
 
@@ -207,11 +223,13 @@ Mark the validation as passed only if all of the following are true:
 This runner closes an important local gap:
 
 - `/debate` prompt calls can now be exercised through fixture replay or a local Chat Completions-compatible mock provider
+- `/debate` prompt calls can now be exercised through the shared generic local CLI adapter
 - `/debate` can now start directly from a persisted `/room` handoff packet, not only the canonical upgrade fixture
 
 It still does not prove:
 
 - a real external provider has executed the prompt chain
+- a real Claude Code or third-party local agent CLI has executed the prompt chain
 - a real host has passed user-provided live debate content through this chain
 - the reviewer quality itself is good enough for production use
 

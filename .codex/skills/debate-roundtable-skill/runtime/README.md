@@ -8,6 +8,7 @@ It currently does 5 concrete jobs:
 - build debate launch bundles plus checked-in roundtable/reviewer artifacts for host wiring
 - validate one checked-in reject -> followup -> re-review loop for debate-side host wiring
 - run one fixture-backed `/debate` prompt-host E2E validation flow
+- run one generic local agent CLI `/debate` prompt-host E2E validation route through the shared room-side adapter
 - run one local child-agent `/debate` prompt-host E2E validation flow
 - run one Chat Completions-compatible `/debate` prompt-host E2E validation flow against a local or external provider
 
@@ -36,6 +37,10 @@ python3 .codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_serv
 
 ```bash
 python3 .codex/skills/room-skill/runtime/local_codex_executor.py --help
+```
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_executor.py --help
 ```
 
 ```bash
@@ -168,6 +173,16 @@ python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
   --state-root /tmp/round-table-debate-from-room-packet
 ```
 
+Run the generic local agent CLI `/debate` E2E route:
+
+```bash
+python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py \
+  --executor generic_cli \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py" \
+  --scenario reject_followup \
+  --state-root /tmp/round-table-debate-generic-cli-followup
+```
+
 Run the local child-agent `/debate` E2E allow path:
 
 ```bash
@@ -275,6 +290,7 @@ Typical files:
 - `prompt-calls/*.output.json`
 - `prompt-calls/*.meta.json`
 - `prompt-calls/*.child-trace.json`
+- `prompt-calls/*.agent-trace.json`
 - `prompt-calls/*.error.json` when a prompt call fails
 - `validation-report.json`
 
@@ -290,6 +306,7 @@ This runtime closes 3 specific gaps:
 - `/room` no longer relies on a plain-text grep over `debate-roundtable-skill/SKILL.md`
 - `/debate` now has a checked-in execution bridge for launch bundle -> roundtable record -> review packet -> review result -> followup record -> rereview packet -> final review result
 - `/debate` now has a checked-in prompt-host E2E runner plus both local child-agent and local mock-provider execution lanes
+- `/debate` can also use the shared generic local agent CLI adapter, which is the portability path for Claude Code and other local agents
 - the checked-in follow-up loop now synthesizes a moderator-level integrated followup summary when the reviewer only targets debate participants
 - `/debate` can now replay a real `/room` handoff packet through that E2E runner instead of starting only from canonical packet material
 
