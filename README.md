@@ -215,6 +215,7 @@ round-table-workspace/
 ### 通用入口
 
 - 项目规则：`AGENTS.md`
+- 真源边界图：`docs/source-truth-map.md`
 - 快速路由：`docs/router.md`
 - 开发同步协议：`docs/development-sync-protocol.md`
 - 发布 readiness：`docs/release-readiness.md`

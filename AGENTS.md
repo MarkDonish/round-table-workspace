@@ -35,6 +35,7 @@ Historical material lives under:
 
 For every new development task, follow:
 
+- `docs/source-truth-map.md`
 - `docs/development-sync-protocol.md`
 - `docs/release-readiness.md` when deciding launch readiness or remaining blockers
 - `docs/release-candidate-scope.md` when creating a launch/support claim
