@@ -19,6 +19,7 @@ The current source-of-truth files for `/room` are:
 - `docs/room-runtime-bridge.md`
 - `docs/generic-local-agent-adapter.md`
 - `docs/local-agent-host-recipes.md`
+- `docs/third-party-agent-wrapper-recipes.md`
 - `docs/room-runtime-status.md`
 - `docs/room-e2e-validation.md`
 - `docs/debate-e2e-validation.md`
@@ -37,6 +38,9 @@ The current source-of-truth files for `/room` are:
 - `.codex/skills/room-skill/runtime/local_codex_regression.py`
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py`
 - `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
+- `.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py`
+- `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`
+- `.codex/skills/room-skill/runtime/wrapper_fixture_agent.py`
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py`
 - `.codex/skills/room-skill/runtime/chat_completions_readiness.py`
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py`
@@ -81,6 +85,8 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in generic fixture agent in `.codex/skills/room-skill/runtime/generic_fixture_agent.py`
 - a checked-in local agent host inventory in `.codex/skills/room-skill/runtime/agent_host_inventory.py`
 - a checked-in generic local agent adapter validation kit in `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
+- a checked-in generic agent JSON wrapper in `.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py`
+- a checked-in wrapper validation harness in `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`
 - a checked-in real Claude Code local CLI live validation wrapper in `.codex/skills/room-skill/runtime/claude_code_live_validation.py`
 - checked-in Claude Code project skill adapters in `.claude/skills/room/SKILL.md` and `.claude/skills/debate/SKILL.md`
 - a checked-in Claude Code project skill structure validator in `.claude/scripts/validate_project_skills.py`

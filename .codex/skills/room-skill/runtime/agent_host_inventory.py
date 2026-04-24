@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import shutil
 import subprocess
 import sys
@@ -113,6 +114,7 @@ def inspect_candidate(candidate: dict[str, Any], *, timeout_seconds: int) -> dic
         "executable_path": executable_path,
         "installed": executable_path is not None,
         "adapter_command": candidate.get("adapter_command"),
+        "json_wrapper_command": build_json_wrapper_command(candidate.get("adapter_command")),
         "live_readiness": "missing_cli",
         "blocker": "cli_not_found",
     }
@@ -139,6 +141,15 @@ def inspect_candidate(candidate: dict[str, Any], *, timeout_seconds: int) -> dic
             host["live_readiness"] = "blocked_auth_unknown"
             host["blocker"] = "auth_preflight_failed"
     return host
+
+
+def build_json_wrapper_command(adapter_command: str | None) -> str | None:
+    if not adapter_command:
+        return None
+    return (
+        "python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py "
+        f"--agent-command {shlex.quote(adapter_command)}"
+    )
 
 
 def run_command(command: list[str], *, timeout_seconds: int) -> dict[str, Any]:

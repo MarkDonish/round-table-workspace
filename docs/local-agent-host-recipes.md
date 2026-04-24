@@ -6,6 +6,8 @@ This document is the source of truth for real local host readiness recipes beyon
 
 The generic adapter contract is already defined in `docs/generic-local-agent-adapter.md`. This file explains how to apply that contract to real local agent hosts without pretending that fixture validation is the same as host-live validation.
 
+If a host can run non-interactively but does not emit clean JSON, use `docs/third-party-agent-wrapper-recipes.md` and validate the wrapped command instead of the raw command.
+
 ## Inventory First
 
 Run:
@@ -115,8 +117,14 @@ Then validate the wrapper, not the raw agent command:
 ```bash
 python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
   --agent-label my_wrapped_agent \
-  --agent-command "python3 path/to/my_agent_wrapper.py" \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --agent-command '<real agent command>'" \
   --state-root /tmp/round-table-my-wrapped-agent-validation
+```
+
+Validate the checked-in wrapper itself before blaming a real host:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py
 ```
 
 ## Interpreting Inventory

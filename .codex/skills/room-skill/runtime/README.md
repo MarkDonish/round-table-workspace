@@ -50,6 +50,18 @@ For the checked-in generic local agent adapter validation kit:
 python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py --help
 ```
 
+For the checked-in generic agent JSON wrapper:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --help
+```
+
+For the checked-in generic agent JSON wrapper validation:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py --help
+```
+
 For the checked-in local agent host inventory:
 
 ```bash
@@ -149,6 +161,13 @@ python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
   --state-root /tmp/round-table-generic-agent-adapter-validation
 ```
 
+Validate the generic agent JSON wrapper against noisy fixture outputs:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py \
+  --state-root /tmp/round-table-generic-agent-json-wrapper-validation
+```
+
 Inventory local agent hosts before attempting real live validation:
 
 ```bash
@@ -163,6 +182,15 @@ python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
   --agent-label my_agent \
   --agent-command "my-agent run --prompt {prompt_file} --input {input_file} --output {output_file}" \
   --state-root /tmp/round-table-my-agent-validation
+```
+
+Validate a noisy real local agent through the checked-in JSON wrapper:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
+  --agent-label my_wrapped_agent \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --agent-command '<real agent command>'" \
+  --state-root /tmp/round-table-my-wrapped-agent-validation
 ```
 
 Run the real Claude Code local CLI preflight and live wrapper:
@@ -431,6 +459,10 @@ The bridge then validates those JSON outputs and performs the state writeback th
 `local_codex_executor.py` is the checked-in local child-agent adapter. It reuses the local Codex host to run one prompt as one nested child task, normalizes the resulting JSON back into the runtime contracts, and now exposes explicit child-task reasoning control so `/room` and `/debate` do not blindly inherit the host's global `xhigh` profile.
 
 `generic_agent_adapter_validation.py` is the checked-in adapter kit for non-Codex local agents. It runs `generic_agent_executor.py --check-agent-exec` first, then runs the full `/room -> /debate` integration flow through `--executor generic_cli`. The default command uses `generic_fixture_agent.py`, so the kit can be verified offline before replacing `--agent-command` with a real third-party CLI.
+
+`generic_agent_json_wrapper.py` is the checked-in normalizer for third-party local agents that add Markdown fences, progress logs, or explanatory text around JSON. It runs the real agent command, extracts the first parseable JSON object from stdout or file output, and writes a clean JSON object back to `ROUND_TABLE_OUTPUT_JSON`.
+
+`generic_agent_json_wrapper_validation.py` validates that wrapper against `wrapper_fixture_agent.py` in three noisy modes: Markdown fenced JSON, stdout logs around JSON, and noisy output-file JSON. Passing this proves the wrapper layer, not a real third-party host.
 
 `agent_host_inventory.py` is the checked-in readiness inventory for real local agent hosts. It detects common CLI candidates, records lightweight version/auth evidence where available, and explicitly separates `missing_cli`, `blocked_auth`, and `ready_for_live_validation` from actual `/room -> /debate` live validation.
 

@@ -184,8 +184,11 @@ description: |
 - `.codex/skills/room-skill/runtime/generic_fixture_agent.py` 已提供 checked-in 的 fixture agent，用于验证 generic CLI / Claude Code adapter 路由
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供 checked-in 的真实本地 agent 宿主 inventory/preflight
 - `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py` 已提供 checked-in 的 generic local agent adapter kit，可一键跑 smoke + `/room -> /debate`
+- `.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py` 已提供 checked-in 的第三方 agent JSON 清洗 wrapper
+- `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py` 已提供 checked-in 的 wrapper 离线验证入口
 - `docs/generic-local-agent-adapter.md` 已提供其他本地 agent 的接入合同和通过标准
 - `docs/local-agent-host-recipes.md` 已提供真实宿主接入 recipes，并明确 inventory 不等于 live validation
+- `docs/third-party-agent-wrapper-recipes.md` 已提供第三方本地 agent wrapper recipes
 - `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI live validation wrapper
 - `.claude/skills/room/SKILL.md` 已提供 Claude Code 原生 project skill 入口，并指回本文件作为 canonical source
 - `.claude/scripts/validate_project_skills.py` 已提供离线结构验证，确保 Claude Code skill wrapper 没有漂移

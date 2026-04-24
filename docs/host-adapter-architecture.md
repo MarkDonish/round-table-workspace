@@ -16,6 +16,7 @@ Claude Code also gets a native project-skill discovery layer under `.claude/skil
 | Runtime bridge | Own state, validation, persistence, packet handoff, and runner orchestration | `.codex/skills/room-skill/runtime/`, `.codex/skills/debate-roundtable-skill/runtime/` |
 | Host adapter | Execute one prompt task through a concrete local agent or fallback provider and return one JSON object | `generic_agent_executor.py`, `local_codex_executor.py`, `chat_completions_executor.py` |
 | Adapter validation kit | Validate a candidate local agent CLI with smoke + full `/room -> /debate` fixture-backed integration | `generic_agent_adapter_validation.py`, `docs/generic-local-agent-adapter.md` |
+| JSON wrapper | Normalize noisy third-party local agent output into one JSON object before runtime validation | `generic_agent_json_wrapper.py`, `docs/third-party-agent-wrapper-recipes.md` |
 | Host inventory and recipes | Detect available local agent CLIs and document real-host validation recipes | `agent_host_inventory.py`, `docs/local-agent-host-recipes.md` |
 | Provider readiness | Check external provider env readiness without sending real requests | `chat_completions_readiness.py`, `docs/provider-live-readiness.md` |
 | Release readiness | Aggregate launch-scope blockers without over-claiming provider or third-party host live support | `release_readiness_check.py`, `docs/release-readiness.md` |
@@ -83,6 +84,12 @@ python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --state-root /tmp/round-table-generic-cli-integration
 ```
 
+Validate the JSON wrapper against noisy fixture outputs:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py
+```
+
 Run the one-command generic local agent adapter validation kit:
 
 ```bash
@@ -102,6 +109,15 @@ python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
   --agent-label my_agent \
   --agent-command "my-agent run --prompt {prompt_file} --input {input_file} --output {output_file}" \
   --state-root /tmp/round-table-my-agent-validation
+```
+
+Validate a real local agent through the JSON wrapper:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
+  --agent-label my_wrapped_agent \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --agent-command '<real agent command>'" \
+  --state-root /tmp/round-table-my-wrapped-agent-validation
 ```
 
 Run the same adapter route under the Claude Code executor name:
@@ -151,5 +167,6 @@ python3 .codex/skills/room-skill/runtime/chat_completions_regression.py \
 
 - `/room` and `/debate` remain local runtime protocols; provider URLs are not the mainline.
 - The generic adapter proves host portability at the CLI contract layer; each real third-party agent still needs its own live validation run.
+- The JSON wrapper can remove output formatting noise, but it cannot make a weak or non-compliant model satisfy the prompt contracts.
 - Host adapters must not mutate room or debate state directly. They return candidate prompt JSON only; the runtime bridge remains the only state writer.
 - `.claude/skills/` is a discovery layer for Claude Code users, not a second implementation source.

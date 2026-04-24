@@ -66,6 +66,7 @@ On `/room`, use:
   - `docs/host-adapter-architecture.md`
   - `docs/generic-local-agent-adapter.md`
   - `docs/local-agent-host-recipes.md`
+  - `docs/third-party-agent-wrapper-recipes.md`
   - `docs/provider-live-readiness.md`
   - `docs/release-readiness.md`
   - `docs/claude-code-skill-adapter.md`
@@ -92,6 +93,7 @@ On `/debate`, use:
   - `docs/host-adapter-architecture.md`
   - `docs/generic-local-agent-adapter.md`
   - `docs/local-agent-host-recipes.md`
+  - `docs/third-party-agent-wrapper-recipes.md`
   - `docs/provider-live-readiness.md`
   - `docs/release-readiness.md`
   - `docs/claude-code-skill-adapter.md`

@@ -10,6 +10,7 @@ The repository can be treated as ready for the current supported scope when the 
 - checked-in protocol, prompts, runtime bridges, and validation harnesses
 - Claude Code project-skill discovery layer as an adapter, not a forked implementation
 - generic local agent adapter contract and fixture-backed validation path
+- third-party local agent JSON wrapper tooling and recipes
 - Chat Completions-compatible provider fallback tooling and mock regression path
 
 This does not mean every possible host or provider is live-validated.
@@ -34,6 +35,7 @@ For the current launch scope, a P0 blocker means the repository cannot honestly 
 | Claude project-skill structure drift | Cross-host adapter discovery would point to stale or missing sources | Run and fix `python3 .claude/scripts/validate_project_skills.py` |
 | Readiness tooling failure | The release gate cannot distinguish real blockers from non-blocking live gaps | Fix `agent_host_inventory.py` or `chat_completions_readiness.py`, then rerun the gate |
 | Generic fixture adapter validation fails when included | The host-neutral adapter contract no longer runs end to end | Run with `--include-fixture-runs`, inspect the report, fix adapter/runtime drift |
+| Generic JSON wrapper validation fails when included | Noisy third-party agent output can no longer be normalized safely | Run `generic_agent_json_wrapper_validation.py`, inspect the failing mode, fix wrapper/runtime drift |
 | Dirty tree under strict gate | A release candidate cannot be reproduced from Git | Commit or discard intended changes, then rerun with `--strict-git-clean` |
 
 These are not P0 for the Codex-local launch scope:
@@ -83,6 +85,9 @@ python3 .codex/skills/room-skill/runtime/local_codex_regression.py \
 
 python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
   --state-root /tmp/round-table-generic-agent-adapter-validation
+
+python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py \
+  --state-root /tmp/round-table-generic-agent-json-wrapper-validation
 
 python3 .codex/skills/room-skill/runtime/chat_completions_regression.py \
   --state-root /tmp/round-table-chat-completions-regression

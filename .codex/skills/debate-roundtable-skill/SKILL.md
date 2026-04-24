@@ -138,8 +138,11 @@ description: |
 - `../room-skill/runtime/generic_fixture_agent.py`
 - `../room-skill/runtime/agent_host_inventory.py`
 - `../room-skill/runtime/generic_agent_adapter_validation.py`
+- `../room-skill/runtime/generic_agent_json_wrapper.py`
+- `../room-skill/runtime/generic_agent_json_wrapper_validation.py`
 - `docs/local-agent-host-recipes.md`
 - `docs/generic-local-agent-adapter.md`
+- `docs/third-party-agent-wrapper-recipes.md`
 - `docs/provider-live-readiness.md`
 - `docs/release-readiness.md`
 - `../room-skill/runtime/claude_code_live_validation.py`
@@ -161,6 +164,7 @@ description: |
 - 当前 `allow` 与 `reject_followup` 两条 `local_codex` `/debate` 链都已在 Mac 上通过 checked-in 验证
 - `generic_cli` 与 `claude_code` executor route 已通过 checked-in fixture agent 验证 adapter contract；真实 Claude Code / 其他第三方本地 agent live run 仍需单独证明
 - generic local agent adapter kit 已通过 checked-in fixture agent 验证，可作为其他本地 agent 接入 `/room -> /debate` 的 readiness check
+- generic agent JSON wrapper 已入仓，可先清洗第三方 agent 的 Markdown fence、stdout 日志或 noisy file output，再交给 runtime validators
 - local agent host inventory 已可在进入真实宿主 live run 前报告 CLI missing / auth blocked / ready 状态
 - Claude Code project skill wrapper 已通过结构验证；Claude Code 用户 clone 仓库后具备标准 `.claude/skills/debate` 发现入口
 - 真实 Claude Code live wrapper 已入仓；当前 Mac preflight 阻塞在 `claude_code_not_logged_in`

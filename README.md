@@ -34,6 +34,8 @@
 - `.codex/skills/room-skill/runtime/generic_agent_executor.py` 已提供 host-neutral 的本地 CLI agent adapter，可把同一套 prompt task 对接到 Codex、Claude Code 或其他能从 stdin 接任务并返回 JSON 的本地 agent
 - `.codex/skills/room-skill/runtime/generic_fixture_agent.py` 已提供 checked-in 的本地 fixture agent，用于验证 generic CLI / Claude Code adapter 路由而不依赖真实第三方 CLI
 - `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py` 已提供 generic local agent adapter 的一键验证入口，可用默认 fixture 或真实 agent command 跑 smoke + `/room -> /debate`
+- `.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py` 已提供第三方本地 agent JSON 清洗 wrapper，可把 Markdown fence、stdout 日志或 noisy file output 归一成单个 JSON 对象
+- `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py` 已提供 wrapper 离线验证入口，覆盖 markdown / stdout noise / output file 三类常见脏输出
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供真实本地 agent 宿主 inventory/preflight，可区分 CLI 缺失、auth 阻塞、可进入 live validation
 - `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI live validation wrapper；它先做 `claude` CLI/auth preflight，未登录时生成明确 blocked 报告，登录后可直接跑完整 `/room -> /debate`
 - `.claude/skills/room/SKILL.md` 和 `.claude/skills/debate/SKILL.md` 已提供 Claude Code 原生项目 skill 入口，指回当前真源而不是复制出第二套协议
@@ -132,6 +134,7 @@ round-table-workspace/
 │  ├─ host-adapter-architecture.md
 │  ├─ generic-local-agent-adapter.md
 │  ├─ local-agent-host-recipes.md
+│  ├─ third-party-agent-wrapper-recipes.md
 │  ├─ provider-live-readiness.md
 │  ├─ release-readiness.md
 │  ├─ claude-code-skill-adapter.md
@@ -214,6 +217,8 @@ round-table-workspace/
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
 - generic local agent 适配：`docs/generic-local-agent-adapter.md`
 - generic local agent adapter 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
+- third-party agent wrapper recipes：`docs/third-party-agent-wrapper-recipes.md`
+- generic agent JSON wrapper 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`
 - local agent host recipes：`docs/local-agent-host-recipes.md`
 - local agent host inventory：`python3 .codex/skills/room-skill/runtime/agent_host_inventory.py`
 - provider live readiness：`docs/provider-live-readiness.md`
@@ -237,6 +242,8 @@ round-table-workspace/
 - runtime bridge：`.codex/skills/room-skill/runtime/README.md`
 - generic local agent adapter：`.codex/skills/room-skill/runtime/generic_agent_executor.py`
 - generic local agent adapter validation：`.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
+- generic agent JSON wrapper：`.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py`
+- generic agent JSON wrapper validation：`.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`
 - local agent host inventory：`.codex/skills/room-skill/runtime/agent_host_inventory.py`
 - generic fixture agent：`.codex/skills/room-skill/runtime/generic_fixture_agent.py`
 - Claude Code live validation：`.codex/skills/room-skill/runtime/claude_code_live_validation.py`

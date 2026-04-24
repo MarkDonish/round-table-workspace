@@ -43,6 +43,15 @@ ROUND_TABLE_DEBATE_ID
 
 The agent command may either print one JSON object to stdout or write one JSON object to `ROUND_TABLE_OUTPUT_JSON`.
 
+If a real agent adds Markdown fences, progress logs, or explanatory text around JSON, use the checked-in JSON wrapper:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py \
+  --agent-command "<real agent command>"
+```
+
+The wrapper contract and host templates live in `docs/third-party-agent-wrapper-recipes.md`.
+
 ## One-Command Validation
 
 Before validating a real host, inventory the local machine:
@@ -55,6 +64,12 @@ Run the default offline validation with the checked-in fixture agent:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py
+```
+
+Run the wrapper validation against noisy fixture outputs:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py
 ```
 
 Validate a real local agent command:
