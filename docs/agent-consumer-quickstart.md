@@ -1,0 +1,126 @@
+# Agent Consumer Quickstart
+
+This page is for people who clone the repository and want to know whether the round-table system is usable from their local agent host.
+
+It applies to:
+
+- Codex local users
+- Claude Code users
+- other local CLI agents that can read a prompt and return JSON
+
+## One-Command Self Check
+
+Run this from the repository root:
+
+```bash
+python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
+  --state-root /tmp/round-table-agent-consumer-self-check
+```
+
+This command is safe for a fresh clone:
+
+- it does not require provider URLs
+- it does not require a paid third-party account
+- it does not send requests to real provider endpoints
+- it treats `reports/` and `artifacts/` as historical/output material, not source
+- it writes JSON and Markdown evidence under the selected `--state-root`
+
+Use the faster preflight mode when you only need source and readiness checks:
+
+```bash
+python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
+  --quick \
+  --state-root /tmp/round-table-agent-consumer-self-check-quick
+```
+
+## How To Interpret PASS
+
+A passing self-check means:
+
+- source-truth roots exist
+- the release readiness gate has no P0 blockers for the local-first scope
+- Claude Code project-skill discovery structure is valid
+- local agent host lanes are classified as `missing`, `blocked`, `pending`, or `live_passed`
+- in default mode, fixture-backed generic adapter and JSON wrapper validation passed
+
+It does not mean:
+
+- every possible third-party CLI is installed
+- a paid Claude Code account is logged in
+- provider-live execution passed
+- every host can be claimed as live-supported
+
+Only a matrix row with `matrix_status=live_passed` can be claimed as real host-live support.
+
+## Codex Path
+
+Codex is the current local-first mainline.
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_regression.py \
+  --state-root /tmp/round-table-local-codex-regression
+```
+
+If this passes, the Codex local `/room`, `/debate`, and `/room -> /debate` mainline is working on that machine.
+
+## Claude Code Path
+
+Without a paid or logged-in Claude Code account, you can still validate the project-skill adapter and fixture route:
+
+```bash
+python3 .claude/scripts/validate_project_skills.py
+
+python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
+  --executor claude_code \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py" \
+  --state-root /tmp/round-table-claude-code-adapter-fixture
+```
+
+After the local account is logged in and entitled, run:
+
+```bash
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --preflight-only \
+  --state-root /tmp/round-table-claude-code-live-preflight
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --state-root /tmp/round-table-claude-code-live
+```
+
+If the preflight reports `claude_code_not_logged_in`, the adapter is prepared but the real Claude Code live lane is blocked by account authentication.
+
+## Generic Local Agent Path
+
+Inventory local CLI hosts first:
+
+```bash
+python3 .codex/skills/room-skill/runtime/agent_host_inventory.py \
+  --output-json /tmp/round-table-agent-host-inventory.json
+```
+
+Build a durable host validation matrix:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --state-root /tmp/round-table-local-agent-host-validation-matrix
+```
+
+Validate a real host command only after the host can run non-interactively:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
+  --agent-label <host_id> \
+  --agent-command "python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --agent-command '<real agent command>'" \
+  --state-root /tmp/round-table-<host-id>-validation
+```
+
+## Provider Boundary
+
+The meeting flow is local-agent based. Provider URLs are not meeting rooms and are not required for the Codex local mainline.
+
+Only use the provider lane when intentionally validating a Chat Completions-compatible fallback provider:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py \
+  --output-json /tmp/round-table-chat-completions-readiness.json
+```

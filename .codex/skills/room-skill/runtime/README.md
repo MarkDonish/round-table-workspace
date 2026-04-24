@@ -74,6 +74,12 @@ For the checked-in local agent host validation matrix:
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py --help
 ```
 
+For the checked-in agent consumer self-check:
+
+```bash
+python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py --help
+```
+
 For the checked-in real Claude Code local CLI live validation wrapper:
 
 ```bash
@@ -195,6 +201,13 @@ Build a durable host validation matrix without forcing live third-party executio
 ```bash
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
+```
+
+Run the clone-friendly consumer self-check without provider URLs or paid third-party accounts:
+
+```bash
+python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
+  --state-root /tmp/round-table-agent-consumer-self-check
 ```
 
 Validate a real local agent command with the same contract:

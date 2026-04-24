@@ -10,6 +10,17 @@ If a host can run non-interactively but does not emit clean JSON, use `docs/thir
 
 ## Inventory First
 
+For a fresh clone or a new local agent host, start with the consumer self-check:
+
+```bash
+python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
+  --state-root /tmp/round-table-agent-consumer-self-check
+```
+
+This validates the claim-safe local-first scope without requiring provider URLs
+or paid third-party accounts. Use `docs/agent-consumer-quickstart.md` for the
+human-facing path.
+
 Run:
 
 ```bash

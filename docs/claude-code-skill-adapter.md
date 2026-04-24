@@ -17,6 +17,14 @@ The `.claude/skills/` files are adapters. They must stay small and point back to
 
 ## Validation
 
+For the full clone-friendly consumer self-check, including Claude Code project
+skill structure validation without a subscription, run:
+
+```bash
+python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
+  --state-root /tmp/round-table-agent-consumer-self-check
+```
+
 Run this offline validation without a Claude subscription:
 
 ```bash

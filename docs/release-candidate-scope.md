@@ -13,6 +13,7 @@ The repository may currently be claimed as ready for:
 - Claude Code project-skill discovery structure
 - generic local agent adapter contract with fixture-backed validation
 - third-party local agent JSON wrapper and host validation matrix tooling
+- clone-friendly agent consumer self-check tooling
 - Chat Completions-compatible fallback/mock regression tooling
 
 This is not the same as claiming every local agent host or every provider is live-validated.

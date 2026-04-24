@@ -38,6 +38,7 @@
 - `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py` 已提供 wrapper 离线验证入口，覆盖 markdown / stdout noise / output file 三类常见脏输出
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供真实本地 agent 宿主 inventory/preflight，可区分 CLI 缺失、auth 阻塞、可进入 live validation
 - `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py` 已提供真实本地 agent 宿主 validation matrix/report，可把 missing / blocked / pending / live passed / live failed 分级落盘
+- `.codex/skills/room-skill/runtime/agent_consumer_self_check.py` 已提供 clone-friendly 的消费者自检入口，可在不需要 provider URL、不需要第三方付费账号的前提下聚合 source-boundary、release readiness、Claude project skill、generic adapter fixture、JSON wrapper、host matrix 证据
 - `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI live validation wrapper；它先做 `claude` CLI/auth preflight，未登录时生成明确 blocked 报告，登录后可直接跑完整 `/room -> /debate`
 - `.codex/skills/room-skill/runtime/release_candidate_report.py` 已提供 release candidate 总报告入口，可把 release gate、host matrix、provider readiness 汇总成 claim-safe JSON/Markdown
 - `.claude/skills/room/SKILL.md` 和 `.claude/skills/debate/SKILL.md` 已提供 Claude Code 原生项目 skill 入口，指回当前真源而不是复制出第二套协议
@@ -61,6 +62,7 @@
 - `/room -> /debate generic_cli` 已通过 checked-in fixture agent 跑通完整 adapter integration
 - generic local agent adapter kit 已收口成 checked-in 文档和一键验证命令，其他本地 agent 可按同一 stdin / JSON contract 接入
 - local agent host inventory 已可输出本机真实宿主 readiness，不会把 auth blocked 或 CLI missing 误报成 live pass
+- agent consumer self-check 已可给 Codex、Claude Code 和其他本地 agent 用户生成一份 clone 后可读的 PASS/FAIL 与 next commands 报告
 - provider fallback regression 已复跑通过；provider readiness 会把当前真实 `.env.room` / `.env.debate` 的缺失配置报告为 blocked，不误报为 live pass
 - release readiness gate 已入仓；上线判断不再只依赖口头汇报或历史 reports
 - release candidate scope 和总报告生成器已入仓；当前可声明范围与不可声明范围可以一键生成审查材料
@@ -228,6 +230,8 @@ round-table-workspace/
 - 当前 release candidate notes：`docs/releases/v0.1.0-rc1.md`
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
 - generic local agent 适配：`docs/generic-local-agent-adapter.md`
+- agent consumer quickstart：`docs/agent-consumer-quickstart.md`
+- agent consumer self-check：`python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py`
 - generic local agent adapter 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
 - third-party agent wrapper recipes：`docs/third-party-agent-wrapper-recipes.md`
 - generic agent JSON wrapper 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`

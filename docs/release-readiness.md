@@ -12,6 +12,7 @@ The repository can be treated as ready for the current supported scope when the 
 - generic local agent adapter contract and fixture-backed validation path
 - third-party local agent JSON wrapper tooling and recipes
 - third-party local agent validation matrix/report tooling
+- clone-friendly agent consumer self-check tooling
 - Chat Completions-compatible provider fallback tooling and mock regression path
 
 This does not mean every possible host or provider is live-validated.
@@ -117,6 +118,9 @@ python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.p
 
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
+
+python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
+  --state-root /tmp/round-table-agent-consumer-self-check
 
 python3 .codex/skills/room-skill/runtime/chat_completions_regression.py \
   --state-root /tmp/round-table-chat-completions-regression

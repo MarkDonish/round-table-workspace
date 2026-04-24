@@ -54,6 +54,17 @@ The wrapper contract and host templates live in `docs/third-party-agent-wrapper-
 
 ## One-Command Validation
 
+For clone-friendly consumer validation across Codex, Claude Code project-skill
+adapters, generic adapter fixtures, host inventory, and source-boundary checks,
+run:
+
+```bash
+python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
+  --state-root /tmp/round-table-agent-consumer-self-check
+```
+
+The human-facing quickstart lives in `docs/agent-consumer-quickstart.md`.
+
 Before validating a real host, inventory the local machine:
 
 ```bash

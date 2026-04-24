@@ -8,6 +8,16 @@ may claim the Codex local mainline scope only when the checked-in gate has no P0
 blockers. Real third-party host-live and provider-live support require their own
 live validation evidence.
 
+## Unreleased
+
+### Added
+
+- Source-truth boundary audit tooling and historical materials guidance to keep
+  `reports/` and `artifacts/` from being mistaken for active implementation
+  source.
+- Clone-friendly agent consumer self-check and quickstart documentation for
+  Codex, Claude Code, and generic local agent users.
+
 ## v0.1.0-rc1 - 2026-04-24
 
 Release candidate for the Codex local mainline scope.
