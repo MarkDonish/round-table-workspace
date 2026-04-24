@@ -182,6 +182,8 @@ description: |
 - `.codex/skills/room-skill/runtime/local_codex_executor.py` 已提供 checked-in 的本地 child-agent 执行器
 - `.codex/skills/room-skill/runtime/generic_agent_executor.py` 已提供 checked-in 的 host-neutral 本地 CLI agent adapter，用于 Codex 之外的 Claude Code / 其他本地 agent 适配
 - `.codex/skills/room-skill/runtime/generic_fixture_agent.py` 已提供 checked-in 的 fixture agent，用于验证 generic CLI / Claude Code adapter 路由
+- `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py` 已提供 checked-in 的 generic local agent adapter kit，可一键跑 smoke + `/room -> /debate`
+- `docs/generic-local-agent-adapter.md` 已提供其他本地 agent 的接入合同和通过标准
 - `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI live validation wrapper
 - `.claude/skills/room/SKILL.md` 已提供 Claude Code 原生 project skill 入口，并指回本文件作为 canonical source
 - `.claude/scripts/validate_project_skills.py` 已提供离线结构验证，确保 Claude Code skill wrapper 没有漂移
@@ -195,6 +197,7 @@ description: |
 - `/room local_codex` 已在 Mac 上通过 checked-in E2E 验证
 - `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证
 - `/room -> /debate generic_cli` 和 `claude_code` executor route 已通过 checked-in fixture agent 验证 adapter contract；真实 Claude Code / 其他第三方本地 agent live run 仍需单独证明
+- generic local agent adapter kit 已通过 checked-in fixture agent 验证，其他 agent 可复用同一命令做 live readiness check
 - Claude Code project skill wrapper 已通过结构验证；Claude Code 用户 clone 仓库后具备标准 `.claude/skills/room` 发现入口
 - 当前 Mac 上真实 Claude Code preflight 已确认 CLI 可用，但 auth 未登录，live run 被 `claude_code_not_logged_in` 阻塞
 - checked-in child-agent 执行器现在可显式控制 child task 的 reasoning effort，不必继承宿主全局 `xhigh`

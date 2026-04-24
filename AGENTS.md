@@ -63,6 +63,7 @@ On `/room`, use:
   - `docs/room-runtime-status.md`
   - `docs/room-runtime-bridge.md`
   - `docs/host-adapter-architecture.md`
+  - `docs/generic-local-agent-adapter.md`
   - `docs/claude-code-skill-adapter.md`
   - `docs/room-architecture.md`
   - `docs/room-selection-policy.md`
@@ -85,6 +86,7 @@ On `/debate`, use:
 - Supporting docs:
   - `docs/debate-runtime-bridge.md`
   - `docs/host-adapter-architecture.md`
+  - `docs/generic-local-agent-adapter.md`
   - `docs/claude-code-skill-adapter.md`
   - `docs/debate-skill-architecture.md`
   - `docs/agent-role-map.md`

@@ -15,6 +15,7 @@ Claude Code also gets a native project-skill discovery layer under `.claude/skil
 | Protocol prompts | Define JSON input/output contracts for room selection, room chat, summary, upgrade, debate roundtable, review, and follow-up | `prompts/` |
 | Runtime bridge | Own state, validation, persistence, packet handoff, and runner orchestration | `.codex/skills/room-skill/runtime/`, `.codex/skills/debate-roundtable-skill/runtime/` |
 | Host adapter | Execute one prompt task through a concrete local agent or fallback provider and return one JSON object | `generic_agent_executor.py`, `local_codex_executor.py`, `chat_completions_executor.py` |
+| Adapter validation kit | Validate a candidate local agent CLI with smoke + full `/room -> /debate` fixture-backed integration | `generic_agent_adapter_validation.py`, `docs/generic-local-agent-adapter.md` |
 | Claude Code skill adapter | Provide native Claude Code project skill discovery for `/room` and `/debate` | `.claude/skills/room/SKILL.md`, `.claude/skills/debate/SKILL.md` |
 
 ## Supported Adapters
@@ -22,7 +23,7 @@ Claude Code also gets a native project-skill discovery layer under `.claude/skil
 | Adapter | Executor name | Current status | Intended use |
 |---|---|---|---|
 | Canonical fixture | `fixture` | Validated | Deterministic protocol/runtime regression |
-| Generic local CLI agent | `generic_cli` | Adapter path validated with `generic_fixture_agent.py` | Any local agent CLI that can read a task prompt from stdin and return JSON |
+| Generic local CLI agent | `generic_cli` | Adapter path and one-command validation kit validated with `generic_fixture_agent.py` | Any local agent CLI that can read a task prompt from stdin and return JSON |
 | Claude Code local CLI | `claude_code` | Adapter route validated with `generic_fixture_agent.py`; live wrapper checked in; current Mac preflight is blocked by `claude_code_not_logged_in` | Claude Code or Claude-compatible local command |
 | Codex local child task | `local_codex` | Mac and Windows mainline validated | Codex-first local runtime lane |
 | Chat Completions provider | `chat_completions` | Mock provider validated; real live provider pending | Fallback/regression lane, not the local mainline |
@@ -77,6 +78,21 @@ python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
   --executor generic_cli \
   --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py" \
   --state-root /tmp/round-table-generic-cli-integration
+```
+
+Run the one-command generic local agent adapter validation kit:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py
+```
+
+Validate a real local agent command:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
+  --agent-label my_agent \
+  --agent-command "my-agent run --prompt {prompt_file} --input {input_file} --output {output_file}" \
+  --state-root /tmp/round-table-my-agent-validation
 ```
 
 Run the same adapter route under the Claude Code executor name:

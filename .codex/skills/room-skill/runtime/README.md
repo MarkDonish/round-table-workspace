@@ -44,6 +44,12 @@ For the checked-in generic local agent CLI adapter:
 python3 .codex/skills/room-skill/runtime/generic_agent_executor.py --help
 ```
 
+For the checked-in generic local agent adapter validation kit:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py --help
+```
+
 For the checked-in real Claude Code local CLI live validation wrapper:
 
 ```bash
@@ -116,6 +122,22 @@ Run a generic local agent CLI smoke test:
 python3 .codex/skills/room-skill/runtime/generic_agent_executor.py \
   --check-agent-exec \
   --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py"
+```
+
+Run the one-command generic local agent adapter validation kit:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
+  --state-root /tmp/round-table-generic-agent-adapter-validation
+```
+
+Validate a real local agent command with the same contract:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
+  --agent-label my_agent \
+  --agent-command "my-agent run --prompt {prompt_file} --input {input_file} --output {output_file}" \
+  --state-root /tmp/round-table-my-agent-validation
 ```
 
 Run the real Claude Code local CLI preflight and live wrapper:
@@ -368,6 +390,8 @@ It assumes some host or operator already called:
 The bridge then validates those JSON outputs and performs the state writeback that only the host is allowed to perform.
 
 `local_codex_executor.py` is the checked-in local child-agent adapter. It reuses the local Codex host to run one prompt as one nested child task, normalizes the resulting JSON back into the runtime contracts, and now exposes explicit child-task reasoning control so `/room` and `/debate` do not blindly inherit the host's global `xhigh` profile.
+
+`generic_agent_adapter_validation.py` is the checked-in adapter kit for non-Codex local agents. It runs `generic_agent_executor.py --check-agent-exec` first, then runs the full `/room -> /debate` integration flow through `--executor generic_cli`. The default command uses `generic_fixture_agent.py`, so the kit can be verified offline before replacing `--agent-command` with a real third-party CLI.
 
 It also exposes a checked-in `gpt54_family` preset. That preset freezes the currently validated Mac-local lane: `gpt-5.4` primary child-task model, `gpt-5.4-mini` same-family fallback, `low` reasoning effort, bounded timeouts, and prompt-level step policies.
 
