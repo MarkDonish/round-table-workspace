@@ -37,6 +37,7 @@
 - `.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py` 已提供第三方本地 agent JSON 清洗 wrapper，可把 Markdown fence、stdout 日志或 noisy file output 归一成单个 JSON 对象
 - `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py` 已提供 wrapper 离线验证入口，覆盖 markdown / stdout noise / output file 三类常见脏输出
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供真实本地 agent 宿主 inventory/preflight，可区分 CLI 缺失、auth 阻塞、可进入 live validation
+- `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py` 已提供真实本地 agent 宿主 validation matrix/report，可把 missing / blocked / pending / live passed / live failed 分级落盘
 - `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI live validation wrapper；它先做 `claude` CLI/auth preflight，未登录时生成明确 blocked 报告，登录后可直接跑完整 `/room -> /debate`
 - `.claude/skills/room/SKILL.md` 和 `.claude/skills/debate/SKILL.md` 已提供 Claude Code 原生项目 skill 入口，指回当前真源而不是复制出第二套协议
 - `.claude/scripts/validate_project_skills.py` 已提供不依赖 Claude 账号的 Claude Code project skill 结构验证入口
@@ -221,6 +222,7 @@ round-table-workspace/
 - generic agent JSON wrapper 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`
 - local agent host recipes：`docs/local-agent-host-recipes.md`
 - local agent host inventory：`python3 .codex/skills/room-skill/runtime/agent_host_inventory.py`
+- local agent host validation matrix：`python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py`
 - provider live readiness：`docs/provider-live-readiness.md`
 - provider readiness check：`python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py`
 - Claude Code skill 适配：`docs/claude-code-skill-adapter.md`
@@ -245,6 +247,7 @@ round-table-workspace/
 - generic agent JSON wrapper：`.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py`
 - generic agent JSON wrapper validation：`.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`
 - local agent host inventory：`.codex/skills/room-skill/runtime/agent_host_inventory.py`
+- local agent host validation matrix：`.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py`
 - generic fixture agent：`.codex/skills/room-skill/runtime/generic_fixture_agent.py`
 - Claude Code live validation：`.codex/skills/room-skill/runtime/claude_code_live_validation.py`
 - local child-agent executor：`.codex/skills/room-skill/runtime/local_codex_executor.py`

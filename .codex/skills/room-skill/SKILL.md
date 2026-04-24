@@ -183,6 +183,7 @@ description: |
 - `.codex/skills/room-skill/runtime/generic_agent_executor.py` 已提供 checked-in 的 host-neutral 本地 CLI agent adapter，用于 Codex 之外的 Claude Code / 其他本地 agent 适配
 - `.codex/skills/room-skill/runtime/generic_fixture_agent.py` 已提供 checked-in 的 fixture agent，用于验证 generic CLI / Claude Code adapter 路由
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供 checked-in 的真实本地 agent 宿主 inventory/preflight
+- `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py` 已提供 checked-in 的真实本地 agent 宿主 validation matrix/report
 - `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py` 已提供 checked-in 的 generic local agent adapter kit，可一键跑 smoke + `/room -> /debate`
 - `.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py` 已提供 checked-in 的第三方 agent JSON 清洗 wrapper
 - `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py` 已提供 checked-in 的 wrapper 离线验证入口
@@ -206,6 +207,7 @@ description: |
 - `/room -> /debate generic_cli` 和 `claude_code` executor route 已通过 checked-in fixture agent 验证 adapter contract；真实 Claude Code / 其他第三方本地 agent live run 仍需单独证明
 - generic local agent adapter kit 已通过 checked-in fixture agent 验证，其他 agent 可复用同一命令做 live readiness check
 - local agent host inventory 已可区分 CLI missing、auth blocked、ready for live validation，避免把本机 preflight 阻塞误报成通过
+- local agent host validation matrix 已可把 missing / blocked / pending / live passed / live failed 分级落盘，避免把未跑 live 的宿主误报成已支持
 - Claude Code project skill wrapper 已通过结构验证；Claude Code 用户 clone 仓库后具备标准 `.claude/skills/room` 发现入口
 - 当前 Mac 上真实 Claude Code preflight 已确认 CLI 可用，但 auth 未登录，live run 被 `claude_code_not_logged_in` 阻塞
 - checked-in child-agent 执行器现在可显式控制 child task 的 reasoning effort，不必继承宿主全局 `xhigh`

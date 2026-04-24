@@ -60,6 +60,13 @@ Before validating a real host, inventory the local machine:
 python3 .codex/skills/room-skill/runtime/agent_host_inventory.py
 ```
 
+Build a host validation matrix to persist missing/blocked/pending/live status before claiming support:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --state-root /tmp/round-table-local-agent-host-validation-matrix
+```
+
 Run the default offline validation with the checked-in fixture agent:
 
 ```bash

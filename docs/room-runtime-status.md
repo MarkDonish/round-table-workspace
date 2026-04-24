@@ -37,6 +37,7 @@ The current source-of-truth files for `/room` are:
 - `.codex/skills/room-skill/runtime/local_codex_executor.py`
 - `.codex/skills/room-skill/runtime/local_codex_regression.py`
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py`
+- `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py`
 - `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
 - `.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py`
 - `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`
@@ -84,6 +85,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in host-neutral local CLI agent adapter in `.codex/skills/room-skill/runtime/generic_agent_executor.py`
 - a checked-in generic fixture agent in `.codex/skills/room-skill/runtime/generic_fixture_agent.py`
 - a checked-in local agent host inventory in `.codex/skills/room-skill/runtime/agent_host_inventory.py`
+- a checked-in local agent host validation matrix/report in `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py`
 - a checked-in generic local agent adapter validation kit in `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
 - a checked-in generic agent JSON wrapper in `.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py`
 - a checked-in wrapper validation harness in `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`
@@ -134,6 +136,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a validated `generic_cli` `/room -> /debate` adapter integration path using the checked-in fixture agent
 - a validated generic local agent adapter kit that runs smoke + full `/room -> /debate` through the fixture-backed generic CLI contract
 - a checked-in local agent host inventory path that distinguishes installed, missing, auth-blocked, and ready-for-live-validation hosts
+- a checked-in local agent host validation matrix path that persists missing / blocked / pending / live passed / live failed rows before any support claim
 - a validated `claude_code` executor route using the checked-in fixture agent; real Claude Code CLI execution remains a separate host-live validation
 - validated Claude Code project skill structure, so Claude Code users get native `.claude/skills/` discovery entries after cloning the repo
 - a current Mac Claude Code preflight result showing the CLI is installed (`2.1.114`) but live validation is blocked by `claude_code_not_logged_in`

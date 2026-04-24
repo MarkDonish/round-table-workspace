@@ -17,7 +17,7 @@ Claude Code also gets a native project-skill discovery layer under `.claude/skil
 | Host adapter | Execute one prompt task through a concrete local agent or fallback provider and return one JSON object | `generic_agent_executor.py`, `local_codex_executor.py`, `chat_completions_executor.py` |
 | Adapter validation kit | Validate a candidate local agent CLI with smoke + full `/room -> /debate` fixture-backed integration | `generic_agent_adapter_validation.py`, `docs/generic-local-agent-adapter.md` |
 | JSON wrapper | Normalize noisy third-party local agent output into one JSON object before runtime validation | `generic_agent_json_wrapper.py`, `docs/third-party-agent-wrapper-recipes.md` |
-| Host inventory and recipes | Detect available local agent CLIs and document real-host validation recipes | `agent_host_inventory.py`, `docs/local-agent-host-recipes.md` |
+| Host inventory, matrix, and recipes | Detect available local agent CLIs, classify missing/blocked/pending/passed/failed lanes, and document real-host validation recipes | `agent_host_inventory.py`, `local_agent_host_validation_matrix.py`, `docs/local-agent-host-recipes.md` |
 | Provider readiness | Check external provider env readiness without sending real requests | `chat_completions_readiness.py`, `docs/provider-live-readiness.md` |
 | Release readiness | Aggregate launch-scope blockers without over-claiming provider or third-party host live support | `release_readiness_check.py`, `docs/release-readiness.md` |
 | Claude Code skill adapter | Provide native Claude Code project skill discovery for `/room` and `/debate` | `.claude/skills/room/SKILL.md`, `.claude/skills/debate/SKILL.md` |
@@ -100,6 +100,20 @@ Inventory local agent hosts before attempting real live validation:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/agent_host_inventory.py
+```
+
+Build the safe host validation matrix without forcing live execution:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py
+```
+
+Run live validation only for hosts that inventory reports as ready:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --run-live-ready \
+  --state-root /tmp/round-table-local-agent-host-validation-matrix
 ```
 
 Validate a real local agent command:

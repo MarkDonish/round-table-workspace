@@ -137,6 +137,7 @@ description: |
 - `../room-skill/runtime/generic_agent_executor.py`
 - `../room-skill/runtime/generic_fixture_agent.py`
 - `../room-skill/runtime/agent_host_inventory.py`
+- `../room-skill/runtime/local_agent_host_validation_matrix.py`
 - `../room-skill/runtime/generic_agent_adapter_validation.py`
 - `../room-skill/runtime/generic_agent_json_wrapper.py`
 - `../room-skill/runtime/generic_agent_json_wrapper_validation.py`
@@ -166,6 +167,7 @@ description: |
 - generic local agent adapter kit 已通过 checked-in fixture agent 验证，可作为其他本地 agent 接入 `/room -> /debate` 的 readiness check
 - generic agent JSON wrapper 已入仓，可先清洗第三方 agent 的 Markdown fence、stdout 日志或 noisy file output，再交给 runtime validators
 - local agent host inventory 已可在进入真实宿主 live run 前报告 CLI missing / auth blocked / ready 状态
+- local agent host validation matrix 已可把真实宿主 lane 分成 missing / blocked / pending / live passed / live failed，只有 live passed 能作为支持声明
 - Claude Code project skill wrapper 已通过结构验证；Claude Code 用户 clone 仓库后具备标准 `.claude/skills/debate` 发现入口
 - 真实 Claude Code live wrapper 已入仓；当前 Mac preflight 阻塞在 `claude_code_not_logged_in`
 - 本地主线参数已可通过 checked-in `gpt54_family` preset 直接复用，不必每次手工拼接 `GPT-5.4` family 参数

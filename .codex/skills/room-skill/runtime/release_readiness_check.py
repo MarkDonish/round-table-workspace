@@ -37,6 +37,7 @@ REQUIRED_RUNTIME_FILES: list[str] = [
     ".codex/skills/room-skill/runtime/generic_agent_json_wrapper.py",
     ".codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py",
     ".codex/skills/room-skill/runtime/agent_host_inventory.py",
+    ".codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py",
     ".codex/skills/room-skill/runtime/chat_completions_readiness.py",
     ".codex/skills/room-skill/runtime/chat_completions_regression.py",
     ".codex/skills/room-skill/runtime/chat_completions_live_validation.py",
@@ -110,6 +111,17 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
         ],
         timeout_seconds=args.timeout_seconds + 5,
     )
+    host_validation_matrix = run_json_command(
+        [
+            sys.executable,
+            ".codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py",
+            "--timeout-seconds",
+            str(args.timeout_seconds),
+            "--state-root",
+            str(state_root / "local-agent-host-validation-matrix"),
+        ],
+        timeout_seconds=args.timeout_seconds + 10,
+    )
     provider_readiness = run_json_command(
         [sys.executable, ".codex/skills/room-skill/runtime/chat_completions_readiness.py"],
         timeout_seconds=args.timeout_seconds,
@@ -143,6 +155,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
         git_state=git_state,
         claude_skills=claude_skills,
         agent_inventory=agent_inventory,
+        host_validation_matrix=host_validation_matrix,
         provider_readiness=provider_readiness,
         fixture_validation=fixture_validation,
         wrapper_validation=wrapper_validation,
@@ -150,6 +163,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
     )
     non_blocking_gaps = build_non_blocking_gaps(
         agent_inventory=agent_inventory,
+        host_validation_matrix=host_validation_matrix,
         provider_readiness=provider_readiness,
         fixture_validation=fixture_validation,
         include_fixture_runs=args.include_fixture_runs,
@@ -160,6 +174,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
         "runtime_entrypoints_present": runtime_files["ok"],
         "claude_project_skill_structure_passed": command_ok(claude_skills),
         "agent_host_inventory_tooling_passed": command_ok(agent_inventory),
+        "local_agent_host_validation_matrix_tooling_passed": command_ok(host_validation_matrix),
         "provider_readiness_tooling_passed": command_ok(provider_readiness),
         "fixture_adapter_validation_passed_or_not_requested": (
             True if fixture_validation is None else command_ok(fixture_validation)
@@ -187,6 +202,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
                     else "generic local agent adapter contract source"
                 ),
                 "third-party local agent JSON wrapper tooling and recipes",
+                "third-party local agent validation matrix/report tooling",
                 "provider fallback readiness tooling and mock regression source",
             ],
             "not_claimed": [
@@ -205,6 +221,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
             "git_state": git_state,
             "claude_project_skills": summarize_command(claude_skills),
             "agent_host_inventory": summarize_command(agent_inventory),
+            "local_agent_host_validation_matrix": summarize_command(host_validation_matrix),
             "provider_readiness": summarize_command(provider_readiness),
             "generic_fixture_validation": summarize_command(fixture_validation) if fixture_validation else None,
             "json_wrapper_validation": summarize_command(wrapper_validation) if wrapper_validation else None,
@@ -214,6 +231,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
             "python3 .codex/skills/room-skill/runtime/chat_completions_regression.py --state-root /tmp/round-table-chat-completions-regression",
             "python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py --state-root /tmp/round-table-generic-agent-adapter-validation",
             "python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py --state-root /tmp/round-table-generic-agent-json-wrapper-validation",
+            "python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py --state-root /tmp/round-table-local-agent-host-validation-matrix",
         ],
     }
 
@@ -263,6 +281,7 @@ def build_p0_blockers(
     git_state: dict[str, Any],
     claude_skills: dict[str, Any],
     agent_inventory: dict[str, Any],
+    host_validation_matrix: dict[str, Any],
     provider_readiness: dict[str, Any],
     fixture_validation: dict[str, Any] | None,
     wrapper_validation: dict[str, Any] | None,
@@ -277,6 +296,13 @@ def build_p0_blockers(
         blockers.append({"id": "claude_project_skill_structure_failed", "detail": command_failure_detail(claude_skills)})
     if not command_ok(agent_inventory):
         blockers.append({"id": "agent_host_inventory_tooling_failed", "detail": command_failure_detail(agent_inventory)})
+    if not command_ok(host_validation_matrix):
+        blockers.append(
+            {
+                "id": "local_agent_host_validation_matrix_tooling_failed",
+                "detail": command_failure_detail(host_validation_matrix),
+            }
+        )
     if not command_ok(provider_readiness):
         blockers.append({"id": "provider_readiness_tooling_failed", "detail": command_failure_detail(provider_readiness)})
     if fixture_validation is not None and not command_ok(fixture_validation):
@@ -291,6 +317,7 @@ def build_p0_blockers(
 def build_non_blocking_gaps(
     *,
     agent_inventory: dict[str, Any],
+    host_validation_matrix: dict[str, Any],
     provider_readiness: dict[str, Any],
     fixture_validation: dict[str, Any] | None,
     include_fixture_runs: bool,
@@ -325,6 +352,17 @@ def build_non_blocking_gaps(
                 "id": "some_local_agent_hosts_missing",
                 "why_not_p0": "missing third-party CLIs only block those host recipes",
                 "detail": missing_hosts,
+            }
+        )
+
+    matrix_payload = host_validation_matrix.get("json") or {}
+    matrix_summary = matrix_payload.get("summary", {})
+    if command_ok(host_validation_matrix) and not matrix_summary.get("live_passed_hosts"):
+        gaps.append(
+            {
+                "id": "no_real_third_party_agent_host_live_passed",
+                "why_not_p0": "the current launch scope is Codex local mainline; host-live support is claimed per host only",
+                "detail": "Run local_agent_host_validation_matrix.py with --run-live-ready or a specific --agent-command before claiming a real third-party host.",
             }
         )
 

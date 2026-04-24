@@ -68,6 +68,12 @@ For the checked-in local agent host inventory:
 python3 .codex/skills/room-skill/runtime/agent_host_inventory.py --help
 ```
 
+For the checked-in local agent host validation matrix:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py --help
+```
+
 For the checked-in real Claude Code local CLI live validation wrapper:
 
 ```bash
@@ -173,6 +179,13 @@ Inventory local agent hosts before attempting real live validation:
 ```bash
 python3 .codex/skills/room-skill/runtime/agent_host_inventory.py \
   --output-json /tmp/round-table-agent-host-inventory.json
+```
+
+Build a durable host validation matrix without forcing live third-party execution:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --state-root /tmp/round-table-local-agent-host-validation-matrix
 ```
 
 Validate a real local agent command with the same contract:
@@ -466,6 +479,8 @@ The bridge then validates those JSON outputs and performs the state writeback th
 
 `agent_host_inventory.py` is the checked-in readiness inventory for real local agent hosts. It detects common CLI candidates, records lightweight version/auth evidence where available, and explicitly separates `missing_cli`, `blocked_auth`, and `ready_for_live_validation` from actual `/room -> /debate` live validation.
 
+`local_agent_host_validation_matrix.py` is the checked-in evidence matrix for real local agent hosts. It safely persists `missing_cli`, `blocked`, `pending_live_validation`, `live_passed`, and `live_failed` rows, and only runs live validations when explicitly requested by `--run-live-ready`, `--run-installed`, or `--force-host`.
+
 It also exposes a checked-in `gpt54_family` preset. That preset freezes the currently validated Mac-local lane: `gpt-5.4` primary child-task model, `gpt-5.4-mini` same-family fallback, `low` reasoning effort, bounded timeouts, and prompt-level step policies.
 
 It now also exposes `--check-host-preflight`, which verifies the local `~/.codex` storage prerequisites that nested child tasks depend on, then runs the same checked-in smoke probe. This makes the host-side failure boundary explicit before `/room` or `/debate` work starts.
@@ -549,7 +564,7 @@ For a real handoff, `prepare` should be run from a clean committed tree; when th
 
 `chat_completions_live_validation.py` is the checked-in real-provider wrapper for the remaining unproven external lane. It first validates `.env.room` and `.env.debate` through the same checked-in provider-config reader, persists both preflight results, then launches the full `/room -> /debate` integration flow through `--executor chat_completions`. It also writes a failure report when env files are missing or still using template placeholder values.
 
-`release_readiness_check.py` is the checked-in launch-scope gate. It aggregates source-of-truth presence, runtime entrypoint presence, Claude Code project-skill structure, local agent host inventory, and provider config readiness without sending real provider requests. It reports P0 blockers separately from non-blocking gaps such as missing third-party CLIs, Claude auth blockers, or provider env files that are not ready.
+`release_readiness_check.py` is the checked-in launch-scope gate. It aggregates source-of-truth presence, runtime entrypoint presence, Claude Code project-skill structure, local agent host inventory, local agent host validation matrix tooling, and provider config readiness without sending real provider requests. It reports P0 blockers separately from non-blocking gaps such as missing third-party CLIs, Claude auth blockers, or provider env files that are not ready.
 
 Because nested child tasks persist session and state data under `~/.codex/`, the `local_codex` mainline should be run from a normal local terminal or any host environment that permits writing `~/.codex/sessions` and the local Codex state DB. A tighter sandbox can make the chain fail before prompt execution even starts.
 

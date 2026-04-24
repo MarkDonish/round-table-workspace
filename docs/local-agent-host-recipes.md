@@ -25,6 +25,36 @@ This checks common local agent CLIs on `PATH` and reports whether each host is:
 
 The inventory does not execute `/room` or `/debate`. It only tells you whether a real host is available enough to attempt the next validation step.
 
+## Validation Matrix
+
+Use the matrix command when you need a durable report that separates missing, auth-blocked, pending, passed, and failed host lanes:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --state-root /tmp/round-table-local-agent-host-validation-matrix
+```
+
+By default this command does not force real third-party agent execution. It writes JSON and Markdown evidence and keeps blocked hosts blocked instead of pretending they passed.
+
+When inventory reports a host as `ready_for_live_validation`, run only those ready hosts:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --run-live-ready \
+  --state-root /tmp/round-table-local-agent-host-validation-matrix
+```
+
+For an installed host that needs an explicit command override:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --run-installed \
+  --agent-command "my_agent=my-agent run --prompt {prompt_file} --input {input_file} --output {output_file}" \
+  --state-root /tmp/round-table-my-agent-host-validation
+```
+
+Only `matrix_status: "live_passed"` may be used as real host-live support evidence.
+
 ## Claude Code Recipe
 
 Claude Code has two layers in this repository:
@@ -140,6 +170,7 @@ If inventory shows `live_readiness: "ready_for_live_validation"`, run the host-s
 ## Boundary
 
 - Do not treat inventory as live validation.
+- Do not treat a matrix `blocked`, `missing_cli`, or `pending_live_validation` row as support evidence.
 - Do not treat fixture validation as proof that a real third-party model follows the prompt contract.
 - Do not require provider URLs for the local mainline.
 - Do not let real agent wrappers mutate `/room` or `/debate` state directly.
