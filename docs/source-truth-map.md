@@ -51,3 +51,16 @@ Runtime outputs under `artifacts/runtime/` are evidence. They are not source.
 New generated room output under `artifacts/runtime/rooms/` is ignored by Git by
 default. Commit runtime output only when it is intentionally promoted into a
 durable fixture, rendered export, or human-reviewed evidence file.
+
+## Boundary Audit
+
+When historical material may be confused with active source, run:
+
+```bash
+python3 .codex/skills/room-skill/runtime/source_boundary_audit.py --output-json /tmp/round-table-source-boundary-audit.json
+```
+
+The audit is read-only. Basename collisions between `reports/` or `artifacts/`
+and active source files are expected historical-risk signals, not release
+failures by themselves. Use `docs/historical-materials-audit.md` to interpret
+the output.

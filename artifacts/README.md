@@ -42,3 +42,14 @@ Before editing behavior, start from:
 
 If an artifact reveals a real behavior change, update the active source files
 and validation commands. Do not patch the artifact as the fix.
+
+## Boundary Audit
+
+If an artifact name overlaps with an active source file, keep the artifact as
+runtime evidence or fixture material and run:
+
+```bash
+python3 .codex/skills/room-skill/runtime/source_boundary_audit.py --output-json /tmp/round-table-source-boundary-audit.json
+```
+
+See `docs/historical-materials-audit.md` for interpretation rules.

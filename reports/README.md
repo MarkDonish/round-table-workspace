@@ -37,3 +37,14 @@ Start from these files before using any report:
 - `docs/room-runtime-status.md`
 
 Reports can support investigation, but they must not override those files.
+
+## Boundary Audit
+
+If a report name overlaps with an active source file, keep the report as
+historical evidence and run:
+
+```bash
+python3 .codex/skills/room-skill/runtime/source_boundary_audit.py --output-json /tmp/round-table-source-boundary-audit.json
+```
+
+See `docs/historical-materials-audit.md` for interpretation rules.

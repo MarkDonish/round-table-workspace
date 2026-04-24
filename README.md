@@ -222,6 +222,8 @@ round-table-workspace/
 - 发布 readiness 检查：`python3 .codex/skills/room-skill/runtime/release_readiness_check.py`
 - release candidate scope：`docs/release-candidate-scope.md`
 - release candidate 总报告：`python3 .codex/skills/room-skill/runtime/release_candidate_report.py`
+- 历史材料边界审计：`docs/historical-materials-audit.md`
+- source boundary audit：`python3 .codex/skills/room-skill/runtime/source_boundary_audit.py`
 - changelog：`CHANGELOG.md`
 - 当前 release candidate notes：`docs/releases/v0.1.0-rc1.md`
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
