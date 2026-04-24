@@ -61,6 +61,19 @@ python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
 
 This is the portability adapter path for Claude Code and other local agent CLIs. The checked-in fixture agent validates the adapter contract; each real third-party CLI still needs a live host validation run.
 
+Real Claude Code local CLI validation wrapper:
+
+```bash
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --preflight-only \
+  --state-root /tmp/round-table-claude-code-live-preflight
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --state-root /tmp/round-table-claude-code-live
+```
+
+The wrapper writes a structured blocked report when `claude auth status` returns `loggedIn=false`. It should only be counted as a host-live pass after the full non-`--preflight-only` run completes with `full_chain_passed=true`.
+
 Fixture-backed smoke path:
 
 ```bash
@@ -358,6 +371,7 @@ As of 2026-04-21, the main blockers before this validation can fully pass are:
 - the checked-in E2E runner and mock provider now exist, but a real external `--executor chat_completions --env-file .env.room` run is still missing
 - `/debate` handoff is now checked by a checked-in executable preflight, but not yet by a real live `/debate` execution chain
 - generic CLI and Claude Code adapter routes are fixture-validated, but real Claude Code / third-party local agent live runs are still separate validation tasks
+- current Mac Claude Code live preflight is blocked by `claude_code_not_logged_in`
 - local terminal Git access on this Mac still depends on GitHub trust for the generated SSH key
 
 ---

@@ -136,6 +136,7 @@ description: |
 - `../room-skill/runtime/local_codex_executor.py`
 - `../room-skill/runtime/generic_agent_executor.py`
 - `../room-skill/runtime/generic_fixture_agent.py`
+- `../room-skill/runtime/claude_code_live_validation.py`
 - `runtime/mock_chat_completions_server.py`
 - `runtime/README.md`
 
@@ -147,6 +148,7 @@ description: |
 - 通过本地 Chat Completions-compatible mock provider 回放 canonical debate outputs
 - 当前 `allow` 与 `reject_followup` 两条 `local_codex` `/debate` 链都已在 Mac 上通过 checked-in 验证
 - `generic_cli` 与 `claude_code` executor route 已通过 checked-in fixture agent 验证 adapter contract；真实 Claude Code / 其他第三方本地 agent live run 仍需单独证明
+- 真实 Claude Code live wrapper 已入仓；当前 Mac preflight 阻塞在 `claude_code_not_logged_in`
 - 本地主线参数已可通过 checked-in `gpt54_family` preset 直接复用，不必每次手工拼接 `GPT-5.4` family 参数
 
 注意边界：

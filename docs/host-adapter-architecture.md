@@ -20,7 +20,7 @@ The project must not depend on one vendor-specific prompt host. `/room` and `/de
 |---|---|---|---|
 | Canonical fixture | `fixture` | Validated | Deterministic protocol/runtime regression |
 | Generic local CLI agent | `generic_cli` | Adapter path validated with `generic_fixture_agent.py` | Any local agent CLI that can read a task prompt from stdin and return JSON |
-| Claude Code local CLI | `claude_code` | Adapter route validated with `generic_fixture_agent.py`; real Claude Code live run still pending | Claude Code or Claude-compatible local command |
+| Claude Code local CLI | `claude_code` | Adapter route validated with `generic_fixture_agent.py`; live wrapper checked in; current Mac preflight is blocked by `claude_code_not_logged_in` | Claude Code or Claude-compatible local command |
 | Codex local child task | `local_codex` | Mac and Windows mainline validated | Codex-first local runtime lane |
 | Chat Completions provider | `chat_completions` | Mock provider validated; real live provider pending | Fallback/regression lane, not the local mainline |
 
@@ -86,6 +86,19 @@ python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
 ```
 
 When a real Claude Code CLI is installed and accepts prompt text on stdin, pass its command with `--agent-command`, or set `CLAUDE_CODE_AGENT_COMMAND`. If no override is supplied, `claude_code` defaults to `claude -p`.
+
+Run the checked-in Claude Code live wrapper:
+
+```bash
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --preflight-only \
+  --state-root /tmp/round-table-claude-code-live-preflight
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --state-root /tmp/round-table-claude-code-live
+```
+
+The wrapper first runs `claude --version` and `claude auth status`. If auth reports `loggedIn=false`, the wrapper writes a blocked report instead of pretending the host-live lane passed.
 
 ## Boundaries
 

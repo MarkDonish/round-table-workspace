@@ -33,6 +33,7 @@
 - `.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py` 已提供 checked-in 的跨机器验证 lane，可先准备 manifest/runbook，再校验另一台机器回传的 regression report 与 runtime profile
 - `.codex/skills/room-skill/runtime/generic_agent_executor.py` 已提供 host-neutral 的本地 CLI agent adapter，可把同一套 prompt task 对接到 Codex、Claude Code 或其他能从 stdin 接任务并返回 JSON 的本地 agent
 - `.codex/skills/room-skill/runtime/generic_fixture_agent.py` 已提供 checked-in 的本地 fixture agent，用于验证 generic CLI / Claude Code adapter 路由而不依赖真实第三方 CLI
+- `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI live validation wrapper；它先做 `claude` CLI/auth preflight，未登录时生成明确 blocked 报告，登录后可直接跑完整 `/room -> /debate`
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口，可自动拉起本地 room/debate mock provider，并一条命令跑 provider preflight + room + debate + integration
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper，可先做 room/debate 双侧 preflight，再一键触发真实 `/room -> /debate` integration
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
@@ -49,6 +50,7 @@
 - `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证，真实消费 `/room` 持久化 handoff packet
 - `/room -> /debate generic_cli` 已通过 checked-in fixture agent 跑通完整 adapter integration
 - `/room -> /debate claude_code` 已通过 checked-in fixture agent 跑通 executor route；真实 Claude Code CLI live run 仍需单独验证
+- 真实 Claude Code CLI preflight 已确认本机 CLI 可用，但当前 auth 状态为未登录；因此 live run 当前被 `claude_code_not_logged_in` 阻塞
 - 当前最稳定的 checked-in 本地主线配置已收敛到 `gpt54_family`：`gpt-5.4` 为主模型、`gpt-5.4-mini` 为同家族 fallback，并显式固定 child-task reasoning / timeout；现在还会按 prompt 分层执行，例如 selection 用更短 timeout，chat / roundtable / followup 留更长窗口，summary / upgrade / reviewer 会切到更轻的同家族 lane
 - 同一台 Mac 上，除了当前桌面线程，这条本地主线也已通过独立 shell-level `codex exec` 第二宿主复验；当前剩下的不是“第二入口能不能跑”，而是“跨机器是否仍然稳定”
 - 本仓库现在已经把“跨机器验证”本身固化成 checked-in 流程：source 机先生成 manifest/runbook，target 机跑本地主线并回传 evidence，source 机再做 schema/commit/config 校验；Windows 本地主线与增强验证证据已落到 `reports/WINDOWS_LOCAL_MAINLINE_VALIDATION.md` 和 `reports/WINDOWS_ENHANCED_VALIDATION.md`
@@ -197,6 +199,7 @@ round-table-workspace/
 - runtime bridge：`.codex/skills/room-skill/runtime/README.md`
 - generic local agent adapter：`.codex/skills/room-skill/runtime/generic_agent_executor.py`
 - generic fixture agent：`.codex/skills/room-skill/runtime/generic_fixture_agent.py`
+- Claude Code live validation：`.codex/skills/room-skill/runtime/claude_code_live_validation.py`
 - local child-agent executor：`.codex/skills/room-skill/runtime/local_codex_executor.py`
 - local mainline regression：`.codex/skills/room-skill/runtime/local_codex_regression.py`
 - local second-host validation：`.codex/skills/room-skill/runtime/local_codex_second_host_validation.py`

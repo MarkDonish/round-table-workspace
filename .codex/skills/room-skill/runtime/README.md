@@ -44,6 +44,12 @@ For the checked-in generic local agent CLI adapter:
 python3 .codex/skills/room-skill/runtime/generic_agent_executor.py --help
 ```
 
+For the checked-in real Claude Code local CLI live validation wrapper:
+
+```bash
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py --help
+```
+
 For the checked-in local mainline regression runner:
 
 ```bash
@@ -111,6 +117,19 @@ python3 .codex/skills/room-skill/runtime/generic_agent_executor.py \
   --check-agent-exec \
   --agent-command "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py"
 ```
+
+Run the real Claude Code local CLI preflight and live wrapper:
+
+```bash
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --preflight-only \
+  --state-root /tmp/round-table-claude-code-live-preflight
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --state-root /tmp/round-table-claude-code-live
+```
+
+If preflight reports `claude_code_not_logged_in`, run `claude auth login` in a local terminal, then rerun the wrapper.
 
 Run the checked-in local host preflight before starting the local mainline:
 
