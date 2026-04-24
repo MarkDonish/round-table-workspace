@@ -50,6 +50,12 @@ For the checked-in generic local agent adapter validation kit:
 python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py --help
 ```
 
+For the checked-in local agent host inventory:
+
+```bash
+python3 .codex/skills/room-skill/runtime/agent_host_inventory.py --help
+```
+
 For the checked-in real Claude Code local CLI live validation wrapper:
 
 ```bash
@@ -129,6 +135,13 @@ Run the one-command generic local agent adapter validation kit:
 ```bash
 python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
   --state-root /tmp/round-table-generic-agent-adapter-validation
+```
+
+Inventory local agent hosts before attempting real live validation:
+
+```bash
+python3 .codex/skills/room-skill/runtime/agent_host_inventory.py \
+  --output-json /tmp/round-table-agent-host-inventory.json
 ```
 
 Validate a real local agent command with the same contract:
@@ -392,6 +405,8 @@ The bridge then validates those JSON outputs and performs the state writeback th
 `local_codex_executor.py` is the checked-in local child-agent adapter. It reuses the local Codex host to run one prompt as one nested child task, normalizes the resulting JSON back into the runtime contracts, and now exposes explicit child-task reasoning control so `/room` and `/debate` do not blindly inherit the host's global `xhigh` profile.
 
 `generic_agent_adapter_validation.py` is the checked-in adapter kit for non-Codex local agents. It runs `generic_agent_executor.py --check-agent-exec` first, then runs the full `/room -> /debate` integration flow through `--executor generic_cli`. The default command uses `generic_fixture_agent.py`, so the kit can be verified offline before replacing `--agent-command` with a real third-party CLI.
+
+`agent_host_inventory.py` is the checked-in readiness inventory for real local agent hosts. It detects common CLI candidates, records lightweight version/auth evidence where available, and explicitly separates `missing_cli`, `blocked_auth`, and `ready_for_live_validation` from actual `/room -> /debate` live validation.
 
 It also exposes a checked-in `gpt54_family` preset. That preset freezes the currently validated Mac-local lane: `gpt-5.4` primary child-task model, `gpt-5.4-mini` same-family fallback, `low` reasoning effort, bounded timeouts, and prompt-level step policies.
 

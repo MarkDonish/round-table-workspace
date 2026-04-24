@@ -45,6 +45,12 @@ The agent command may either print one JSON object to stdout or write one JSON o
 
 ## One-Command Validation
 
+Before validating a real host, inventory the local machine:
+
+```bash
+python3 .codex/skills/room-skill/runtime/agent_host_inventory.py
+```
+
 Run the default offline validation with the checked-in fixture agent:
 
 ```bash

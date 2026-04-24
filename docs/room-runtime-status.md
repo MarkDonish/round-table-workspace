@@ -18,6 +18,7 @@ The current source-of-truth files for `/room` are:
 - `docs/room-chat-contract.md`
 - `docs/room-runtime-bridge.md`
 - `docs/generic-local-agent-adapter.md`
+- `docs/local-agent-host-recipes.md`
 - `docs/room-runtime-status.md`
 - `docs/room-e2e-validation.md`
 - `docs/debate-e2e-validation.md`
@@ -33,6 +34,7 @@ The current source-of-truth files for `/room` are:
 - `.codex/skills/room-skill/runtime/room_runtime.py`
 - `.codex/skills/room-skill/runtime/local_codex_executor.py`
 - `.codex/skills/room-skill/runtime/local_codex_regression.py`
+- `.codex/skills/room-skill/runtime/agent_host_inventory.py`
 - `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py`
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py`
@@ -66,6 +68,7 @@ The repository already contains a largely complete source layer for `/room`:
 - an implementation-facing runtime bridge contract in `docs/room-runtime-bridge.md`
 - a host adapter architecture source in `docs/host-adapter-architecture.md`
 - a generic local agent adapter source in `docs/generic-local-agent-adapter.md`
+- a real local agent host recipe source in `docs/local-agent-host-recipes.md`
 - a checked-in runtime workflow playbook in `.codex/skills/room-skill/WORKFLOW.md`
 - a checked-in `/room` runtime entry in `.codex/skills/room-skill/SKILL.md`
 - a checked-in end-to-end validation guide in `docs/room-e2e-validation.md`
@@ -73,6 +76,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in local child-agent executor in `.codex/skills/room-skill/runtime/local_codex_executor.py`
 - a checked-in host-neutral local CLI agent adapter in `.codex/skills/room-skill/runtime/generic_agent_executor.py`
 - a checked-in generic fixture agent in `.codex/skills/room-skill/runtime/generic_fixture_agent.py`
+- a checked-in local agent host inventory in `.codex/skills/room-skill/runtime/agent_host_inventory.py`
 - a checked-in generic local agent adapter validation kit in `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
 - a checked-in real Claude Code local CLI live validation wrapper in `.codex/skills/room-skill/runtime/claude_code_live_validation.py`
 - checked-in Claude Code project skill adapters in `.claude/skills/room/SKILL.md` and `.claude/skills/debate/SKILL.md`
@@ -117,6 +121,7 @@ The repository already contains a largely complete source layer for `/room`:
 - Windows local mainline and enhanced validation evidence are now checked into `reports/WINDOWS_LOCAL_MAINLINE_VALIDATION.md` and `reports/WINDOWS_ENHANCED_VALIDATION.md`
 - a validated `generic_cli` `/room -> /debate` adapter integration path using the checked-in fixture agent
 - a validated generic local agent adapter kit that runs smoke + full `/room -> /debate` through the fixture-backed generic CLI contract
+- a checked-in local agent host inventory path that distinguishes installed, missing, auth-blocked, and ready-for-live-validation hosts
 - a validated `claude_code` executor route using the checked-in fixture agent; real Claude Code CLI execution remains a separate host-live validation
 - validated Claude Code project skill structure, so Claude Code users get native `.claude/skills/` discovery entries after cloning the repo
 - a current Mac Claude Code preflight result showing the CLI is installed (`2.1.114`) but live validation is blocked by `claude_code_not_logged_in`
@@ -146,7 +151,7 @@ The remaining unfinished part is no longer the checked-in bridge itself.
 The remaining gap is now narrower and sits in two places:
 
 1. the checked-in local child-agent path is now proven on Mac and Windows, and the checked-in executor can explicitly control child-task reasoning effort through either per-flag overrides or the frozen `gpt54_family` preset; what is still not a target is blindly inheriting the host's heaviest default profile without child-task tuning
-2. the generic local CLI adapter, generic adapter validation kit, and Claude Code project skill discovery layer are proven at the adapter-contract / structure layer; real Claude Code live validation now has a checked-in wrapper, but this Mac is currently blocked by account entitlement/authentication
+2. the generic local CLI adapter, generic adapter validation kit, local agent inventory, and Claude Code project skill discovery layer are proven at the adapter-contract / structure / preflight layer; real Claude Code live validation now has a checked-in wrapper, but this Mac is currently blocked by account entitlement/authentication
 3. the external Chat Completions-compatible provider path still has value as fallback / regression coverage, and the repo now has both a checked-in one-command mock-provider regression runner and a checked-in real-provider live wrapper for that lane; what is still not proven is a real external `/room -> /summary -> /upgrade-to-debate -> /debate` run against an actual non-mock endpoint
 4. debate handoff is executable-preflight-validated and the checked-in debate-side execution plus reject-followup-rereview bridge is now locally provable through fixture, generic local CLI, mock-provider, or local child-agent execution, but still not yet proven by a real external `/debate` execution chain
 

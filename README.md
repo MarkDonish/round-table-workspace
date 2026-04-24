@@ -34,6 +34,7 @@
 - `.codex/skills/room-skill/runtime/generic_agent_executor.py` 已提供 host-neutral 的本地 CLI agent adapter，可把同一套 prompt task 对接到 Codex、Claude Code 或其他能从 stdin 接任务并返回 JSON 的本地 agent
 - `.codex/skills/room-skill/runtime/generic_fixture_agent.py` 已提供 checked-in 的本地 fixture agent，用于验证 generic CLI / Claude Code adapter 路由而不依赖真实第三方 CLI
 - `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py` 已提供 generic local agent adapter 的一键验证入口，可用默认 fixture 或真实 agent command 跑 smoke + `/room -> /debate`
+- `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供真实本地 agent 宿主 inventory/preflight，可区分 CLI 缺失、auth 阻塞、可进入 live validation
 - `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI live validation wrapper；它先做 `claude` CLI/auth preflight，未登录时生成明确 blocked 报告，登录后可直接跑完整 `/room -> /debate`
 - `.claude/skills/room/SKILL.md` 和 `.claude/skills/debate/SKILL.md` 已提供 Claude Code 原生项目 skill 入口，指回当前真源而不是复制出第二套协议
 - `.claude/scripts/validate_project_skills.py` 已提供不依赖 Claude 账号的 Claude Code project skill 结构验证入口
@@ -53,6 +54,7 @@
 - `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证，真实消费 `/room` 持久化 handoff packet
 - `/room -> /debate generic_cli` 已通过 checked-in fixture agent 跑通完整 adapter integration
 - generic local agent adapter kit 已收口成 checked-in 文档和一键验证命令，其他本地 agent 可按同一 stdin / JSON contract 接入
+- local agent host inventory 已可输出本机真实宿主 readiness，不会把 auth blocked 或 CLI missing 误报成 live pass
 - `/room -> /debate claude_code` 已通过 checked-in fixture agent 跑通 executor route；真实 Claude Code CLI live run 仍需单独验证
 - Claude Code project skill 包装层已通过 checked-in 结构验证；这证明 Claude Code 用户 clone 仓库后有标准 `.claude/skills/` 入口
 - 真实 Claude Code CLI preflight 已确认本机 CLI 可用，但当前 auth 状态为未登录；因此 live run 当前被 `claude_code_not_logged_in` 阻塞
@@ -124,6 +126,7 @@ round-table-workspace/
 │  ├─ room-runtime-status.md
 │  ├─ host-adapter-architecture.md
 │  ├─ generic-local-agent-adapter.md
+│  ├─ local-agent-host-recipes.md
 │  ├─ claude-code-skill-adapter.md
 │  └─ superpowers/specs/
 ├─ prompts/
@@ -202,6 +205,8 @@ round-table-workspace/
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
 - generic local agent 适配：`docs/generic-local-agent-adapter.md`
 - generic local agent adapter 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
+- local agent host recipes：`docs/local-agent-host-recipes.md`
+- local agent host inventory：`python3 .codex/skills/room-skill/runtime/agent_host_inventory.py`
 - Claude Code skill 适配：`docs/claude-code-skill-adapter.md`
 - Claude Code project skill 结构验证：`python3 .claude/scripts/validate_project_skills.py`
 
@@ -216,10 +221,12 @@ round-table-workspace/
 - bridge contract：`docs/room-runtime-bridge.md`
 - host adapters：`docs/host-adapter-architecture.md`
 - generic local agent adapter：`docs/generic-local-agent-adapter.md`
+- local agent host recipes：`docs/local-agent-host-recipes.md`
 - 当前边界：`docs/room-runtime-status.md`
 - runtime bridge：`.codex/skills/room-skill/runtime/README.md`
 - generic local agent adapter：`.codex/skills/room-skill/runtime/generic_agent_executor.py`
 - generic local agent adapter validation：`.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
+- local agent host inventory：`.codex/skills/room-skill/runtime/agent_host_inventory.py`
 - generic fixture agent：`.codex/skills/room-skill/runtime/generic_fixture_agent.py`
 - Claude Code live validation：`.codex/skills/room-skill/runtime/claude_code_live_validation.py`
 - local child-agent executor：`.codex/skills/room-skill/runtime/local_codex_executor.py`
