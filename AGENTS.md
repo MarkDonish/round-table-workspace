@@ -36,6 +36,7 @@ Historical material lives under:
 For every new development task, follow:
 
 - `docs/development-sync-protocol.md`
+- `docs/release-readiness.md` when deciding launch readiness or remaining blockers
 - `docs/superpowers/local-development-integration.md` when local Superpowers is installed
 
 Default rule:
@@ -66,6 +67,7 @@ On `/room`, use:
   - `docs/generic-local-agent-adapter.md`
   - `docs/local-agent-host-recipes.md`
   - `docs/provider-live-readiness.md`
+  - `docs/release-readiness.md`
   - `docs/claude-code-skill-adapter.md`
   - `docs/room-architecture.md`
   - `docs/room-selection-policy.md`
@@ -91,6 +93,7 @@ On `/debate`, use:
   - `docs/generic-local-agent-adapter.md`
   - `docs/local-agent-host-recipes.md`
   - `docs/provider-live-readiness.md`
+  - `docs/release-readiness.md`
   - `docs/claude-code-skill-adapter.md`
   - `docs/debate-skill-architecture.md`
   - `docs/agent-role-map.md`

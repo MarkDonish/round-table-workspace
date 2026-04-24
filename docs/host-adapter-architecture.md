@@ -18,6 +18,7 @@ Claude Code also gets a native project-skill discovery layer under `.claude/skil
 | Adapter validation kit | Validate a candidate local agent CLI with smoke + full `/room -> /debate` fixture-backed integration | `generic_agent_adapter_validation.py`, `docs/generic-local-agent-adapter.md` |
 | Host inventory and recipes | Detect available local agent CLIs and document real-host validation recipes | `agent_host_inventory.py`, `docs/local-agent-host-recipes.md` |
 | Provider readiness | Check external provider env readiness without sending real requests | `chat_completions_readiness.py`, `docs/provider-live-readiness.md` |
+| Release readiness | Aggregate launch-scope blockers without over-claiming provider or third-party host live support | `release_readiness_check.py`, `docs/release-readiness.md` |
 | Claude Code skill adapter | Provide native Claude Code project skill discovery for `/room` and `/debate` | `.claude/skills/room/SKILL.md`, `.claude/skills/debate/SKILL.md` |
 
 ## Supported Adapters

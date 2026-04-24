@@ -41,6 +41,7 @@
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口，可自动拉起本地 room/debate mock provider，并一条命令跑 provider preflight + room + debate + integration
 - `.codex/skills/room-skill/runtime/chat_completions_readiness.py` 已提供 checked-in 的 provider live readiness 入口，可在不请求真实 endpoint 的前提下区分 env missing / placeholder / ready
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper，可先做 room/debate 双侧 preflight，再一键触发真实 `/room -> /debate` integration
+- `.codex/skills/room-skill/runtime/release_readiness_check.py` 已提供 checked-in 的 release readiness gate，可把 Codex 本地主线上线范围、P0 阻塞和非阻塞 live 缺口分开报告
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
 - `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py` 已提供 checked-in 的 `/room -> /debate` 联调验证入口
 - `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 provider-backed 链路
@@ -57,6 +58,7 @@
 - generic local agent adapter kit 已收口成 checked-in 文档和一键验证命令，其他本地 agent 可按同一 stdin / JSON contract 接入
 - local agent host inventory 已可输出本机真实宿主 readiness，不会把 auth blocked 或 CLI missing 误报成 live pass
 - provider fallback regression 已复跑通过；provider readiness 会把当前真实 `.env.room` / `.env.debate` 的缺失配置报告为 blocked，不误报为 live pass
+- release readiness gate 已入仓；上线判断不再只依赖口头汇报或历史 reports
 - `/room -> /debate claude_code` 已通过 checked-in fixture agent 跑通 executor route；真实 Claude Code CLI live run 仍需单独验证
 - Claude Code project skill 包装层已通过 checked-in 结构验证；这证明 Claude Code 用户 clone 仓库后有标准 `.claude/skills/` 入口
 - 真实 Claude Code CLI preflight 已确认本机 CLI 可用，但当前 auth 状态为未登录；因此 live run 当前被 `claude_code_not_logged_in` 阻塞
@@ -131,6 +133,7 @@ round-table-workspace/
 │  ├─ generic-local-agent-adapter.md
 │  ├─ local-agent-host-recipes.md
 │  ├─ provider-live-readiness.md
+│  ├─ release-readiness.md
 │  ├─ claude-code-skill-adapter.md
 │  └─ superpowers/specs/
 ├─ prompts/
@@ -206,6 +209,8 @@ round-table-workspace/
 - 项目规则：`AGENTS.md`
 - 快速路由：`docs/router.md`
 - 开发同步协议：`docs/development-sync-protocol.md`
+- 发布 readiness：`docs/release-readiness.md`
+- 发布 readiness 检查：`python3 .codex/skills/room-skill/runtime/release_readiness_check.py`
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
 - generic local agent 适配：`docs/generic-local-agent-adapter.md`
 - generic local agent adapter 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`

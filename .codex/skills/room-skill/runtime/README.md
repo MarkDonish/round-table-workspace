@@ -86,6 +86,12 @@ For the checked-in Chat Completions live validation wrapper:
 python3 .codex/skills/room-skill/runtime/chat_completions_live_validation.py --help
 ```
 
+For the checked-in release readiness gate:
+
+```bash
+python3 .codex/skills/room-skill/runtime/release_readiness_check.py --help
+```
+
 For the checked-in local mock Chat Completions provider:
 
 ```bash
@@ -220,6 +226,13 @@ Check real-provider env readiness without sending provider requests:
 ```bash
 python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py \
   --output-json /tmp/round-table-chat-completions-readiness.json
+```
+
+Check release readiness without calling real providers or requiring third-party agent accounts:
+
+```bash
+python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
+  --output-json /tmp/round-table-release-readiness.json
 ```
 
 Run the checked-in real-provider live wrapper after filling `.env.room` and `.env.debate`:
@@ -503,6 +516,8 @@ For a real handoff, `prepare` should be run from a clean committed tree; when th
 `chat_completions_readiness.py` is the checked-in config-only readiness command for the real external provider lane. It checks `.env.room` and `.env.debate`, rejects missing values and unchanged template placeholders, and does not send provider requests.
 
 `chat_completions_live_validation.py` is the checked-in real-provider wrapper for the remaining unproven external lane. It first validates `.env.room` and `.env.debate` through the same checked-in provider-config reader, persists both preflight results, then launches the full `/room -> /debate` integration flow through `--executor chat_completions`. It also writes a failure report when env files are missing or still using template placeholder values.
+
+`release_readiness_check.py` is the checked-in launch-scope gate. It aggregates source-of-truth presence, runtime entrypoint presence, Claude Code project-skill structure, local agent host inventory, and provider config readiness without sending real provider requests. It reports P0 blockers separately from non-blocking gaps such as missing third-party CLIs, Claude auth blockers, or provider env files that are not ready.
 
 Because nested child tasks persist session and state data under `~/.codex/`, the `local_codex` mainline should be run from a normal local terminal or any host environment that permits writing `~/.codex/sessions` and the local Codex state DB. A tighter sandbox can make the chain fail before prompt execution even starts.
 

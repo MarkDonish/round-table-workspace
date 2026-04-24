@@ -1,0 +1,122 @@
+# Release Readiness
+
+This document is the source of truth for deciding what this repository can currently launch and what must not be over-claimed.
+
+## Current Launch Scope
+
+The repository can be treated as ready for the current supported scope when the checked-in release gate has no P0 blockers:
+
+- Codex local mainline for `/room`, `/debate`, and `/room -> /debate`
+- checked-in protocol, prompts, runtime bridges, and validation harnesses
+- Claude Code project-skill discovery layer as an adapter, not a forked implementation
+- generic local agent adapter contract and fixture-backed validation path
+- Chat Completions-compatible provider fallback tooling and mock regression path
+
+This does not mean every possible host or provider is live-validated.
+
+## Not Claimed By This Scope
+
+Do not claim these as complete unless the matching live validation report exists:
+
+- real Claude Code live execution when the local account is not logged in or entitled
+- real third-party local agent execution before its command passes `generic_agent_adapter_validation.py`
+- real Chat Completions-compatible provider execution before `.env.room` and `.env.debate` are ready and `chat_completions_live_validation.py` passes
+- universal production stability across all local agent hosts without per-host evidence
+
+## P0 Blocker Definition
+
+For the current launch scope, a P0 blocker means the repository cannot honestly ship the Codex-local mainline.
+
+| Blocker | Why It Blocks | How To Clear |
+|---|---|---|
+| Source-of-truth files missing | The runtime would no longer have canonical docs/prompts/skills to execute from | Restore `AGENTS.md`, `README.md`, `docs/`, `prompts/`, `examples/`, `.codex/skills/` |
+| Runtime entrypoint missing | The checked-in bridge or validation path is incomplete | Restore the missing runtime file and rerun readiness |
+| Claude project-skill structure drift | Cross-host adapter discovery would point to stale or missing sources | Run and fix `python3 .claude/scripts/validate_project_skills.py` |
+| Readiness tooling failure | The release gate cannot distinguish real blockers from non-blocking live gaps | Fix `agent_host_inventory.py` or `chat_completions_readiness.py`, then rerun the gate |
+| Generic fixture adapter validation fails when included | The host-neutral adapter contract no longer runs end to end | Run with `--include-fixture-runs`, inspect the report, fix adapter/runtime drift |
+| Dirty tree under strict gate | A release candidate cannot be reproduced from Git | Commit or discard intended changes, then rerun with `--strict-git-clean` |
+
+These are not P0 for the Codex-local launch scope:
+
+- provider `.env` files missing
+- Claude Code account not logged in
+- Gemini/OpenCode/Aider/Goose/Cursor Agent CLI missing
+- real third-party live validation not yet run
+
+They are real gaps, but they block only their own host/provider lane.
+
+## Release Gate
+
+Run the default non-secret gate:
+
+```bash
+python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
+  --output-json /tmp/round-table-release-readiness.json
+```
+
+Run the stronger fixture-backed gate:
+
+```bash
+python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
+  --include-fixture-runs \
+  --output-json /tmp/round-table-release-readiness.json
+```
+
+Run the strict Git gate for a release candidate:
+
+```bash
+python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
+  --include-fixture-runs \
+  --strict-git-clean \
+  --output-json /tmp/round-table-release-readiness.json
+```
+
+The command does not send real provider requests and does not require third-party agent subscriptions.
+
+## Recommended Release Candidate Validation
+
+Before tagging or announcing a release, run:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_regression.py \
+  --state-root /tmp/round-table-local-codex-regression
+
+python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
+  --state-root /tmp/round-table-generic-agent-adapter-validation
+
+python3 .codex/skills/room-skill/runtime/chat_completions_regression.py \
+  --state-root /tmp/round-table-chat-completions-regression
+
+python3 .claude/scripts/validate_project_skills.py
+
+python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
+  --include-fixture-runs \
+  --strict-git-clean
+```
+
+If a real provider is available, run this separately:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_live_validation.py \
+  --room-env-file .env.room \
+  --debate-env-file .env.debate \
+  --state-root /tmp/round-table-chat-completions-live
+```
+
+If a real local agent host is available, run:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
+  --agent-label <host_id> \
+  --agent-command "<host command>" \
+  --state-root /tmp/round-table-<host-id>-validation
+```
+
+## Current Interpretation Rules
+
+- `reports/` is historical evidence, not release source.
+- `artifacts/` is runtime output, not release source.
+- A fixture pass is not a real host-live pass.
+- A mock provider pass is not a real provider-live pass.
+- A readiness preflight is not a live execution pass.
+- Provider URLs are never required for the local mainline.
