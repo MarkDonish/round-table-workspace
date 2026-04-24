@@ -24,6 +24,7 @@ Primary source directories:
 - `.codex/skills/debate-roundtable-skill/`
 - `.codex/skills/room-skill/`
 - `.codex/skills/*/roundtable-profile.md`
+- `.claude/skills/` (Claude Code project-skill adapter layer only; not protocol implementation)
 
 Historical material lives under:
 
@@ -57,10 +58,12 @@ Local Superpowers is a workflow helper, not a source-of-truth override.
 On `/room`, use:
 
 - Skill: `.codex/skills/room-skill/SKILL.md`
+- Claude Code project skill: `.claude/skills/room/SKILL.md`
 - Supporting docs:
   - `docs/room-runtime-status.md`
   - `docs/room-runtime-bridge.md`
   - `docs/host-adapter-architecture.md`
+  - `docs/claude-code-skill-adapter.md`
   - `docs/room-architecture.md`
   - `docs/room-selection-policy.md`
   - `docs/room-chat-contract.md`
@@ -78,9 +81,11 @@ On `/room`, use:
 On `/debate`, use:
 
 - Skill: `.codex/skills/debate-roundtable-skill/SKILL.md`
+- Claude Code project skill: `.claude/skills/debate/SKILL.md`
 - Supporting docs:
   - `docs/debate-runtime-bridge.md`
   - `docs/host-adapter-architecture.md`
+  - `docs/claude-code-skill-adapter.md`
   - `docs/debate-skill-architecture.md`
   - `docs/agent-role-map.md`
   - `docs/reviewer-protocol.md`

@@ -71,6 +71,8 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in host-neutral local CLI agent adapter in `.codex/skills/room-skill/runtime/generic_agent_executor.py`
 - a checked-in generic fixture agent in `.codex/skills/room-skill/runtime/generic_fixture_agent.py`
 - a checked-in real Claude Code local CLI live validation wrapper in `.codex/skills/room-skill/runtime/claude_code_live_validation.py`
+- checked-in Claude Code project skill adapters in `.claude/skills/room/SKILL.md` and `.claude/skills/debate/SKILL.md`
+- a checked-in Claude Code project skill structure validator in `.claude/scripts/validate_project_skills.py`
 - a checked-in local mainline regression runner in `.codex/skills/room-skill/runtime/local_codex_regression.py`
 - a checked-in second-host validation runner in `.codex/skills/room-skill/runtime/local_codex_second_host_validation.py`
 - a checked-in cross-machine validation lane in `.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py`
@@ -111,6 +113,7 @@ The repository already contains a largely complete source layer for `/room`:
 - Windows local mainline and enhanced validation evidence are now checked into `reports/WINDOWS_LOCAL_MAINLINE_VALIDATION.md` and `reports/WINDOWS_ENHANCED_VALIDATION.md`
 - a validated `generic_cli` `/room -> /debate` adapter integration path using the checked-in fixture agent
 - a validated `claude_code` executor route using the checked-in fixture agent; real Claude Code CLI execution remains a separate host-live validation
+- validated Claude Code project skill structure, so Claude Code users get native `.claude/skills/` discovery entries after cloning the repo
 - a current Mac Claude Code preflight result showing the CLI is installed (`2.1.114`) but live validation is blocked by `claude_code_not_logged_in`
 - a Mac-validated `GPT-5.4` local mainline configuration for the full `/room -> /debate reject_followup` chain, with `gpt-5.4` as the primary child-task model and `gpt-5.4-mini` available as same-family fallback
 - a checked-in `/room` host fallback for explicit `/upgrade-to-debate` requests when the upgrade prompt still returns `room_too_fresh`; that fallback reuses persisted room state and writes the required `user_forced_early_upgrade` packet warning
@@ -138,7 +141,7 @@ The remaining unfinished part is no longer the checked-in bridge itself.
 The remaining gap is now narrower and sits in two places:
 
 1. the checked-in local child-agent path is now proven on Mac and Windows, and the checked-in executor can explicitly control child-task reasoning effort through either per-flag overrides or the frozen `gpt54_family` preset; what is still not a target is blindly inheriting the host's heaviest default profile without child-task tuning
-2. the generic local CLI adapter is proven at the adapter-contract layer through a fixture agent; real Claude Code live validation now has a checked-in wrapper, but this Mac is currently blocked until `claude auth login` succeeds
+2. the generic local CLI adapter and Claude Code project skill discovery layer are proven at the adapter-contract / structure layer; real Claude Code live validation now has a checked-in wrapper, but this Mac is currently blocked by account entitlement/authentication
 3. the external Chat Completions-compatible provider path still has value as fallback / regression coverage, and the repo now has both a checked-in one-command mock-provider regression runner and a checked-in real-provider live wrapper for that lane; what is still not proven is a real external `/room -> /summary -> /upgrade-to-debate -> /debate` run against an actual non-mock endpoint
 4. debate handoff is executable-preflight-validated and the checked-in debate-side execution plus reject-followup-rereview bridge is now locally provable through fixture, generic local CLI, mock-provider, or local child-agent execution, but still not yet proven by a real external `/debate` execution chain
 

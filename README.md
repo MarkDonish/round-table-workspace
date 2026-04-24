@@ -34,6 +34,8 @@
 - `.codex/skills/room-skill/runtime/generic_agent_executor.py` 已提供 host-neutral 的本地 CLI agent adapter，可把同一套 prompt task 对接到 Codex、Claude Code 或其他能从 stdin 接任务并返回 JSON 的本地 agent
 - `.codex/skills/room-skill/runtime/generic_fixture_agent.py` 已提供 checked-in 的本地 fixture agent，用于验证 generic CLI / Claude Code adapter 路由而不依赖真实第三方 CLI
 - `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI live validation wrapper；它先做 `claude` CLI/auth preflight，未登录时生成明确 blocked 报告，登录后可直接跑完整 `/room -> /debate`
+- `.claude/skills/room/SKILL.md` 和 `.claude/skills/debate/SKILL.md` 已提供 Claude Code 原生项目 skill 入口，指回当前真源而不是复制出第二套协议
+- `.claude/scripts/validate_project_skills.py` 已提供不依赖 Claude 账号的 Claude Code project skill 结构验证入口
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口，可自动拉起本地 room/debate mock provider，并一条命令跑 provider preflight + room + debate + integration
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper，可先做 room/debate 双侧 preflight，再一键触发真实 `/room -> /debate` integration
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
@@ -50,6 +52,7 @@
 - `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证，真实消费 `/room` 持久化 handoff packet
 - `/room -> /debate generic_cli` 已通过 checked-in fixture agent 跑通完整 adapter integration
 - `/room -> /debate claude_code` 已通过 checked-in fixture agent 跑通 executor route；真实 Claude Code CLI live run 仍需单独验证
+- Claude Code project skill 包装层已通过 checked-in 结构验证；这证明 Claude Code 用户 clone 仓库后有标准 `.claude/skills/` 入口
 - 真实 Claude Code CLI preflight 已确认本机 CLI 可用，但当前 auth 状态为未登录；因此 live run 当前被 `claude_code_not_logged_in` 阻塞
 - 当前最稳定的 checked-in 本地主线配置已收敛到 `gpt54_family`：`gpt-5.4` 为主模型、`gpt-5.4-mini` 为同家族 fallback，并显式固定 child-task reasoning / timeout；现在还会按 prompt 分层执行，例如 selection 用更短 timeout，chat / roundtable / followup 留更长窗口，summary / upgrade / reviewer 会切到更轻的同家族 lane
 - 同一台 Mac 上，除了当前桌面线程，这条本地主线也已通过独立 shell-level `codex exec` 第二宿主复验；当前剩下的不是“第二入口能不能跑”，而是“跨机器是否仍然稳定”
@@ -62,6 +65,7 @@
 - 还没有完成真实外部 provider 的 `/room -> /summary -> /upgrade-to-debate -> /debate` live run
 - 当前已完成的是 fixture-driven 验证、mock provider-backed 验证、以及本地 child-agent 主链验证；仍不应误报成所有宿主配置都已 100% 实战验证
 - generic CLI adapter 已证明 host abstraction 可以跑完整 `/room -> /debate` 链路，但真实 Claude Code 和其他第三方本地 agent 仍需要各自 live validation
+- Claude Code project skill 入口已入仓并可离线验证，但真实 Claude Code live run 仍受账号权限约束
 
 简化结论：
 
@@ -82,6 +86,7 @@
 - `.codex/skills/debate-roundtable-skill/`
 - `.codex/skills/room-skill/`
 - `.codex/skills/*/roundtable-profile.md`
+- `.claude/skills/`（仅作为 Claude Code project skill 适配层，不是第二套协议实现源）
 
 以下目录不是当前实现真源：
 
@@ -115,6 +120,7 @@ round-table-workspace/
 │  ├─ room-runtime-bridge.md
 │  ├─ room-runtime-status.md
 │  ├─ host-adapter-architecture.md
+│  ├─ claude-code-skill-adapter.md
 │  └─ superpowers/specs/
 ├─ prompts/
 │  ├─ debate-roundtable.md
@@ -128,6 +134,11 @@ round-table-workspace/
 │  ├─ debate-roundtable-skill/SKILL.md
 │  ├─ room-skill/SKILL.md
 │  └─ */roundtable-profile.md
+├─ .claude/
+│  ├─ README.md
+│  ├─ skills/room/SKILL.md
+│  ├─ skills/debate/SKILL.md
+│  └─ scripts/validate_project_skills.py
 ├─ reports/
 │  ├─ checkpoints/
 │  ├─ sessions/
@@ -185,10 +196,13 @@ round-table-workspace/
 - 快速路由：`docs/router.md`
 - 开发同步协议：`docs/development-sync-protocol.md`
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
+- Claude Code skill 适配：`docs/claude-code-skill-adapter.md`
+- Claude Code project skill 结构验证：`python3 .claude/scripts/validate_project_skills.py`
 
 ### `/room`
 
 - skill：`.codex/skills/room-skill/SKILL.md`
+- Claude Code project skill：`.claude/skills/room/SKILL.md`
 - 架构：`docs/room-architecture.md`
 - selection：`docs/room-selection-policy.md`
 - handoff：`docs/room-to-debate-handoff.md`
@@ -215,6 +229,7 @@ round-table-workspace/
 ### `/debate`
 
 - skill：`.codex/skills/debate-roundtable-skill/SKILL.md`
+- Claude Code project skill：`.claude/skills/debate/SKILL.md`
 - bridge contract：`docs/debate-runtime-bridge.md`
 - runtime validation：`docs/debate-e2e-validation.md`
 - runtime bridge：`.codex/skills/debate-roundtable-skill/runtime/README.md`

@@ -6,6 +6,8 @@ This document is the source of truth for making the round-table runtime work acr
 
 The project must not depend on one vendor-specific prompt host. `/room` and `/debate` keep their protocol contracts in `prompts/` and their state/runtime logic in `.codex/skills/*/runtime/`; host-specific execution is isolated behind adapters.
 
+Claude Code also gets a native project-skill discovery layer under `.claude/skills/`. Those files are thin adapters that point back to the canonical sources; they must not fork the protocol.
+
 ## Runtime Layers
 
 | Layer | Responsibility | Source of truth |
@@ -13,6 +15,7 @@ The project must not depend on one vendor-specific prompt host. `/room` and `/de
 | Protocol prompts | Define JSON input/output contracts for room selection, room chat, summary, upgrade, debate roundtable, review, and follow-up | `prompts/` |
 | Runtime bridge | Own state, validation, persistence, packet handoff, and runner orchestration | `.codex/skills/room-skill/runtime/`, `.codex/skills/debate-roundtable-skill/runtime/` |
 | Host adapter | Execute one prompt task through a concrete local agent or fallback provider and return one JSON object | `generic_agent_executor.py`, `local_codex_executor.py`, `chat_completions_executor.py` |
+| Claude Code skill adapter | Provide native Claude Code project skill discovery for `/room` and `/debate` | `.claude/skills/room/SKILL.md`, `.claude/skills/debate/SKILL.md` |
 
 ## Supported Adapters
 
@@ -100,8 +103,15 @@ python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
 
 The wrapper first runs `claude --version` and `claude auth status`. If auth reports `loggedIn=false`, the wrapper writes a blocked report instead of pretending the host-live lane passed.
 
+Validate the Claude Code project-skill adapter layer without a Claude subscription:
+
+```bash
+python3 .claude/scripts/validate_project_skills.py
+```
+
 ## Boundaries
 
 - `/room` and `/debate` remain local runtime protocols; provider URLs are not the mainline.
 - The generic adapter proves host portability at the CLI contract layer; each real third-party agent still needs its own live validation run.
 - Host adapters must not mutate room or debate state directly. They return candidate prompt JSON only; the runtime bridge remains the only state writer.
+- `.claude/skills/` is a discovery layer for Claude Code users, not a second implementation source.
