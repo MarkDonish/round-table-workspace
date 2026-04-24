@@ -15,6 +15,10 @@ RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 DEFAULT_ROOM_ENV_FILE = REPO_ROOT / ".env.room"
 DEFAULT_DEBATE_ENV_FILE = REPO_ROOT / ".env.debate"
+PROVIDER_LANE_DESCRIPTION = (
+    "optional Chat Completions-compatible fallback/regression lane; "
+    "not required for the Codex local mainline /room or /debate flow"
+)
 
 
 def main() -> int:
@@ -58,6 +62,7 @@ def build_readiness_report(args: argparse.Namespace) -> dict[str, Any]:
         "action": "chat-completions-readiness",
         "generated_at": utc_now_iso(),
         "repo_root": str(REPO_ROOT),
+        "provider_lane": provider_lane_boundary(),
         "checks": {
             "room": room,
             "debate": debate,
@@ -82,6 +87,7 @@ def check_scope(*, env_file: Path, provider_scope: str) -> dict[str, Any]:
         "provider_scope": provider_scope,
         "env_file": str(env_file),
         "env_file_exists": env_file.exists(),
+        "local_mainline_blocker": False,
     }
     if not env_file.exists():
         result["blocker"] = "env_file_missing"
@@ -98,6 +104,7 @@ def check_scope(*, env_file: Path, provider_scope: str) -> dict[str, Any]:
         {
             "ready": True,
             "blocker": None,
+            "local_mainline_blocker": False,
             "url": provider_executor.mask_value(config["url"]),
             "model": provider_executor.mask_value(config["model"]),
             "auth_configured": bool(config.get("auth_bearer")),
@@ -109,12 +116,35 @@ def check_scope(*, env_file: Path, provider_scope: str) -> dict[str, Any]:
 
 def build_next_action(*, ready_for_live_run: bool, room: dict[str, Any], debate: dict[str, Any]) -> str:
     if ready_for_live_run:
-        return "Run the checked-in chat_completions_live_validation.py wrapper to perform the real provider live run."
+        return (
+            "Provider env is ready. Run the checked-in chat_completions_live_validation.py wrapper "
+            "only if you intentionally want to validate the optional provider-live lane."
+        )
     missing = []
     for scope, check in (("room", room), ("debate", debate)):
         if not check["ready"]:
             missing.append(f"{scope}: {check.get('blocker')} ({check.get('error')})")
-    return "Fix provider env readiness before live validation. Blockers: " + "; ".join(missing)
+    return (
+        "No provider URL is required for the Codex local mainline. "
+        "Fix provider env readiness only if you intentionally want optional provider-live validation. "
+        "Blockers: "
+        + "; ".join(missing)
+    )
+
+
+def provider_lane_boundary() -> dict[str, Any]:
+    return {
+        "description": PROVIDER_LANE_DESCRIPTION,
+        "local_mainline_requires_provider_url": False,
+        "local_mainline_recommended_command": (
+            "python3 .codex/skills/room-skill/runtime/local_codex_regression.py "
+            "--state-root /tmp/round-table-local-codex-regression"
+        ),
+        "provider_live_claim_requires": (
+            "valid local .env.room and .env.debate files plus "
+            "chat_completions_live_validation.py returning live_run_passed=true"
+        ),
+    }
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:

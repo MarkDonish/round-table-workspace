@@ -16,6 +16,10 @@ import room_e2e_validation as room_validation
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "chat-completions-live"
+PROVIDER_LANE_DESCRIPTION = (
+    "optional Chat Completions-compatible fallback/regression lane; "
+    "not required for the Codex local mainline /room or /debate flow"
+)
 
 
 class ChatCompletionsLiveValidationError(Exception):
@@ -34,7 +38,7 @@ def main() -> int:
         ValueError,
         json.JSONDecodeError,
     ) as exc:
-        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2))
+        print(json.dumps(build_failure_payload(str(exc)), ensure_ascii=False, indent=2))
         return 1
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -110,6 +114,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         "ok": False,
         "action": "chat-completions-live-validation",
         "run_id": run_id,
+        "provider_lane": provider_lane_boundary(),
         "artifacts": {
             "run_dir": str(run_dir),
             "live_validation_report": str(run_dir / "chat-completions-live-validation-report.json"),
@@ -187,10 +192,38 @@ def read_provider_preflight(*, env_file: Path, provider_scope: str) -> dict[str,
         "ready": True,
         "provider_scope": provider_scope,
         "env_file": str(env_file),
+        "local_mainline_blocker": False,
         "url": provider_executor.mask_value(config["url"]),
         "model": provider_executor.mask_value(config["model"]),
         "auth_configured": bool(config.get("auth_bearer")),
         "timeout_seconds": config["timeout_seconds"],
+    }
+
+
+def build_failure_payload(error: str) -> dict[str, Any]:
+    return {
+        "ok": False,
+        "action": "chat-completions-live-validation",
+        "error": error,
+        "provider_lane": provider_lane_boundary(),
+        "next_action": (
+            "No provider URL is required for the Codex local mainline. "
+            "Fix .env.room and .env.debate only if you intentionally want optional provider-live validation."
+        ),
+    }
+
+
+def provider_lane_boundary() -> dict[str, Any]:
+    return {
+        "description": PROVIDER_LANE_DESCRIPTION,
+        "local_mainline_requires_provider_url": False,
+        "local_mainline_recommended_command": (
+            "python3 .codex/skills/room-skill/runtime/local_codex_regression.py "
+            "--state-root /tmp/round-table-local-codex-regression"
+        ),
+        "provider_live_claim_requires": (
+            "valid local .env.room and .env.debate files plus this wrapper returning live_run_passed=true"
+        ),
     }
 
 

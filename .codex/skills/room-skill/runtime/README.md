@@ -98,6 +98,9 @@ For the checked-in Chat Completions live readiness checker:
 python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py --help
 ```
 
+This is an optional provider fallback/regression lane. It is not required for
+the local Codex mainline, and its URL is not a meeting room URL.
+
 For the checked-in Chat Completions live validation wrapper:
 
 ```bash
@@ -596,6 +599,10 @@ When `/upgrade-to-debate` is explicitly user-forced and the checked-in upgrade p
 `debate_packet_validator.py` is a checked-in `/debate`-side preflight. `/room` calls it before writing `handoff/debate-acceptance.json`, so handoff acceptance is no longer just a plain-text skill-entry check.
 
 ## Live Provider Config
+
+Live provider config is optional. Do not create `.env.room` or `.env.debate`
+just to run the local `/room` or `/debate` mainline; use
+`local_codex_regression.py` for that path.
 
 The checked-in example env file is:
 

@@ -6,7 +6,27 @@ This document is the source of truth for the Chat Completions-compatible provide
 
 The provider lane is a fallback and regression lane. It is not the local mainline.
 
+The URL in this document is not a meeting room URL and not the place where local
+agents meet. It is only an optional HTTP endpoint for testing an external
+Chat Completions-compatible provider.
+
+For local-first `/room` and `/debate`, use the checked-in local Codex mainline
+instead. No provider URL is required for that path.
+
 Do not report provider live validation as passed unless the real wrapper runs against non-mock `.env.room` and `.env.debate` files and the final report returns `live_run_passed: true`.
+
+## When Not To Fill A URL
+
+Do not fill `ROOM_CHAT_COMPLETIONS_URL` or `DEBATE_CHAT_COMPLETIONS_URL` when:
+
+- you only want to use the local `/room` skill flow
+- you only want to use the local `/debate` skill flow
+- you are validating the Codex local mainline
+- you are validating the generic local agent adapter with fixture or local CLI
+  agents
+
+Use provider URLs only when the specific task is to prove the optional external
+provider-live lane.
 
 ## Three Different Checks
 
