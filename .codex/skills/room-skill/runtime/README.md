@@ -74,6 +74,12 @@ For the checked-in Chat Completions fallback regression runner:
 python3 .codex/skills/room-skill/runtime/chat_completions_regression.py --help
 ```
 
+For the checked-in Chat Completions live readiness checker:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py --help
+```
+
 For the checked-in Chat Completions live validation wrapper:
 
 ```bash
@@ -207,6 +213,13 @@ Run the checked-in full Chat Completions fallback regression suite with local mo
 ```bash
 python3 .codex/skills/room-skill/runtime/chat_completions_regression.py \
   --state-root /tmp/round-table-chat-completions-regression
+```
+
+Check real-provider env readiness without sending provider requests:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py \
+  --output-json /tmp/round-table-chat-completions-readiness.json
 ```
 
 Run the checked-in real-provider live wrapper after filling `.env.room` and `.env.debate`:
@@ -486,6 +499,8 @@ This means the source machine no longer has to treat imported target-machine evi
 For a real handoff, `prepare` should be run from a clean committed tree; when the source repo is dirty, the bundle now records that warning explicitly.
 
 `chat_completions_regression.py` is the checked-in provider fallback regression runner. It boots one local `/room` mock provider plus one local `/debate` mock provider, writes checked-in `.env.room.mock` and `.env.debate.mock` files into the evidence bundle, runs provider preflight for both scopes, then sequences `/room`, `/debate allow`, `/debate reject_followup`, and `/room -> /debate` integration through `--executor chat_completions`.
+
+`chat_completions_readiness.py` is the checked-in config-only readiness command for the real external provider lane. It checks `.env.room` and `.env.debate`, rejects missing values and unchanged template placeholders, and does not send provider requests.
 
 `chat_completions_live_validation.py` is the checked-in real-provider wrapper for the remaining unproven external lane. It first validates `.env.room` and `.env.debate` through the same checked-in provider-config reader, persists both preflight results, then launches the full `/room -> /debate` integration flow through `--executor chat_completions`. It also writes a failure report when env files are missing or still using template placeholder values.
 

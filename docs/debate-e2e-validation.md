@@ -121,6 +121,8 @@ python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
 Checked-in real-provider live wrapper:
 
 ```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py
+
 python3 .codex/skills/room-skill/runtime/chat_completions_live_validation.py \
   --room-env-file .env.room \
   --debate-env-file .env.debate \

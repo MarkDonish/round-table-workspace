@@ -17,6 +17,7 @@ Claude Code also gets a native project-skill discovery layer under `.claude/skil
 | Host adapter | Execute one prompt task through a concrete local agent or fallback provider and return one JSON object | `generic_agent_executor.py`, `local_codex_executor.py`, `chat_completions_executor.py` |
 | Adapter validation kit | Validate a candidate local agent CLI with smoke + full `/room -> /debate` fixture-backed integration | `generic_agent_adapter_validation.py`, `docs/generic-local-agent-adapter.md` |
 | Host inventory and recipes | Detect available local agent CLIs and document real-host validation recipes | `agent_host_inventory.py`, `docs/local-agent-host-recipes.md` |
+| Provider readiness | Check external provider env readiness without sending real requests | `chat_completions_readiness.py`, `docs/provider-live-readiness.md` |
 | Claude Code skill adapter | Provide native Claude Code project skill discovery for `/room` and `/debate` | `.claude/skills/room/SKILL.md`, `.claude/skills/debate/SKILL.md` |
 
 ## Supported Adapters
@@ -27,7 +28,7 @@ Claude Code also gets a native project-skill discovery layer under `.claude/skil
 | Generic local CLI agent | `generic_cli` | Adapter path and one-command validation kit validated with `generic_fixture_agent.py` | Any local agent CLI that can read a task prompt from stdin and return JSON |
 | Claude Code local CLI | `claude_code` | Adapter route validated with `generic_fixture_agent.py`; live wrapper checked in; current Mac preflight is blocked by `claude_code_not_logged_in` | Claude Code or Claude-compatible local command |
 | Codex local child task | `local_codex` | Mac and Windows mainline validated | Codex-first local runtime lane |
-| Chat Completions provider | `chat_completions` | Mock provider validated; real live provider pending | Fallback/regression lane, not the local mainline |
+| Chat Completions provider | `chat_completions` | Mock provider validated; config-only readiness checked in; real live provider pending | Fallback/regression lane, not the local mainline |
 
 ## Generic CLI Contract
 
@@ -130,6 +131,19 @@ Validate the Claude Code project-skill adapter layer without a Claude subscripti
 
 ```bash
 python3 .claude/scripts/validate_project_skills.py
+```
+
+Check provider env readiness without calling a real endpoint:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py
+```
+
+Run provider fallback regression with local mock providers:
+
+```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_regression.py \
+  --state-root /tmp/round-table-chat-completions-regression
 ```
 
 ## Boundaries

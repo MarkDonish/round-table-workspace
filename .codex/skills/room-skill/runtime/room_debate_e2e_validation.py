@@ -187,6 +187,8 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
     debate_state_root = flow_dir / "debates"
     room_id = f"{flow_id}-room"
     debate_id = f"{flow_id}-debate"
+    agent_command = getattr(args, "agent_command", None)
+    agent_timeout_seconds = getattr(args, "agent_timeout_seconds", generic_executor.DEFAULT_TIMEOUT_SECONDS)
 
     room_args = argparse.Namespace(
         executor=args.executor,
@@ -207,8 +209,8 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         local_codex_timeout_retries=args.local_codex_timeout_retries,
         local_codex_retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
         local_codex_persist_session=args.local_codex_persist_session,
-        agent_command=args.agent_command,
-        agent_timeout_seconds=args.agent_timeout_seconds,
+        agent_command=agent_command,
+        agent_timeout_seconds=agent_timeout_seconds,
     )
     room_report = room_validation.run_validation(room_args)
     handoff_packet = room_report["artifacts"]["handoff_packet"]
@@ -232,8 +234,8 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         local_codex_timeout_retries=args.local_codex_timeout_retries,
         local_codex_retry_timeout_multiplier=args.local_codex_retry_timeout_multiplier,
         local_codex_persist_session=args.local_codex_persist_session,
-        agent_command=args.agent_command,
-        agent_timeout_seconds=args.agent_timeout_seconds,
+        agent_command=agent_command,
+        agent_timeout_seconds=agent_timeout_seconds,
     )
     debate_report = debate_validation.run_validation(debate_args)
 

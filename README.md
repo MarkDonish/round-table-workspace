@@ -39,6 +39,7 @@
 - `.claude/skills/room/SKILL.md` 和 `.claude/skills/debate/SKILL.md` 已提供 Claude Code 原生项目 skill 入口，指回当前真源而不是复制出第二套协议
 - `.claude/scripts/validate_project_skills.py` 已提供不依赖 Claude 账号的 Claude Code project skill 结构验证入口
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口，可自动拉起本地 room/debate mock provider，并一条命令跑 provider preflight + room + debate + integration
+- `.codex/skills/room-skill/runtime/chat_completions_readiness.py` 已提供 checked-in 的 provider live readiness 入口，可在不请求真实 endpoint 的前提下区分 env missing / placeholder / ready
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper，可先做 room/debate 双侧 preflight，再一键触发真实 `/room -> /debate` integration
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
 - `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py` 已提供 checked-in 的 `/room -> /debate` 联调验证入口
@@ -55,6 +56,7 @@
 - `/room -> /debate generic_cli` 已通过 checked-in fixture agent 跑通完整 adapter integration
 - generic local agent adapter kit 已收口成 checked-in 文档和一键验证命令，其他本地 agent 可按同一 stdin / JSON contract 接入
 - local agent host inventory 已可输出本机真实宿主 readiness，不会把 auth blocked 或 CLI missing 误报成 live pass
+- provider fallback regression 已复跑通过；provider readiness 会把当前真实 `.env.room` / `.env.debate` 的缺失配置报告为 blocked，不误报为 live pass
 - `/room -> /debate claude_code` 已通过 checked-in fixture agent 跑通 executor route；真实 Claude Code CLI live run 仍需单独验证
 - Claude Code project skill 包装层已通过 checked-in 结构验证；这证明 Claude Code 用户 clone 仓库后有标准 `.claude/skills/` 入口
 - 真实 Claude Code CLI preflight 已确认本机 CLI 可用，但当前 auth 状态为未登录；因此 live run 当前被 `claude_code_not_logged_in` 阻塞
@@ -67,6 +69,7 @@
 - `local_codex` 主链已经在 Mac 上打通，checked-in child-task 执行器现在既可单独调参，也可直接复用 `gpt54_family` preset，避免直接继承宿主全局 `xhigh`；未单独证明的是“完全不加 child-task 调优，直接裸继承宿主默认配置”这一条非目标路径
 - `/room` 与 `/debate` 的 Chat Completions-compatible provider 路径仍然保留，但现在应视为 fallback / regression lane，而不是主线
 - 还没有完成真实外部 provider 的 `/room -> /summary -> /upgrade-to-debate -> /debate` live run
+- provider live readiness 已有 checked-in config-only preflight，但当前真实 `.env.room` / `.env.debate` 仍未 ready
 - 当前已完成的是 fixture-driven 验证、mock provider-backed 验证、以及本地 child-agent 主链验证；仍不应误报成所有宿主配置都已 100% 实战验证
 - generic CLI adapter 已证明 host abstraction 可以跑完整 `/room -> /debate` 链路，但真实 Claude Code 和其他第三方本地 agent 仍需要各自 live validation
 - generic local agent adapter kit 已提供通用接入合同和验证 wrapper；真实第三方 agent 的稳定性仍取决于各自 CLI 是否遵守 stdout / output-file JSON contract
@@ -127,6 +130,7 @@ round-table-workspace/
 │  ├─ host-adapter-architecture.md
 │  ├─ generic-local-agent-adapter.md
 │  ├─ local-agent-host-recipes.md
+│  ├─ provider-live-readiness.md
 │  ├─ claude-code-skill-adapter.md
 │  └─ superpowers/specs/
 ├─ prompts/
@@ -207,6 +211,8 @@ round-table-workspace/
 - generic local agent adapter 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
 - local agent host recipes：`docs/local-agent-host-recipes.md`
 - local agent host inventory：`python3 .codex/skills/room-skill/runtime/agent_host_inventory.py`
+- provider live readiness：`docs/provider-live-readiness.md`
+- provider readiness check：`python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py`
 - Claude Code skill 适配：`docs/claude-code-skill-adapter.md`
 - Claude Code project skill 结构验证：`python3 .claude/scripts/validate_project_skills.py`
 
@@ -235,6 +241,7 @@ round-table-workspace/
 - local cross-machine validation：`.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py`
 - local host preflight：`python3 .codex/skills/room-skill/runtime/local_codex_executor.py --check-host-preflight --preset gpt54_family`
 - provider fallback regression：`.codex/skills/room-skill/runtime/chat_completions_regression.py`
+- provider live readiness：`.codex/skills/room-skill/runtime/chat_completions_readiness.py`
 - provider live validation：`.codex/skills/room-skill/runtime/chat_completions_live_validation.py`
 - runtime validation：`.codex/skills/room-skill/runtime/room_e2e_validation.py`
 - mock provider：`.codex/skills/room-skill/runtime/mock_chat_completions_server.py`

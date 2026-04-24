@@ -85,6 +85,8 @@ python3 .codex/skills/room-skill/runtime/room_e2e_validation.py \
 External provider fallback path:
 
 ```bash
+python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py
+
 python3 .codex/skills/room-skill/runtime/chat_completions_executor.py \
   --env-file .env.room \
   --check-provider-config

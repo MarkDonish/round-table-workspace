@@ -191,6 +191,7 @@ description: |
 - `.claude/scripts/validate_project_skills.py` 已提供离线结构验证，确保 Claude Code skill wrapper 没有漂移
 - `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口
+- `.codex/skills/room-skill/runtime/chat_completions_readiness.py` 已提供 checked-in 的 provider live readiness 入口
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper
 - checked-in runtime 现在已暴露 `gpt54_family` preset，可把当前验证通过的 `GPT-5.4` 主线参数冻结成最短命令
 - `.codex/skills/room-skill/runtime/local_codex_executor.py` 现在也已暴露 checked-in 的 local host preflight，可先验证 `~/.codex` 宿主写入条件和 nested child-agent smoke
@@ -206,6 +207,7 @@ description: |
 - checked-in child-agent 执行器现在可显式控制 child task 的 reasoning effort，不必继承宿主全局 `xhigh`
 - 当前最稳定的 Mac 本地主线配置已验证 `gpt-5.4` 主模型；`gpt-5.4-mini` 可作为同家族 fallback
 - canonical fixture 已可在 Mac 本地跑通 `/room -> /summary -> /upgrade-to-debate`
+- provider fallback regression 已复跑通过，且 readiness 会把当前未配置的真实 `.env.room` / `.env.debate` 报告为 blocked
 - 外部 provider 路径仍保留，但应视为 fallback；真实 provider live validation 仍未证明完成
 
 因此，当前状态应视为：

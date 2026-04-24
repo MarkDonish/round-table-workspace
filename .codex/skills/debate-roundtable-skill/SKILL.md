@@ -140,7 +140,9 @@ description: |
 - `../room-skill/runtime/generic_agent_adapter_validation.py`
 - `docs/local-agent-host-recipes.md`
 - `docs/generic-local-agent-adapter.md`
+- `docs/provider-live-readiness.md`
 - `../room-skill/runtime/claude_code_live_validation.py`
+- `../room-skill/runtime/chat_completions_readiness.py`
 - `.claude/skills/debate/SKILL.md`
 - `.claude/scripts/validate_project_skills.py`
 - `runtime/mock_chat_completions_server.py`
@@ -152,6 +154,7 @@ description: |
 - 把 packet 变成 debate-side launch bundle、review packet、followup / rereview bridge artifacts
 - 运行 fixture / generic local CLI / local-child-agent / provider-aware 的 `/debate` prompt-host E2E 验证
 - 通过本地 Chat Completions-compatible mock provider 回放 canonical debate outputs
+- provider live readiness 已有 checked-in config-only preflight；真实 provider live run 仍需真实 `.env.room` / `.env.debate`
 - 当前 `allow` 与 `reject_followup` 两条 `local_codex` `/debate` 链都已在 Mac 上通过 checked-in 验证
 - `generic_cli` 与 `claude_code` executor route 已通过 checked-in fixture agent 验证 adapter contract；真实 Claude Code / 其他第三方本地 agent live run 仍需单独证明
 - generic local agent adapter kit 已通过 checked-in fixture agent 验证，可作为其他本地 agent 接入 `/room -> /debate` 的 readiness check

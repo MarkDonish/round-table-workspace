@@ -98,6 +98,7 @@ The runtime bridge validates, normalizes, persists, and rejects bad output.
 ## Boundary
 
 - This is not a provider URL lane.
+- Provider readiness is tracked separately in `docs/provider-live-readiness.md`.
 - This is not a second implementation of `/room` or `/debate`.
 - This does not require a Claude subscription.
 - Real third-party agent commands still need their own live validation run.
