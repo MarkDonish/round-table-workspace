@@ -20,12 +20,12 @@ This is not the same as claiming every local agent host or every provider is liv
 
 ## Current Release Candidate Artifact
 
-The current release candidate is `v0.1.0-rc1`.
+The current release candidate is `v0.1.0-rc2`.
 
 Use:
 
 - `CHANGELOG.md` for the release history.
-- `docs/releases/v0.1.0-rc1.md` for the human-readable release note.
+- `docs/releases/v0.1.0-rc2.md` for the human-readable release note.
 - `release_candidate_report.py` output for machine-readable support-scope evidence.
 
 The tag must point to a commit that has passed the strict release candidate gate.

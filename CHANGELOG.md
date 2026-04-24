@@ -10,6 +10,10 @@ live validation evidence.
 
 ## Unreleased
 
+- No unreleased changes yet.
+
+## v0.1.0-rc2 - 2026-04-25
+
 ### Added
 
 - Source-truth boundary audit tooling and historical materials guidance to keep
@@ -17,6 +21,12 @@ live validation evidence.
   source.
 - Clone-friendly agent consumer self-check and quickstart documentation for
   Codex, Claude Code, and generic local agent users.
+
+### Supported Scope
+
+- Everything in `v0.1.0-rc1`.
+- Source-truth boundary audit tooling.
+- Clone-friendly agent consumer self-check tooling.
 
 ## v0.1.0-rc1 - 2026-04-24
 
