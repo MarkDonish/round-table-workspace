@@ -42,6 +42,7 @@ REQUIRED_RUNTIME_FILES: list[str] = [
     ".codex/skills/room-skill/runtime/chat_completions_regression.py",
     ".codex/skills/room-skill/runtime/chat_completions_live_validation.py",
     ".codex/skills/room-skill/runtime/release_readiness_check.py",
+    ".codex/skills/room-skill/runtime/release_candidate_report.py",
     ".codex/skills/debate-roundtable-skill/runtime/debate_runtime.py",
     ".codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py",
     ".codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py",
@@ -232,6 +233,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
             "python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py --state-root /tmp/round-table-generic-agent-adapter-validation",
             "python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py --state-root /tmp/round-table-generic-agent-json-wrapper-validation",
             "python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py --state-root /tmp/round-table-local-agent-host-validation-matrix",
+            "python3 .codex/skills/room-skill/runtime/release_candidate_report.py --include-fixture-runs --strict-git-clean --state-root /tmp/round-table-release-candidate",
         ],
     }
 

@@ -198,6 +198,8 @@ description: |
 - `.codex/skills/room-skill/runtime/chat_completions_readiness.py` 已提供 checked-in 的 provider live readiness 入口
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper
 - `.codex/skills/room-skill/runtime/release_readiness_check.py` 已提供 checked-in 的 release readiness gate，用来区分 P0 上线阻塞和非阻塞 live 缺口
+- `.codex/skills/room-skill/runtime/release_candidate_report.py` 已提供 checked-in 的 release candidate 总报告入口，用来生成可声明/不可声明范围
+- `docs/release-candidate-scope.md` 已提供 release candidate 支持范围声明规则
 - checked-in runtime 现在已暴露 `gpt54_family` preset，可把当前验证通过的 `GPT-5.4` 主线参数冻结成最短命令
 - `.codex/skills/room-skill/runtime/local_codex_executor.py` 现在也已暴露 checked-in 的 local host preflight，可先验证 `~/.codex` 宿主写入条件和 nested child-agent smoke
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 E2E validation runner

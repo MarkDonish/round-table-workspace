@@ -77,6 +77,19 @@ python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
 
 The command does not send real provider requests and does not require third-party agent subscriptions.
 
+## Release Candidate Report
+
+Generate a claim-safe release candidate summary:
+
+```bash
+python3 .codex/skills/room-skill/runtime/release_candidate_report.py \
+  --include-fixture-runs \
+  --strict-git-clean \
+  --state-root /tmp/round-table-release-candidate
+```
+
+The support-scope rules for interpreting that report live in `docs/release-candidate-scope.md`.
+
 ## Recommended Release Candidate Validation
 
 Before tagging or announcing a release, run:
@@ -102,6 +115,11 @@ python3 .claude/scripts/validate_project_skills.py
 python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
   --include-fixture-runs \
   --strict-git-clean
+
+python3 .codex/skills/room-skill/runtime/release_candidate_report.py \
+  --include-fixture-runs \
+  --strict-git-clean \
+  --state-root /tmp/round-table-release-candidate
 ```
 
 If a real provider is available, run this separately:

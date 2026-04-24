@@ -110,6 +110,12 @@ For the checked-in release readiness gate:
 python3 .codex/skills/room-skill/runtime/release_readiness_check.py --help
 ```
 
+For the checked-in release candidate report:
+
+```bash
+python3 .codex/skills/room-skill/runtime/release_candidate_report.py --help
+```
+
 For the checked-in local mock Chat Completions provider:
 
 ```bash
@@ -274,6 +280,15 @@ Check release readiness without calling real providers or requiring third-party 
 ```bash
 python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
   --output-json /tmp/round-table-release-readiness.json
+```
+
+Generate a release candidate support-scope report:
+
+```bash
+python3 .codex/skills/room-skill/runtime/release_candidate_report.py \
+  --include-fixture-runs \
+  --strict-git-clean \
+  --state-root /tmp/round-table-release-candidate
 ```
 
 Run the checked-in real-provider live wrapper after filling `.env.room` and `.env.debate`:
@@ -565,6 +580,8 @@ For a real handoff, `prepare` should be run from a clean committed tree; when th
 `chat_completions_live_validation.py` is the checked-in real-provider wrapper for the remaining unproven external lane. It first validates `.env.room` and `.env.debate` through the same checked-in provider-config reader, persists both preflight results, then launches the full `/room -> /debate` integration flow through `--executor chat_completions`. It also writes a failure report when env files are missing or still using template placeholder values.
 
 `release_readiness_check.py` is the checked-in launch-scope gate. It aggregates source-of-truth presence, runtime entrypoint presence, Claude Code project-skill structure, local agent host inventory, local agent host validation matrix tooling, and provider config readiness without sending real provider requests. It reports P0 blockers separately from non-blocking gaps such as missing third-party CLIs, Claude auth blockers, or provider env files that are not ready.
+
+`release_candidate_report.py` is the checked-in release-candidate renderer. It wraps the release gate and emits claim-safe JSON/Markdown, separating what can be launched from what must not be claimed without host-live or provider-live evidence.
 
 Because nested child tasks persist session and state data under `~/.codex/`, the `local_codex` mainline should be run from a normal local terminal or any host environment that permits writing `~/.codex/sessions` and the local Codex state DB. A tighter sandbox can make the chain fail before prompt execution even starts.
 

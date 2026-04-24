@@ -39,6 +39,7 @@
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供真实本地 agent 宿主 inventory/preflight，可区分 CLI 缺失、auth 阻塞、可进入 live validation
 - `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py` 已提供真实本地 agent 宿主 validation matrix/report，可把 missing / blocked / pending / live passed / live failed 分级落盘
 - `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI live validation wrapper；它先做 `claude` CLI/auth preflight，未登录时生成明确 blocked 报告，登录后可直接跑完整 `/room -> /debate`
+- `.codex/skills/room-skill/runtime/release_candidate_report.py` 已提供 release candidate 总报告入口，可把 release gate、host matrix、provider readiness 汇总成 claim-safe JSON/Markdown
 - `.claude/skills/room/SKILL.md` 和 `.claude/skills/debate/SKILL.md` 已提供 Claude Code 原生项目 skill 入口，指回当前真源而不是复制出第二套协议
 - `.claude/scripts/validate_project_skills.py` 已提供不依赖 Claude 账号的 Claude Code project skill 结构验证入口
 - `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口，可自动拉起本地 room/debate mock provider，并一条命令跑 provider preflight + room + debate + integration
@@ -62,6 +63,7 @@
 - local agent host inventory 已可输出本机真实宿主 readiness，不会把 auth blocked 或 CLI missing 误报成 live pass
 - provider fallback regression 已复跑通过；provider readiness 会把当前真实 `.env.room` / `.env.debate` 的缺失配置报告为 blocked，不误报为 live pass
 - release readiness gate 已入仓；上线判断不再只依赖口头汇报或历史 reports
+- release candidate scope 和总报告生成器已入仓；当前可声明范围与不可声明范围可以一键生成审查材料
 - `/room -> /debate claude_code` 已通过 checked-in fixture agent 跑通 executor route；真实 Claude Code CLI live run 仍需单独验证
 - Claude Code project skill 包装层已通过 checked-in 结构验证；这证明 Claude Code 用户 clone 仓库后有标准 `.claude/skills/` 入口
 - 真实 Claude Code CLI preflight 已确认本机 CLI 可用，但当前 auth 状态为未登录；因此 live run 当前被 `claude_code_not_logged_in` 阻塞
@@ -138,6 +140,7 @@ round-table-workspace/
 │  ├─ third-party-agent-wrapper-recipes.md
 │  ├─ provider-live-readiness.md
 │  ├─ release-readiness.md
+│  ├─ release-candidate-scope.md
 │  ├─ claude-code-skill-adapter.md
 │  └─ superpowers/specs/
 ├─ prompts/
@@ -215,6 +218,8 @@ round-table-workspace/
 - 开发同步协议：`docs/development-sync-protocol.md`
 - 发布 readiness：`docs/release-readiness.md`
 - 发布 readiness 检查：`python3 .codex/skills/room-skill/runtime/release_readiness_check.py`
+- release candidate scope：`docs/release-candidate-scope.md`
+- release candidate 总报告：`python3 .codex/skills/room-skill/runtime/release_candidate_report.py`
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
 - generic local agent 适配：`docs/generic-local-agent-adapter.md`
 - generic local agent adapter 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
@@ -258,6 +263,7 @@ round-table-workspace/
 - provider fallback regression：`.codex/skills/room-skill/runtime/chat_completions_regression.py`
 - provider live readiness：`.codex/skills/room-skill/runtime/chat_completions_readiness.py`
 - provider live validation：`.codex/skills/room-skill/runtime/chat_completions_live_validation.py`
+- release candidate 总报告：`.codex/skills/room-skill/runtime/release_candidate_report.py`
 - runtime validation：`.codex/skills/room-skill/runtime/room_e2e_validation.py`
 - mock provider：`.codex/skills/room-skill/runtime/mock_chat_completions_server.py`
 - live provider sample：`.env.room.example`

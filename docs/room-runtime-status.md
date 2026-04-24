@@ -25,6 +25,7 @@ The current source-of-truth files for `/room` are:
 - `docs/debate-e2e-validation.md`
 - `docs/debate-runtime-bridge.md`
 - `docs/release-readiness.md`
+- `docs/release-candidate-scope.md`
 - `docs/DECISIONS-LOCKED.md`
 - `prompts/room-selection.md`
 - `prompts/room-summary.md`
@@ -46,6 +47,7 @@ The current source-of-truth files for `/room` are:
 - `.codex/skills/room-skill/runtime/chat_completions_readiness.py`
 - `.codex/skills/room-skill/runtime/chat_completions_live_validation.py`
 - `.codex/skills/room-skill/runtime/release_readiness_check.py`
+- `.codex/skills/room-skill/runtime/release_candidate_report.py`
 - `.codex/skills/room-skill/runtime/chat_completions_executor.py`
 - `.codex/skills/room-skill/runtime/room_e2e_validation.py`
 - `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py`
@@ -99,6 +101,7 @@ The repository already contains a largely complete source layer for `/room`:
 - a checked-in Chat Completions live readiness checker in `.codex/skills/room-skill/runtime/chat_completions_readiness.py`
 - a checked-in Chat Completions live validation wrapper in `.codex/skills/room-skill/runtime/chat_completions_live_validation.py`
 - a checked-in release readiness gate in `.codex/skills/room-skill/runtime/release_readiness_check.py`, with launch-scope rules in `docs/release-readiness.md`
+- a checked-in release candidate report generator in `.codex/skills/room-skill/runtime/release_candidate_report.py`, with support-scope rules in `docs/release-candidate-scope.md`
 - a checked-in `gpt54_family` local preset exposed across `local_codex_executor.py`, `room_e2e_validation.py`, `debate_e2e_validation.py`, `room_debate_e2e_validation.py`, and `local_codex_regression.py`
 - the local `/room`, `/debate`, integration, and regression runners now default to that validated `gpt54_family` preset unless the caller explicitly overrides it
 - that `gpt54_family` preset is now stepwise: selection stays on the primary lane with shorter fail-fast timeouts, heavy discussion steps keep a longer `gpt-5.4` window, and narrower structured steps like summary / upgrade / reviewer shift to a lighter same-family lane
