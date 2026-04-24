@@ -1,0 +1,45 @@
+# Changelog
+
+All notable release-scope changes for this repository are documented here.
+
+This changelog follows the repository release boundary in
+`docs/release-readiness.md` and `docs/release-candidate-scope.md`: release notes
+may claim the Codex local mainline scope only when the checked-in gate has no P0
+blockers. Real third-party host-live and provider-live support require their own
+live validation evidence.
+
+## v0.1.0-rc1 - 2026-04-24
+
+Release candidate for the Codex local mainline scope.
+
+### Supported Scope
+
+- Codex local mainline for `/room`, `/debate`, and `/room -> /debate`.
+- Checked-in protocol, prompts, skills, runtime bridges, and validation harnesses.
+- Claude Code project-skill discovery structure as an adapter layer, not a forked
+  implementation source.
+- Generic local agent adapter contract with fixture-backed validation.
+- Third-party local agent JSON wrapper tooling and local host validation matrix.
+- Chat Completions-compatible fallback/mock regression tooling.
+
+### Validation Baseline
+
+- `release_readiness_check.py --include-fixture-runs --strict-git-clean` passed
+  with no P0 blockers before this release note was prepared.
+- `release_candidate_report.py --include-fixture-runs --strict-git-clean`
+  returned `release_decision=ready_for_codex_local_mainline_scope`.
+- The release gate confirmed source-truth files, runtime entrypoints, Claude Code
+  project-skill structure, host inventory/matrix tooling, provider readiness
+  tooling, generic fixture validation, and JSON wrapper validation.
+
+### Not Claimed
+
+- Real Claude Code host-live execution is not claimed while the local account is
+  not logged in or entitled.
+- Gemini CLI, OpenCode, Aider, Goose, and Cursor Agent host-live execution are
+  not claimed without per-host live validation.
+- Real Chat Completions-compatible provider-live support is not claimed until
+  `.env.room` and `.env.debate` are valid and `chat_completions_live_validation.py`
+  passes.
+- Universal production stability across all possible local agent hosts is not
+  claimed.

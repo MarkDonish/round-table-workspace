@@ -16,6 +16,17 @@ The repository can be treated as ready for the current supported scope when the 
 
 This does not mean every possible host or provider is live-validated.
 
+## Current Release Candidate
+
+The current reproducible release-candidate target is:
+
+- Tag: `v0.1.0-rc1`
+- Changelog: `CHANGELOG.md`
+- Release notes: `docs/releases/v0.1.0-rc1.md`
+
+Create or update this tag only after the strict release gate and release
+candidate report pass from a clean Git tree.
+
 ## Not Claimed By This Scope
 
 Do not claim these as complete unless the matching live validation report exists:

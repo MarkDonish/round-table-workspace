@@ -141,6 +141,7 @@ round-table-workspace/
 │  ├─ provider-live-readiness.md
 │  ├─ release-readiness.md
 │  ├─ release-candidate-scope.md
+│  ├─ releases/v0.1.0-rc1.md
 │  ├─ claude-code-skill-adapter.md
 │  └─ superpowers/specs/
 ├─ prompts/
@@ -220,6 +221,8 @@ round-table-workspace/
 - 发布 readiness 检查：`python3 .codex/skills/room-skill/runtime/release_readiness_check.py`
 - release candidate scope：`docs/release-candidate-scope.md`
 - release candidate 总报告：`python3 .codex/skills/room-skill/runtime/release_candidate_report.py`
+- changelog：`CHANGELOG.md`
+- 当前 release candidate notes：`docs/releases/v0.1.0-rc1.md`
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
 - generic local agent 适配：`docs/generic-local-agent-adapter.md`
 - generic local agent adapter 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`

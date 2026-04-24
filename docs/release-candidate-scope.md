@@ -17,6 +17,18 @@ The repository may currently be claimed as ready for:
 
 This is not the same as claiming every local agent host or every provider is live-validated.
 
+## Current Release Candidate Artifact
+
+The current release candidate is `v0.1.0-rc1`.
+
+Use:
+
+- `CHANGELOG.md` for the release history.
+- `docs/releases/v0.1.0-rc1.md` for the human-readable release note.
+- `release_candidate_report.py` output for machine-readable support-scope evidence.
+
+The tag must point to a commit that has passed the strict release candidate gate.
+
 ## Not Claimed
 
 Do not claim these until the matching live validation report exists:
