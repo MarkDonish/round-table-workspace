@@ -98,4 +98,4 @@ Provider fallback is available for intentional Chat Completions-compatible
 regression or live testing, but it is not the local meeting room and is not
 required for the local mainline.
 
-Current release-candidate notes: `docs/releases/v0.1.0-rc2.md`.
+Current release-candidate notes: `docs/releases/v0.1.0-rc3.md`.

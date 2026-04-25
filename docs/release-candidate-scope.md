@@ -14,18 +14,19 @@ The repository may currently be claimed as ready for:
 - generic local agent adapter contract with fixture-backed validation
 - third-party local agent JSON wrapper and host validation matrix tooling
 - clone-friendly agent consumer self-check tooling
+- clone-friendly launch quickstart
 - Chat Completions-compatible fallback/mock regression tooling
 
 This is not the same as claiming every local agent host or every provider is live-validated.
 
 ## Current Release Candidate Artifact
 
-The current release candidate is `v0.1.0-rc2`.
+The current release candidate is `v0.1.0-rc3`.
 
 Use:
 
 - `CHANGELOG.md` for the release history.
-- `docs/releases/v0.1.0-rc2.md` for the human-readable release note.
+- `docs/releases/v0.1.0-rc3.md` for the human-readable release note.
 - `release_candidate_report.py` output for machine-readable support-scope evidence.
 
 The tag must point to a commit that has passed the strict release candidate gate.

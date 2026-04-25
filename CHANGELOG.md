@@ -10,10 +10,20 @@ live validation evidence.
 
 ## Unreleased
 
+- No unreleased changes yet.
+
+## v0.1.0-rc3 - 2026-04-25
+
 ### Added
 
 - Root `LAUNCH.md` quickstart for clone-friendly self-checks and runtime path
   selection.
+
+### Supported Scope
+
+- Everything in `v0.1.0-rc2`.
+- Clone-friendly launch quickstart as the shortest safe entrypoint for newly
+  cloned copies and external local agent hosts.
 
 ## v0.1.0-rc2 - 2026-04-25
 

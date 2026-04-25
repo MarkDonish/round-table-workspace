@@ -145,7 +145,7 @@ round-table-workspace/
 │  ├─ provider-live-readiness.md
 │  ├─ release-readiness.md
 │  ├─ release-candidate-scope.md
-│  ├─ releases/v0.1.0-rc2.md
+│  ├─ releases/v0.1.0-rc3.md
 │  ├─ claude-code-skill-adapter.md
 │  └─ superpowers/specs/
 ├─ prompts/
@@ -230,7 +230,7 @@ round-table-workspace/
 - 历史材料边界审计：`docs/historical-materials-audit.md`
 - source boundary audit：`python3 .codex/skills/room-skill/runtime/source_boundary_audit.py`
 - changelog：`CHANGELOG.md`
-- 当前 release candidate notes：`docs/releases/v0.1.0-rc2.md`
+- 当前 release candidate notes：`docs/releases/v0.1.0-rc3.md`
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
 - generic local agent 适配：`docs/generic-local-agent-adapter.md`
 - agent consumer quickstart：`docs/agent-consumer-quickstart.md`

@@ -22,9 +22,9 @@ This does not mean every possible host or provider is live-validated.
 
 The current reproducible release-candidate target is:
 
-- Tag: `v0.1.0-rc2`
+- Tag: `v0.1.0-rc3`
 - Changelog: `CHANGELOG.md`
-- Release notes: `docs/releases/v0.1.0-rc2.md`
+- Release notes: `docs/releases/v0.1.0-rc3.md`
 
 Create or update this tag only after the strict release gate and release
 candidate report pass from a clean Git tree.
