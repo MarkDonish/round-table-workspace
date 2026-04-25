@@ -17,6 +17,7 @@ Treat this repository as the long-term source of truth for the round-table syste
 Primary source directories:
 
 - `README.md`
+- `LAUNCH.md`
 - `AGENTS.md`
 - `docs/`
 - `prompts/`

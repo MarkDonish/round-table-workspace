@@ -13,6 +13,7 @@ The repository can be treated as ready for the current supported scope when the 
 - third-party local agent JSON wrapper tooling and recipes
 - third-party local agent validation matrix/report tooling
 - clone-friendly agent consumer self-check tooling
+- clone-friendly launch quickstart
 - Chat Completions-compatible provider fallback tooling and mock regression path
 
 This does not mean every possible host or provider is live-validated.

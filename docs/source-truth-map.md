@@ -10,6 +10,7 @@ repository to another local agent host.
 | Area | Authority | Use For | Do Not Use For |
 |---|---|---|---|
 | `AGENTS.md` | Repository operating rules | Startup rules, source boundaries, `/room` and `/debate` trigger guardrails | Detailed runtime contracts |
+| `LAUNCH.md` | Clone/user launch entry | Shortest safe self-check and runtime path selection for new local users or agent hosts | Replacing detailed architecture, release, or protocol docs |
 | `README.md` | Project overview and entry index | Current state, capability summary, entrypoint discovery | Replacing detailed protocol docs |
 | `docs/` | Active protocol and release source | Architecture, release scope, host adapters, provider readiness, sync protocol | Historical session archaeology unless under `docs/archive/` |
 | `prompts/` | Active prompt source | `/room`, `/debate`, and daily-mode prompt contracts | Runtime state persistence |

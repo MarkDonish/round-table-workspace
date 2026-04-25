@@ -17,6 +17,7 @@ DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-relea
 
 REQUIRED_SOURCE_TRUTH: list[tuple[str, str]] = [
     ("file", "AGENTS.md"),
+    ("file", "LAUNCH.md"),
     ("file", "README.md"),
     ("dir", "docs"),
     ("dir", "prompts"),
@@ -207,6 +208,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
                 "third-party local agent JSON wrapper tooling and recipes",
                 "third-party local agent validation matrix/report tooling",
                 "clone-friendly agent consumer self-check tooling",
+                "clone-friendly launch quickstart",
                 "provider fallback readiness tooling and mock regression source",
                 "source-truth boundary audit tooling",
             ],

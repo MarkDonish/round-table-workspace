@@ -10,7 +10,10 @@ live validation evidence.
 
 ## Unreleased
 
-- No unreleased changes yet.
+### Added
+
+- Root `LAUNCH.md` quickstart for clone-friendly self-checks and runtime path
+  selection.
 
 ## v0.1.0-rc2 - 2026-04-25
 
