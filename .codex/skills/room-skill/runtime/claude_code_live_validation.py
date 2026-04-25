@@ -69,6 +69,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Only write CLI/auth preflight evidence and skip smoke/integration execution.",
     )
     parser.add_argument(
+        "--smoke-only",
+        action="store_true",
+        help=(
+            "Run CLI/auth preflight plus the minimal agent JSON smoke, then skip the full /room -> /debate "
+            "integration. This proves local execution only; it is not claimable as host-live support."
+        ),
+    )
+    parser.add_argument(
         "--skip-auth-check",
         action="store_true",
         help="Attempt smoke/integration even if `claude auth status` reports loggedIn=false.",
@@ -99,6 +107,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
     run_dir.mkdir(parents=True, exist_ok=True)
 
     agent_command = generic_executor.resolve_agent_command(executor_name="claude_code", command=args.agent_command)
+    agent_command_is_default = agent_command == DEFAULT_CLAUDE_CODE_AGENT_COMMAND
     preflight = build_preflight(agent_command=agent_command)
     report: dict[str, Any] = {
         "ok": False,
@@ -108,17 +117,35 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         "state_root": str(state_root),
         "run_dir": str(run_dir),
         "agent_command": agent_command,
+        "agent_command_is_default_claude_code": agent_command_is_default,
         "agent_timeout_seconds": args.agent_timeout_seconds,
         "preflight": preflight,
+        "validation_level": "not_started",
+        "claimable_as_host_live": False,
+        "claimable_as_default_claude_code_host_live": False,
+        "support_claim": "not_live_validated",
+        "pass_criteria": build_pass_criteria(preflight=preflight),
     }
 
     if args.preflight_only:
+        preflight_passed = preflight["cli_available"] and auth_logged_in(preflight)
+        blocker = None
+        next_action = "Run with --smoke-only to prove local CLI execution, then run without --smoke-only for host-live support."
+        if not preflight["cli_available"]:
+            blocker = "claude_code_cli_missing"
+            next_action = "Install Claude Code CLI and make `claude` available on PATH."
+        elif not auth_logged_in(preflight):
+            blocker = "claude_code_not_logged_in"
+            next_action = "Run `claude auth login`, then rerun this wrapper."
         report.update(
             {
-                "ok": preflight["cli_available"] and preflight["auth"].get("loggedIn") is True,
-                "blocked": preflight["auth"].get("loggedIn") is not True,
-                "blocker": None if preflight["auth"].get("loggedIn") is True else "claude_code_not_logged_in",
-                "next_action": None if preflight["auth"].get("loggedIn") is True else "Run `claude auth login`, then rerun this wrapper.",
+                "ok": preflight_passed,
+                "blocked": blocker is not None,
+                "blocker": blocker,
+                "validation_level": "preflight_only",
+                "support_claim": "preflight_passed_not_host_live" if preflight_passed else "preflight_blocked",
+                "next_action": next_action,
+                "pass_criteria": build_pass_criteria(preflight=preflight),
             }
         )
         write_json(run_dir / "claude-code-live-validation-report.json", report)
@@ -129,6 +156,9 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
             {
                 "blocked": True,
                 "blocker": "claude_code_cli_missing",
+                "validation_level": "preflight",
+                "support_claim": "blocked_cli_missing",
+                "pass_criteria": build_pass_criteria(preflight=preflight),
                 "next_action": "Install Claude Code CLI and make `claude` available on PATH.",
             }
         )
@@ -140,6 +170,9 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
             {
                 "blocked": True,
                 "blocker": "claude_code_not_logged_in",
+                "validation_level": "preflight",
+                "support_claim": "blocked_auth",
+                "pass_criteria": build_pass_criteria(preflight=preflight),
                 "next_action": "Run `claude auth login`, then rerun this wrapper.",
             }
         )
@@ -158,8 +191,28 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
             {
                 "blocked": True,
                 "blocker": "claude_code_smoke_failed",
+                "validation_level": "smoke",
+                "support_claim": "smoke_failed_not_host_live",
+                "pass_criteria": build_pass_criteria(preflight=preflight),
                 "error": str(exc),
                 "error_details": exc.details,
+            }
+        )
+        write_json(run_dir / "claude-code-live-validation-report.json", report)
+        return report
+
+    if args.smoke_only:
+        report.update(
+            {
+                "ok": True,
+                "blocked": False,
+                "blocker": None,
+                "validation_level": "smoke_only",
+                "support_claim": "smoke_passed_not_full_chain",
+                "claimable_as_host_live": False,
+                "pass_criteria": build_pass_criteria(preflight=preflight, smoke_ready=True),
+                "smoke": smoke,
+                "next_action": "Run without --smoke-only before claiming real Claude Code /room -> /debate host-live support.",
             }
         )
         write_json(run_dir / "claude-code-live-validation-report.json", report)
@@ -193,21 +246,42 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
     try:
         integration_report = integration_validation.run_validation(integration_args)
     except Exception as exc:
-        report.update(
-            {
-                "blocked": False,
-                "blocker": "claude_code_integration_failed",
-                "error": str(exc),
-                "smoke": smoke,
-            }
-        )
+        failed_payload = {
+            "blocked": False,
+            "blocker": "claude_code_integration_failed",
+            "validation_level": "full_integration",
+            "support_claim": "full_chain_failed_not_host_live",
+            "claimable_as_host_live": False,
+            "pass_criteria": build_pass_criteria(preflight=preflight, smoke_ready=True),
+            "error": str(exc),
+            "smoke": smoke,
+            "next_action": "Inspect the persisted trace/report, then rerun the full wrapper before claiming host-live support.",
+        }
+        error_details = getattr(exc, "details", None)
+        if error_details:
+            failed_payload["error_details"] = error_details
+        report.update(failed_payload)
         write_json(run_dir / "claude-code-live-validation-report.json", report)
         return report
 
+    full_chain_passed = bool(integration_report.get("pass_criteria", {}).get("full_chain_passed"))
     report.update(
         {
-            "ok": bool(integration_report.get("pass_criteria", {}).get("full_chain_passed")),
+            "ok": full_chain_passed,
             "blocked": False,
+            "validation_level": "full_integration",
+            "support_claim": build_full_support_claim(
+                full_chain_passed=full_chain_passed,
+                agent_command_is_default=agent_command_is_default,
+            ),
+            "claimable_as_host_live": full_chain_passed,
+            "claimable_as_default_claude_code_host_live": full_chain_passed and agent_command_is_default,
+            "pass_criteria": build_pass_criteria(
+                preflight=preflight,
+                smoke_ready=True,
+                integration_report=integration_report,
+            ),
+            "next_action": None if full_chain_passed else "Inspect the integration pass criteria before claiming host-live support.",
             "smoke": smoke,
             "integration": {
                 "flow_id": integration_report.get("flow_id"),
@@ -258,6 +332,36 @@ def build_preflight(*, agent_command: str) -> dict[str, Any]:
     auth_payload["returncode"] = auth_result["returncode"]
     preflight["auth"] = auth_payload
     return preflight
+
+
+def auth_logged_in(preflight: dict[str, Any]) -> bool:
+    return preflight.get("auth", {}).get("loggedIn") is True
+
+
+def build_pass_criteria(
+    *,
+    preflight: dict[str, Any],
+    smoke_ready: bool = False,
+    integration_report: dict[str, Any] | None = None,
+) -> dict[str, bool]:
+    integration_criteria = integration_report.get("pass_criteria", {}) if integration_report else {}
+    return {
+        "cli_available": preflight.get("cli_available") is True,
+        "auth_logged_in": auth_logged_in(preflight),
+        "agent_smoke_ready": smoke_ready,
+        "room_flow_passed": bool(integration_criteria.get("room_flow_passed")),
+        "handoff_packet_forwarded": bool(integration_criteria.get("handoff_packet_forwarded")),
+        "debate_flow_passed": bool(integration_criteria.get("debate_flow_passed")),
+        "full_chain_passed": bool(integration_criteria.get("full_chain_passed")),
+    }
+
+
+def build_full_support_claim(*, full_chain_passed: bool, agent_command_is_default: bool) -> str:
+    if not full_chain_passed:
+        return "full_chain_failed_not_host_live"
+    if agent_command_is_default:
+        return "real_claude_code_host_live_validated"
+    return "selected_agent_command_live_validated_not_default_claude_code"
 
 
 def run_command(command: list[str], *, timeout_seconds: int) -> dict[str, Any]:

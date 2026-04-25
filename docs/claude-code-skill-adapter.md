@@ -52,10 +52,18 @@ Run real Claude Code host-live validation only when the local account has Claude
 
 ```bash
 python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --preflight-only \
+  --state-root /tmp/round-table-claude-code-live-preflight
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --smoke-only \
+  --state-root /tmp/round-table-claude-code-live-smoke
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live
 ```
 
-If the wrapper reports `claude_code_not_logged_in`, the adapter remains prepared but the host-live lane is blocked by account entitlement/authentication.
+If the wrapper reports `claude_code_not_logged_in`, the adapter remains prepared but the host-live lane is blocked by account entitlement/authentication. `--smoke-only` is useful for confirming that Claude Code can execute a minimal JSON task, but it is not sufficient to claim `/room -> /debate` support. The claimable default-Claude result is the full wrapper with `claimable_as_default_claude_code_host_live=true`.
 
 ## Boundary
 

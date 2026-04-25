@@ -84,10 +84,14 @@ python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live-preflight
 
 python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --smoke-only \
+  --state-root /tmp/round-table-claude-code-live-smoke
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live
 ```
 
-If the preflight reports `claude_code_not_logged_in`, the adapter is prepared but the real Claude Code live lane is blocked by account authentication.
+If the preflight reports `claude_code_not_logged_in`, the adapter is prepared but the real Claude Code live lane is blocked by account authentication. If `--smoke-only` passes, treat it as local CLI execution evidence only; claim real default Claude Code `/room -> /debate` support only when the full wrapper reports `claimable_as_default_claude_code_host_live=true`.
 
 ## Generic Local Agent Path
 

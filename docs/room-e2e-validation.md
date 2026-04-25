@@ -69,10 +69,14 @@ python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live-preflight
 
 python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --smoke-only \
+  --state-root /tmp/round-table-claude-code-live-smoke
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live
 ```
 
-The wrapper writes a structured blocked report when `claude auth status` returns `loggedIn=false`. It should only be counted as a host-live pass after the full non-`--preflight-only` run completes with `full_chain_passed=true`.
+The wrapper writes a structured blocked report when `claude auth status` returns `loggedIn=false`. `--smoke-only` proves the local Claude Code CLI can execute a minimal JSON task, but it is still not a `/room -> /debate` host-live pass. Count default Claude Code as passed only when the full non-`--preflight-only`, non-`--smoke-only` run reports `claimable_as_default_claude_code_host_live=true` and `full_chain_passed=true`.
 
 Fixture-backed smoke path:
 

@@ -72,7 +72,15 @@ For real Claude Code host-live validation, only if the local Claude Code account
 
 ```bash
 python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --preflight-only \
+  --state-root /tmp/round-table-claude-code-live-preflight
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --smoke-only \
+  --state-root /tmp/round-table-claude-code-live-smoke
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live
 ```
 
-If the live wrapper reports `claude_code_not_logged_in`, do not mark the lane as passed.
+If the live wrapper reports `claude_code_not_logged_in`, do not mark the lane as passed. A `--smoke-only` pass proves local CLI execution only; claim the default Claude Code lane only when the full wrapper reports `claimable_as_default_claude_code_host_live=true`.

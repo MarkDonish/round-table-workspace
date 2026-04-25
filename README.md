@@ -39,7 +39,7 @@
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供真实本地 agent 宿主 inventory/preflight，可区分 CLI 缺失、auth 阻塞、可进入 live validation
 - `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py` 已提供真实本地 agent 宿主 validation matrix/report，可把 missing / blocked / pending / live passed / live failed 分级落盘
 - `.codex/skills/room-skill/runtime/agent_consumer_self_check.py` 已提供 clone-friendly 的消费者自检入口，可在不需要 provider URL、不需要第三方付费账号的前提下聚合 source-boundary、release readiness、Claude project skill、generic adapter fixture、JSON wrapper、host matrix 证据
-- `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI live validation wrapper；它先做 `claude` CLI/auth preflight，未登录时生成明确 blocked 报告，登录后可直接跑完整 `/room -> /debate`
+- `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI validation wrapper；它把 `preflight_only`、`smoke_only`、完整 `/room -> /debate` 分层落盘，只有 `claimable_as_default_claude_code_host_live=true` 才能声明默认 Claude Code host-live 通过
 - `.codex/skills/room-skill/runtime/release_candidate_report.py` 已提供 release candidate 总报告入口，可把 release gate、host matrix、provider readiness 汇总成 claim-safe JSON/Markdown
 - `.claude/skills/room/SKILL.md` 和 `.claude/skills/debate/SKILL.md` 已提供 Claude Code 原生项目 skill 入口，指回当前真源而不是复制出第二套协议
 - `.claude/scripts/validate_project_skills.py` 已提供不依赖 Claude 账号的 Claude Code project skill 结构验证入口

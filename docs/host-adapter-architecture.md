@@ -153,10 +153,14 @@ python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live-preflight
 
 python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --smoke-only \
+  --state-root /tmp/round-table-claude-code-live-smoke
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live
 ```
 
-The wrapper first runs `claude --version` and `claude auth status`. If auth reports `loggedIn=false`, the wrapper writes a blocked report instead of pretending the host-live lane passed.
+The wrapper first runs `claude --version` and `claude auth status`. If auth reports `loggedIn=false`, the wrapper writes a blocked report instead of pretending the host-live lane passed. Treat `--smoke-only` as local CLI execution evidence, not `/room -> /debate` support; only the full default-Claude wrapper result with `claimable_as_default_claude_code_host_live=true` is claimable default Claude Code host-live evidence.
 
 Validate the Claude Code project-skill adapter layer without a Claude subscription:
 

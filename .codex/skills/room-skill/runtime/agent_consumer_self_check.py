@@ -127,7 +127,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "provider_url_required": False,
             "paid_third_party_account_required_for_this_check": False,
             "reports_and_artifacts_are_source": False,
-            "host_live_support_claim_rule": "Only local_agent_host_validation_matrix rows with matrix_status=live_passed may be claimed as real host-live support.",
+            "host_live_support_claim_rule": (
+                "Only local_agent_host_validation_matrix rows with matrix_status=live_passed, or the full "
+                "claude_code_live_validation.py wrapper with claimable_as_default_claude_code_host_live=true, "
+                "may be claimed as real host-live support."
+            ),
             "fixture_rule": "Offline fixture validation proves the adapter contract, not a specific third-party model account.",
         },
         "next_commands": next_commands(),
@@ -263,6 +267,7 @@ def next_commands() -> dict[str, list[str]]:
         ],
         "claude_code_live_after_login": [
             "python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py --preflight-only --state-root /tmp/round-table-claude-code-live-preflight",
+            "python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py --smoke-only --state-root /tmp/round-table-claude-code-live-smoke",
             "python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py --state-root /tmp/round-table-claude-code-live",
         ],
         "generic_third_party_agent": [

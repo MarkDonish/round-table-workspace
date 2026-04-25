@@ -63,7 +63,7 @@ These are starting templates, not live validation claims. Confirm each CLI's cur
 
 | Host | Template | Notes |
 |---|---|---|
-| Claude Code | `python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --agent-command 'claude -p --input-format text --output-format text --no-session-persistence --tools ""'` | Current Mac has CLI installed but `agent_host_inventory.py` reports `not_logged_in`; use `claude_code_live_validation.py` after login. |
+| Claude Code | `python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --agent-command 'claude -p --input-format text --output-format text --no-session-persistence --tools ""'` | Use `claude_code_live_validation.py --preflight-only`, then `--smoke-only`, then the full wrapper. Only the full default-Claude wrapper with `claimable_as_default_claude_code_host_live=true` is default Claude Code support evidence. |
 | Gemini CLI | `python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --agent-command '<gemini command that reads stdin or {prompt_file}>'` | Inventory currently reports missing CLI on this Mac. |
 | OpenCode | `python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --agent-command '<opencode command that reads stdin or {prompt_file}>'` | Validate stdout/file JSON behavior before claiming live support. |
 | Aider | `python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --agent-command '<aider command that can run non-interactively against {prompt_file}>'` | Interactive defaults usually need a non-interactive wrapper script. |

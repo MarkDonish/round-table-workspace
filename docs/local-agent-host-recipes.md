@@ -29,7 +29,7 @@ This table mirrors the checked-in candidates from
 
 | Host id | Display name | Executable | First gate | Validation path | Claim rule |
 |---|---|---|---|---|---|
-| `claude_code` | Claude Code | `claude` | `claude auth status` plus `claude_code_live_validation.py --preflight-only` | Use `claude_code_live_validation.py` after login, or the generic wrapper command emitted by inventory | Claim only after live wrapper or matrix reports `matrix_status=live_passed` |
+| `claude_code` | Claude Code | `claude` | `claude auth status` plus `claude_code_live_validation.py --preflight-only` | Use `claude_code_live_validation.py --smoke-only` for local CLI execution, then the full wrapper for `/room -> /debate` | Claim default Claude Code support only when the full wrapper reports `claimable_as_default_claude_code_host_live=true`, or matrix reports `matrix_status=live_passed` for the real Claude command |
 | `gemini_cli` | Gemini CLI | `gemini` | `agent_host_inventory.py` must find `gemini` on `PATH` | Provide a non-interactive stdin/file command through `generic_agent_json_wrapper.py` | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
 | `opencode` | OpenCode | `opencode` | `agent_host_inventory.py` must find `opencode` on `PATH` | Provide a non-interactive stdin/file command through `generic_agent_json_wrapper.py` | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
 | `aider` | Aider | `aider` | `agent_host_inventory.py` must find `aider` on `PATH` and the command must not require an interactive TTY | Prefer a small local non-interactive wrapper, then validate that wrapper | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
@@ -121,6 +121,14 @@ python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live-preflight
 ```
 
+Local CLI smoke after preflight passes:
+
+```bash
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --smoke-only \
+  --state-root /tmp/round-table-claude-code-live-smoke
+```
+
 Full live validation after the account is entitled and logged in:
 
 ```bash
@@ -128,7 +136,13 @@ python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live
 ```
 
-If preflight reports `claude_code_not_logged_in`, do not mark Claude Code live validation as passed.
+Interpret the wrapper by level:
+
+- `validation_level=preflight_only` proves only CLI presence and auth state.
+- `validation_level=smoke_only` proves the local Claude Code CLI can answer a minimal JSON task.
+- `validation_level=full_integration` with `claimable_as_default_claude_code_host_live=true` is the only default Claude Code wrapper result that proves real `/room -> /debate` host-live support.
+
+If preflight reports `claude_code_not_logged_in`, do not mark Claude Code live validation as passed. If smoke passes but full integration times out or fails, keep the lane as partial and inspect the persisted trace before claiming support.
 
 ## Generic stdin Agent Recipe
 

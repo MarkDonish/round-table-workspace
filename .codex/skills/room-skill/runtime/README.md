@@ -236,8 +236,14 @@ python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live-preflight
 
 python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
+  --smoke-only \
+  --state-root /tmp/round-table-claude-code-live-smoke
+
+python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
   --state-root /tmp/round-table-claude-code-live
 ```
+
+`--preflight-only` proves CLI/auth state. `--smoke-only` proves local Claude Code can execute a minimal JSON task. Only the full default-Claude wrapper with `claimable_as_default_claude_code_host_live=true` proves `/room -> /debate` host-live support for the default Claude Code command.
 
 If preflight reports `claude_code_not_logged_in`, run `claude auth login` in a local terminal, then rerun the wrapper.
 
