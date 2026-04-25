@@ -91,6 +91,15 @@ If the preflight reports `claude_code_not_logged_in`, the adapter is prepared bu
 
 ## Generic Local Agent Path
 
+Use the host decision tree in `docs/local-agent-host-recipes.md` before trying
+to claim real host support. That document is checked against the runtime
+inventory candidates by:
+
+```bash
+python3 .codex/skills/room-skill/runtime/host_recipes_consistency_check.py \
+  --output-json /tmp/round-table-host-recipes-consistency.json
+```
+
 Inventory local CLI hosts first:
 
 ```bash

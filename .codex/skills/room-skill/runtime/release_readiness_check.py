@@ -39,6 +39,7 @@ REQUIRED_RUNTIME_FILES: list[str] = [
     ".codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py",
     ".codex/skills/room-skill/runtime/agent_host_inventory.py",
     ".codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py",
+    ".codex/skills/room-skill/runtime/host_recipes_consistency_check.py",
     ".codex/skills/room-skill/runtime/agent_consumer_self_check.py",
     ".codex/skills/room-skill/runtime/chat_completions_readiness.py",
     ".codex/skills/room-skill/runtime/chat_completions_regression.py",
@@ -130,6 +131,10 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
         [sys.executable, ".codex/skills/room-skill/runtime/chat_completions_readiness.py"],
         timeout_seconds=args.timeout_seconds,
     )
+    host_recipes_consistency = run_json_command(
+        [sys.executable, ".codex/skills/room-skill/runtime/host_recipes_consistency_check.py"],
+        timeout_seconds=args.timeout_seconds,
+    )
 
     fixture_validation = None
     wrapper_validation = None
@@ -161,6 +166,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
         agent_inventory=agent_inventory,
         host_validation_matrix=host_validation_matrix,
         provider_readiness=provider_readiness,
+        host_recipes_consistency=host_recipes_consistency,
         fixture_validation=fixture_validation,
         wrapper_validation=wrapper_validation,
         strict_git_clean=args.strict_git_clean,
@@ -180,6 +186,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
         "agent_host_inventory_tooling_passed": command_ok(agent_inventory),
         "local_agent_host_validation_matrix_tooling_passed": command_ok(host_validation_matrix),
         "provider_readiness_tooling_passed": command_ok(provider_readiness),
+        "host_recipes_consistency_passed": command_ok(host_recipes_consistency),
         "fixture_adapter_validation_passed_or_not_requested": (
             True if fixture_validation is None else command_ok(fixture_validation)
         ),
@@ -207,6 +214,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
                 ),
                 "third-party local agent JSON wrapper tooling and recipes",
                 "third-party local agent validation matrix/report tooling",
+                "third-party local agent host recipe consistency tooling",
                 "clone-friendly agent consumer self-check tooling",
                 "clone-friendly launch quickstart",
                 "provider fallback readiness tooling and mock regression source",
@@ -230,6 +238,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
             "agent_host_inventory": summarize_command(agent_inventory),
             "local_agent_host_validation_matrix": summarize_command(host_validation_matrix),
             "provider_readiness": summarize_command(provider_readiness),
+            "host_recipes_consistency": summarize_command(host_recipes_consistency),
             "generic_fixture_validation": summarize_command(fixture_validation) if fixture_validation else None,
             "json_wrapper_validation": summarize_command(wrapper_validation) if wrapper_validation else None,
         },
@@ -239,6 +248,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
             "python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py --state-root /tmp/round-table-generic-agent-adapter-validation",
             "python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py --state-root /tmp/round-table-generic-agent-json-wrapper-validation",
             "python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py --state-root /tmp/round-table-local-agent-host-validation-matrix",
+            "python3 .codex/skills/room-skill/runtime/host_recipes_consistency_check.py --output-json /tmp/round-table-host-recipes-consistency.json",
             "python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py --state-root /tmp/round-table-agent-consumer-self-check",
             "python3 .codex/skills/room-skill/runtime/source_boundary_audit.py --output-json /tmp/round-table-source-boundary-audit.json",
             "python3 .codex/skills/room-skill/runtime/release_candidate_report.py --include-fixture-runs --strict-git-clean --state-root /tmp/round-table-release-candidate",
@@ -293,6 +303,7 @@ def build_p0_blockers(
     agent_inventory: dict[str, Any],
     host_validation_matrix: dict[str, Any],
     provider_readiness: dict[str, Any],
+    host_recipes_consistency: dict[str, Any],
     fixture_validation: dict[str, Any] | None,
     wrapper_validation: dict[str, Any] | None,
     strict_git_clean: bool,
@@ -315,6 +326,13 @@ def build_p0_blockers(
         )
     if not command_ok(provider_readiness):
         blockers.append({"id": "provider_readiness_tooling_failed", "detail": command_failure_detail(provider_readiness)})
+    if not command_ok(host_recipes_consistency):
+        blockers.append(
+            {
+                "id": "host_recipes_consistency_failed",
+                "detail": command_failure_detail(host_recipes_consistency),
+            }
+        )
     if fixture_validation is not None and not command_ok(fixture_validation):
         blockers.append({"id": "generic_fixture_adapter_validation_failed", "detail": command_failure_detail(fixture_validation)})
     if wrapper_validation is not None and not command_ok(wrapper_validation):

@@ -67,6 +67,9 @@ python3 .codex/skills/room-skill/runtime/room_debate_e2e_validation.py \
 
 Generic local CLI agent:
 
+Use `docs/local-agent-host-recipes.md` for the host decision tree and claim
+rules before validating a real third-party command.
+
 ```bash
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix

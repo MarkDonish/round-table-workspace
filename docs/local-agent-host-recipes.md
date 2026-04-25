@@ -8,6 +8,44 @@ The generic adapter contract is already defined in `docs/generic-local-agent-ada
 
 If a host can run non-interactively but does not emit clean JSON, use `docs/third-party-agent-wrapper-recipes.md` and validate the wrapped command instead of the raw command.
 
+## Fast Decision Tree
+
+Use this order for every non-Codex host:
+
+1. Run `agent_consumer_self_check.py` to confirm the repo-local launch scope.
+2. Run `agent_host_inventory.py` to classify installed, missing, auth-blocked, or ready hosts.
+3. If the host is missing, install it or skip that host on this machine.
+4. If the host is auth-blocked, log in or skip that host; do not run live validation and call it passed.
+5. If the host is installed and can run non-interactively, validate the wrapped command with `generic_agent_adapter_validation.py`.
+6. Claim support only when the matrix row is `matrix_status=live_passed`.
+
+Provider URLs are not required for this path. This is a local CLI agent path,
+not the optional Chat Completions-compatible provider lane.
+
+## Host Coverage Matrix
+
+This table mirrors the checked-in candidates from
+`.codex/skills/room-skill/runtime/agent_host_inventory.py`.
+
+| Host id | Display name | Executable | First gate | Validation path | Claim rule |
+|---|---|---|---|---|---|
+| `claude_code` | Claude Code | `claude` | `claude auth status` plus `claude_code_live_validation.py --preflight-only` | Use `claude_code_live_validation.py` after login, or the generic wrapper command emitted by inventory | Claim only after live wrapper or matrix reports `matrix_status=live_passed` |
+| `gemini_cli` | Gemini CLI | `gemini` | `agent_host_inventory.py` must find `gemini` on `PATH` | Provide a non-interactive stdin/file command through `generic_agent_json_wrapper.py` | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
+| `opencode` | OpenCode | `opencode` | `agent_host_inventory.py` must find `opencode` on `PATH` | Provide a non-interactive stdin/file command through `generic_agent_json_wrapper.py` | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
+| `aider` | Aider | `aider` | `agent_host_inventory.py` must find `aider` on `PATH` and the command must not require an interactive TTY | Prefer a small local non-interactive wrapper, then validate that wrapper | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
+| `goose` | Goose | `goose` | `agent_host_inventory.py` must find `goose` on `PATH` | Provide a non-interactive stdin/file command through `generic_agent_json_wrapper.py` | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
+| `cursor_agent` | Cursor Agent | `cursor-agent` | `agent_host_inventory.py` must find `cursor-agent` on `PATH` | Provide a non-interactive stdin/file command through `generic_agent_json_wrapper.py` | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
+
+Run the docs consistency check after editing this table:
+
+```bash
+python3 .codex/skills/room-skill/runtime/host_recipes_consistency_check.py \
+  --output-json /tmp/round-table-host-recipes-consistency.json
+```
+
+This check is intentionally based on the checked-in inventory candidate list.
+It does not install or run real third-party hosts.
+
 ## Inventory First
 
 For a fresh clone or a new local agent host, start with the consumer self-check:
@@ -65,6 +103,8 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
 ```
 
 Only `matrix_status: "live_passed"` may be used as real host-live support evidence.
+
+Fixture validation is not host-live evidence.
 
 ## Claude Code Recipe
 

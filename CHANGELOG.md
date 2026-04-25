@@ -10,7 +10,16 @@ live validation evidence.
 
 ## Unreleased
 
-- No unreleased changes yet.
+### Added
+
+- Host recipe consistency check to keep third-party local agent docs aligned
+  with the checked-in host inventory candidates.
+
+### Changed
+
+- Clarified third-party local agent host recipes, decision tree, and host-live
+  claim rules for Claude Code, Gemini CLI, OpenCode, Aider, Goose, and Cursor
+  Agent.
 
 ## v0.1.0-rc3 - 2026-04-25
 
