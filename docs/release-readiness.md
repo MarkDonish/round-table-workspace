@@ -19,6 +19,11 @@ The repository can be treated as ready for the current supported scope when the 
 
 This does not mean every possible host or provider is live-validated.
 
+Current host-live evidence: the default Claude Code CLI wrapper passed full
+`/room -> /debate` live validation on this Mac on 2026-04-26. That result is
+claimable for the tested Mac account and default wrapper command only; new
+machines/accounts must rerun `claude_code_live_validation.py`.
+
 ## Current Release Candidate
 
 The current reproducible release-candidate target is:
@@ -58,7 +63,7 @@ For the current launch scope, a P0 blocker means the repository cannot honestly 
 These are not P0 for the Codex-local launch scope:
 
 - provider `.env` files missing
-- Claude Code account not logged in
+- Claude Code account not logged in on a target machine that is trying to claim Claude Code host-live support
 - Gemini/OpenCode/Aider/Goose/Cursor Agent CLI missing
 - real third-party live validation not yet run
 

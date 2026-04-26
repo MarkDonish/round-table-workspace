@@ -15,6 +15,7 @@ import release_readiness_check
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-release-candidate"
+CLAUDE_CODE_LIVE_EVIDENCE_REPORT = REPO_ROOT / "reports" / "CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-26.md"
 
 
 def main() -> int:
@@ -124,10 +125,17 @@ def build_support_scope(
 ) -> dict[str, Any]:
     provider_criteria = provider.get("pass_criteria", {}) if isinstance(provider, dict) else {}
     host_summary = host_matrix.get("summary", {}) if isinstance(host_matrix, dict) else {}
+    checked_live_evidence = collect_checked_in_host_live_evidence()
+    matrix_live_hosts = host_summary.get("live_passed_hosts", [])
+    real_host_live_passed = sorted(
+        set([*matrix_live_hosts, *[item["host_id"] for item in checked_live_evidence]])
+    )
     return {
         "ready_to_claim": release_report.get("release_scope", {}).get("ready_to_claim", []),
         "not_claimed": release_report.get("release_scope", {}).get("not_claimed", []),
-        "real_host_live_passed": host_summary.get("live_passed_hosts", []),
+        "real_host_live_passed": real_host_live_passed,
+        "matrix_live_passed": matrix_live_hosts,
+        "checked_in_host_live_evidence": checked_live_evidence,
         "real_host_blocked": host_summary.get("blocked_hosts", []),
         "real_host_missing": host_summary.get("missing_hosts", []),
         "provider_live_ready": provider_criteria.get("ready_for_live_run") is True,
@@ -135,9 +143,30 @@ def build_support_scope(
             "Codex local mainline may be claimed only when the release gate has no P0 blockers.",
             "Fixture validation may be claimed only as adapter-contract evidence, not real host-live support.",
             "A third-party local agent may be claimed only when host matrix reports matrix_status=live_passed.",
+            "A checked-in host-live evidence report may support a machine/account-scoped host claim only when it cites the checked-in validation command and claimable=true result.",
             "Provider live support may be claimed only after chat_completions_live_validation.py passes with real env files.",
         ],
     }
+
+
+def collect_checked_in_host_live_evidence() -> list[dict[str, str]]:
+    evidence: list[dict[str, str]] = []
+    if not CLAUDE_CODE_LIVE_EVIDENCE_REPORT.exists():
+        return evidence
+    text = CLAUDE_CODE_LIVE_EVIDENCE_REPORT.read_text(encoding="utf-8")
+    if (
+        "Claimable as default Claude Code host live: `true`" in text
+        and "Support claim: `real_claude_code_host_live_validated`" in text
+        and "claude_code_live_validation.py" in text
+    ):
+        evidence.append(
+            {
+                "host_id": "claude_code",
+                "scope": "default_claude_code_host_live_on_validated_mac_account",
+                "report": str(CLAUDE_CODE_LIVE_EVIDENCE_REPORT.relative_to(REPO_ROOT)),
+            }
+        )
+    return evidence
 
 
 def build_quality_gates(release_report: dict[str, Any]) -> list[dict[str, Any]]:
@@ -166,12 +195,21 @@ def build_next_actions(
             }
         )
     host_summary = host_matrix.get("summary", {}) if isinstance(host_matrix, dict) else {}
-    if not host_summary.get("live_passed_hosts"):
+    live_evidence = collect_checked_in_host_live_evidence()
+    if not host_summary.get("live_passed_hosts") and not live_evidence:
         actions.append(
             {
                 "priority": "P1",
                 "task": "Run a real third-party local agent host live validation when an authenticated CLI is available",
                 "why": "Multi-host support cannot be claimed from fixture evidence alone.",
+            }
+        )
+    elif not set(host_summary.get("live_passed_hosts", [])).difference({"claude_code"}):
+        actions.append(
+            {
+                "priority": "P2",
+                "task": "Validate additional real local agent hosts when their CLIs are installed",
+                "why": "Claude Code has machine/account-scoped evidence; Gemini/OpenCode/Aider/Goose/Cursor Agent still need their own host-live evidence.",
             }
         )
     provider_criteria = provider.get("pass_criteria", {}) if isinstance(provider, dict) else {}
@@ -216,7 +254,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         row("Codex local mainline", "ready" if report["ok"] else "blocked", "Release gate P0 blockers are empty." if report["ok"] else "Release gate has P0 blockers."),
         row("Claude Code project skill discovery", "ready", "Project skill validator is part of the release gate."),
         row("Generic local agent adapter contract", "ready", "Fixture-backed adapter validation is included when --include-fixture-runs is used."),
-        row("Third-party local agent host-live support", "not claimed", f"Live-passed hosts: {', '.join(support['real_host_live_passed']) or 'none'}."),
+        row("Third-party local agent host-live support", "ready" if support["real_host_live_passed"] else "not claimed", f"Live-passed hosts: {', '.join(support['real_host_live_passed']) or 'none'}."),
         row("Provider live support", "not claimed" if not support["provider_live_ready"] else "ready", "Provider readiness is false until real env files are valid." if not support["provider_live_ready"] else "Provider readiness reports ready."),
         "",
         "## Ready To Claim",
@@ -225,6 +263,12 @@ def render_markdown(report: dict[str, Any]) -> str:
     lines.extend(f"- {item}" for item in support["ready_to_claim"])
     lines.extend(["", "## Not Claimed", ""])
     lines.extend(f"- {item}" for item in support["not_claimed"])
+    lines.extend(["", "## Checked-In Host Live Evidence", ""])
+    if support["checked_in_host_live_evidence"]:
+        for item in support["checked_in_host_live_evidence"]:
+            lines.append(f"- `{item['host_id']}`: {item['scope']} ({item['report']})")
+    else:
+        lines.append("- none")
     lines.extend(["", "## Quality Gates", "", "| Gate | Status |", "|---|---|"])
     for gate in report["quality_gates"]:
         lines.append(row(gate["gate"], gate["status"]))

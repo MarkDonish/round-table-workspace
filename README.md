@@ -66,9 +66,9 @@
 - provider fallback regression 已复跑通过；provider readiness 会把当前真实 `.env.room` / `.env.debate` 的缺失配置报告为 blocked，不误报为 live pass
 - release readiness gate 已入仓；上线判断不再只依赖口头汇报或历史 reports
 - release candidate scope 和总报告生成器已入仓；当前可声明范围与不可声明范围可以一键生成审查材料
-- `/room -> /debate claude_code` 已通过 checked-in fixture agent 跑通 executor route；真实 Claude Code CLI live run 仍需单独验证
+- `/room -> /debate claude_code` 已通过 checked-in fixture agent 跑通 executor route；默认 Claude Code CLI wrapper 也已在本机 Mac 上通过真实 full integration live validation
 - Claude Code project skill 包装层已通过 checked-in 结构验证；这证明 Claude Code 用户 clone 仓库后有标准 `.claude/skills/` 入口
-- 真实 Claude Code CLI preflight 已确认本机 CLI 可用，但当前 auth 状态为未登录；因此 live run 当前被 `claude_code_not_logged_in` 阻塞
+- 真实 Claude Code CLI validation 已在本机 Mac 上完成 `preflight_only`、`smoke_only`、完整 `/room -> /debate` 三层验证；full wrapper 返回 `claimable_as_default_claude_code_host_live=true`
 - 当前最稳定的 checked-in 本地主线配置已收敛到 `gpt54_family`：`gpt-5.4` 为主模型、`gpt-5.4-mini` 为同家族 fallback，并显式固定 child-task reasoning / timeout；现在还会按 prompt 分层执行，例如 selection 用更短 timeout，chat / roundtable / followup 留更长窗口，summary / upgrade / reviewer 会切到更轻的同家族 lane
 - 同一台 Mac 上，除了当前桌面线程，这条本地主线也已通过独立 shell-level `codex exec` 第二宿主复验；当前剩下的不是“第二入口能不能跑”，而是“跨机器是否仍然稳定”
 - 本仓库现在已经把“跨机器验证”本身固化成 checked-in 流程：source 机先生成 manifest/runbook，target 机跑本地主线并回传 evidence，source 机再做 schema/commit/config 校验；Windows 本地主线与增强验证证据已落到 `reports/WINDOWS_LOCAL_MAINLINE_VALIDATION.md` 和 `reports/WINDOWS_ENHANCED_VALIDATION.md`
@@ -80,9 +80,9 @@
 - 还没有完成真实外部 provider 的 `/room -> /summary -> /upgrade-to-debate -> /debate` live run
 - provider live readiness 已有 checked-in config-only preflight，但当前真实 `.env.room` / `.env.debate` 仍未 ready
 - 当前已完成的是 fixture-driven 验证、mock provider-backed 验证、以及本地 child-agent 主链验证；仍不应误报成所有宿主配置都已 100% 实战验证
-- generic CLI adapter 已证明 host abstraction 可以跑完整 `/room -> /debate` 链路，但真实 Claude Code 和其他第三方本地 agent 仍需要各自 live validation
+- generic CLI adapter 已证明 host abstraction 可以跑完整 `/room -> /debate` 链路；默认 Claude Code wrapper 已在本机 Mac 上 live-validated，其他第三方本地 agent 仍需要各自 live validation
 - generic local agent adapter kit 已提供通用接入合同和验证 wrapper；真实第三方 agent 的稳定性仍取决于各自 CLI 是否遵守 stdout / output-file JSON contract
-- Claude Code project skill 入口已入仓并可离线验证，但真实 Claude Code live run 仍受账号权限约束
+- Claude Code project skill 入口已入仓并可离线验证；真实 Claude Code live support 仍按机器/账号逐次验证，不从本机 Mac 结果外推到所有用户
 
 简化结论：
 

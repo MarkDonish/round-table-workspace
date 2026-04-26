@@ -65,6 +65,20 @@ python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
 
 If the wrapper reports `claude_code_not_logged_in`, the adapter remains prepared but the host-live lane is blocked by account entitlement/authentication. `--smoke-only` is useful for confirming that Claude Code can execute a minimal JSON task, but it is not sufficient to claim `/room -> /debate` support. The claimable default-Claude result is the full wrapper with `claimable_as_default_claude_code_host_live=true`.
 
+## Current Live Evidence
+
+On 2026-04-26, the default Claude Code CLI wrapper passed on this Mac:
+
+- `validation_level=preflight_only`
+- `validation_level=smoke_only`
+- `validation_level=full_integration`
+- `claimable_as_default_claude_code_host_live=true`
+- `pass_criteria.full_chain_passed=true`
+
+Evidence summary: `reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-26.md`.
+
+This is a real host-live result for the tested Mac account and default wrapper command. It does not prove every Claude Code user, account, or machine is live-ready without rerunning the wrapper locally.
+
 ## Boundary
 
 - `.claude/skills/` is a discovery and invocation layer for Claude Code.

@@ -11,6 +11,7 @@ The repository may currently be claimed as ready for:
 - Codex local mainline `/room -> /debate`
 - checked-in protocol, prompts, skills, runtime bridges, and validation harnesses
 - Claude Code project-skill discovery structure
+- default Claude Code CLI host-live support on the Mac where `claude_code_live_validation.py` reports `claimable_as_default_claude_code_host_live=true`
 - generic local agent adapter contract with fixture-backed validation
 - third-party local agent JSON wrapper and host validation matrix tooling
 - clone-friendly agent consumer self-check tooling
@@ -35,7 +36,7 @@ The tag must point to a commit that has passed the strict release candidate gate
 
 Do not claim these until the matching live validation report exists:
 
-- real Claude Code host-live support when the local account is not logged in or entitled
+- real Claude Code host-live support on machines/accounts that have not passed `claude_code_live_validation.py`
 - Gemini CLI, OpenCode, Aider, Goose, or Cursor Agent host-live support before a host matrix row reports `live_passed`
 - real Chat Completions-compatible provider support before `.env.room` and `.env.debate` are valid and `chat_completions_live_validation.py` passes
 - universal production stability across all possible local agent hosts
@@ -62,7 +63,7 @@ Use the Markdown report for human review and the JSON report for future automati
 
 - `release_decision: "ready_for_codex_local_mainline_scope"` means the Codex local mainline can be launched within the current scope.
 - `release_decision: "blocked"` means at least one P0 release gate blocker exists.
-- `real_host_live_passed` is the only list that can support a real third-party host-live claim.
+- `real_host_live_passed` is the list that can support a real third-party host-live claim. It may be populated by host matrix `live_passed` rows or by checked-in machine/account-scoped live evidence reports that cite the checked-in validation command and a `claimable=true` result.
 - `provider_live_ready: false` means provider support is still fallback/mock/readiness tooling only.
 - `reports/` remains historical evidence and must not override this document or `docs/release-readiness.md`.
 
@@ -70,7 +71,7 @@ Use the Markdown report for human review and the JSON report for future automati
 
 The current non-blocking gaps are expected unless the local machine has more authenticated tools configured:
 
-- Claude Code CLI may be installed but auth-blocked.
+- Claude Code CLI may be installed but auth-blocked on machines other than the validated Mac.
 - Gemini CLI, OpenCode, Aider, Goose, and Cursor Agent may be absent from `PATH`.
 - `.env.room` and `.env.debate` may be present but not provider-live ready.
 

@@ -14,6 +14,7 @@ from typing import Any
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-release-readiness"
+CLAUDE_CODE_LIVE_EVIDENCE_REPORT = REPO_ROOT / "reports" / "CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-26.md"
 
 REQUIRED_SOURCE_TRUTH: list[tuple[str, str]] = [
     ("file", "AGENTS.md"),
@@ -158,6 +159,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
             timeout_seconds=max(240, args.timeout_seconds),
         )
 
+    checked_in_host_live_evidence = collect_checked_in_host_live_evidence()
     p0_blockers = build_p0_blockers(
         source_truth=source_truth,
         runtime_files=runtime_files,
@@ -177,6 +179,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
         provider_readiness=provider_readiness,
         fixture_validation=fixture_validation,
         include_fixture_runs=args.include_fixture_runs,
+        checked_in_host_live_evidence=checked_in_host_live_evidence,
     )
 
     pass_criteria = {
@@ -196,6 +199,37 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
         "no_p0_blockers": not p0_blockers,
     }
 
+    ready_to_claim = [
+        "Codex local mainline release scope",
+        "checked-in /room and /debate protocol/runtime source",
+        "Claude Code project-skill discovery structure",
+        (
+            "generic local agent adapter contract with fixture-backed validation"
+            if args.include_fixture_runs
+            else "generic local agent adapter contract source"
+        ),
+        "third-party local agent JSON wrapper tooling and recipes",
+        "third-party local agent validation matrix/report tooling",
+        "third-party local agent host recipe consistency tooling",
+        "clone-friendly agent consumer self-check tooling",
+        "clone-friendly launch quickstart",
+        "provider fallback readiness tooling and mock regression source",
+        "source-truth boundary audit tooling",
+    ]
+    if any(item["host_id"] == "claude_code" for item in checked_in_host_live_evidence):
+        ready_to_claim.append("default Claude Code host-live support on the validated Mac account")
+
+    not_claimed = [
+        (
+            "unvalidated Claude Code machines/accounts before claude_code_live_validation.py passes there"
+            if checked_in_host_live_evidence
+            else "real Claude Code live execution when account auth is unavailable"
+        ),
+        "real third-party local agent live execution before its CLI contract validation passes",
+        "real Chat Completions-compatible provider live execution before .env.room and .env.debate are ready",
+        "all possible agent hosts being production-stable without per-host live validation",
+    ]
+
     return {
         "ok": True,
         "action": "release-readiness-check",
@@ -203,33 +237,13 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
         "repo_root": str(REPO_ROOT),
         "release_scope": {
             "ship_decision": "blocked" if p0_blockers else "ready_for_codex_local_mainline_scope",
-            "ready_to_claim": [
-                "Codex local mainline release scope",
-                "checked-in /room and /debate protocol/runtime source",
-                "Claude Code project-skill discovery structure",
-                (
-                    "generic local agent adapter contract with fixture-backed validation"
-                    if args.include_fixture_runs
-                    else "generic local agent adapter contract source"
-                ),
-                "third-party local agent JSON wrapper tooling and recipes",
-                "third-party local agent validation matrix/report tooling",
-                "third-party local agent host recipe consistency tooling",
-                "clone-friendly agent consumer self-check tooling",
-                "clone-friendly launch quickstart",
-                "provider fallback readiness tooling and mock regression source",
-                "source-truth boundary audit tooling",
-            ],
-            "not_claimed": [
-                "real Claude Code live execution when account auth is unavailable",
-                "real third-party local agent live execution before its CLI contract validation passes",
-                "real Chat Completions-compatible provider live execution before .env.room and .env.debate are ready",
-                "all possible agent hosts being production-stable without per-host live validation",
-            ],
+            "ready_to_claim": ready_to_claim,
+            "not_claimed": not_claimed,
         },
         "p0_blockers": p0_blockers,
         "non_blocking_gaps": non_blocking_gaps,
         "pass_criteria": pass_criteria,
+        "checked_in_host_live_evidence": checked_in_host_live_evidence,
         "checks": {
             "source_truth": source_truth,
             "runtime_files": runtime_files,
@@ -276,6 +290,26 @@ def check_runtime_files() -> dict[str, Any]:
         "entries": entries,
         "missing": [item["path"] for item in entries if not item["exists"]],
     }
+
+
+def collect_checked_in_host_live_evidence() -> list[dict[str, str]]:
+    evidence: list[dict[str, str]] = []
+    if not CLAUDE_CODE_LIVE_EVIDENCE_REPORT.exists():
+        return evidence
+    text = CLAUDE_CODE_LIVE_EVIDENCE_REPORT.read_text(encoding="utf-8")
+    if (
+        "Claimable as default Claude Code host live: `true`" in text
+        and "Support claim: `real_claude_code_host_live_validated`" in text
+        and "claude_code_live_validation.py" in text
+    ):
+        evidence.append(
+            {
+                "host_id": "claude_code",
+                "scope": "default_claude_code_host_live_on_validated_mac_account",
+                "report": str(CLAUDE_CODE_LIVE_EVIDENCE_REPORT.relative_to(REPO_ROOT)),
+            }
+        )
+    return evidence
 
 
 def check_git_state() -> dict[str, Any]:
@@ -349,6 +383,7 @@ def build_non_blocking_gaps(
     provider_readiness: dict[str, Any],
     fixture_validation: dict[str, Any] | None,
     include_fixture_runs: bool,
+    checked_in_host_live_evidence: list[dict[str, str]],
 ) -> list[dict[str, Any]]:
     gaps: list[dict[str, Any]] = []
     provider_payload = provider_readiness.get("json") or {}
@@ -385,7 +420,10 @@ def build_non_blocking_gaps(
 
     matrix_payload = host_validation_matrix.get("json") or {}
     matrix_summary = matrix_payload.get("summary", {})
-    if command_ok(host_validation_matrix) and not matrix_summary.get("live_passed_hosts"):
+    matrix_live_hosts = set(matrix_summary.get("live_passed_hosts") or [])
+    checked_live_hosts = {item["host_id"] for item in checked_in_host_live_evidence}
+    live_passed_hosts = matrix_live_hosts | checked_live_hosts
+    if command_ok(host_validation_matrix) and not live_passed_hosts:
         gaps.append(
             {
                 "id": "no_real_third_party_agent_host_live_passed",
@@ -403,13 +441,22 @@ def build_non_blocking_gaps(
             }
         )
     elif fixture_validation is not None and command_ok(fixture_validation):
-        gaps.append(
-            {
-                "id": "real_third_party_agent_live_validation_pending",
-                "why_not_p0": "fixture validation proves adapter contract, not a specific external host",
-                "detail": "Run generic_agent_adapter_validation.py with each real agent command before claiming host-live support.",
-            }
-        )
+        if live_passed_hosts:
+            gaps.append(
+                {
+                    "id": "additional_third_party_agent_live_validation_pending",
+                    "why_not_p0": "host-live support is claimed per host; one live-passed host does not prove every agent CLI",
+                    "detail": "Claude Code has checked-in machine/account-scoped evidence; Gemini/OpenCode/Aider/Goose/Cursor Agent still need their own live validation before being claimed.",
+                }
+            )
+        else:
+            gaps.append(
+                {
+                    "id": "real_third_party_agent_live_validation_pending",
+                    "why_not_p0": "fixture validation proves adapter contract, not a specific external host",
+                    "detail": "Run generic_agent_adapter_validation.py with each real agent command before claiming host-live support.",
+                }
+            )
     return gaps
 
 

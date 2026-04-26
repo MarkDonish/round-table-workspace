@@ -55,7 +55,7 @@ live-validated.
 |---|---|---|---|---|
 | P0 | Codex local mainline blocker | None known | The strict release gate currently reports no P0 blockers | Keep `release_readiness_check.py --include-fixture-runs --strict-git-clean` green |
 | P1 | Improve third-party local agent validation matrix usability | Completed | The matrix now exposes both rendered shell commands and canonical argv for each selectable host command | Matrix output exposes copy-safe argv/run command evidence and fixture validation still passes |
-| P1 | Retry real Claude Code default CLI live validation | Externally blocked | The wrapper now separates preflight, smoke, and full integration; the last real smoke hit Claude-side `503 No available accounts` | Full default wrapper reports `claimable_as_default_claude_code_host_live=true` |
+| P1 | Retry real Claude Code default CLI live validation | Completed on this Mac | The default wrapper passed preflight, smoke, and full `/room -> /debate` integration on 2026-04-26 | Full default wrapper reported `claimable_as_default_claude_code_host_live=true`; future machines still need their own live validation |
 | P1 | Keep current source-of-truth docs aligned after each runtime change | Ongoing | Future agents start from `docs/`, not old session reports | `README.md`, `docs/NEXT-STEPS.md`, release docs, and relevant adapter docs agree |
 | P2 | Use repo-local development checkpoints when host memory is read-only | Available | Host-level memory may be readable but not writable; cross-session continuity should not depend on chat history only | `development_checkpoint.py` writes Markdown/JSON under `reports/checkpoints/generated/` and docs keep reports as historical |
 | P2 | Run real Chat Completions-compatible provider live validation | Not configured | Provider lane is optional fallback, but still part of full multi-provider readiness | `.env.room` and `.env.debate` are locally ready and `chat_completions_live_validation.py` passes |
@@ -64,8 +64,8 @@ live-validated.
 
 ## Recommended Next Task
 
-If a real third-party local agent is available on the target machine, run P1
-real host validation with the matrix output:
+If another real third-party local agent is available on the target machine, run
+P2 real host validation with the matrix output:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
@@ -73,8 +73,8 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
 ```
 
-If no real host is available or entitled, keep that lane blocked/pending and
-continue with P1 source-of-truth alignment or P2 provider live validation only
+If no additional real host is available or entitled, keep that lane
+blocked/pending and continue with source-of-truth alignment or P2 provider live validation only
 when `.env.room` and `.env.debate` are intentionally configured.
 
 ## Guardrails
