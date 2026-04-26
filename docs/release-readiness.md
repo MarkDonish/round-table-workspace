@@ -148,6 +148,19 @@ python3 .codex/skills/room-skill/runtime/release_candidate_report.py \
   --state-root /tmp/round-table-release-candidate
 ```
 
+After tagging or before publishing handoff instructions, run the post-release
+consumer audit from a fresh cloned checkout of the release ref:
+
+```bash
+python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
+  --ref v0.1.0 \
+  --state-root /tmp/round-table-post-release-consumer-audit
+```
+
+This audit proves the release ref itself can run the clone-friendly local-first
+consumer path. It does not prove real provider-live support or live support for
+third-party local agent CLIs that are not installed and validated.
+
 If a real provider is available, run this separately:
 
 ```bash

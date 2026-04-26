@@ -39,6 +39,7 @@
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供真实本地 agent 宿主 inventory/preflight，可区分 CLI 缺失、auth 阻塞、可进入 live validation
 - `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py` 已提供真实本地 agent 宿主 validation matrix/report，可把 missing / blocked / pending / live passed / live failed 分级落盘
 - `.codex/skills/room-skill/runtime/agent_consumer_self_check.py` 已提供 clone-friendly 的消费者自检入口，可在不需要 provider URL、不需要第三方付费账号的前提下聚合 source-boundary、release readiness、Claude project skill、generic adapter fixture、JSON wrapper、host matrix 证据
+- `.codex/skills/room-skill/runtime/post_release_consumer_audit.py` 已提供发布后 fresh-checkout 审计入口，可从指定 release ref 克隆临时 checkout 并重跑消费者自检、Claude project skill 校验与 strict release readiness
 - `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI validation wrapper；它把 `preflight_only`、`smoke_only`、完整 `/room -> /debate` 分层落盘，只有 `claimable_as_default_claude_code_host_live=true` 才能声明默认 Claude Code host-live 通过
 - `.codex/skills/room-skill/runtime/release_candidate_report.py` 已提供 release candidate 总报告入口，可把 release gate、host matrix、provider readiness 汇总成 claim-safe JSON/Markdown
 - `.claude/skills/room/SKILL.md` 和 `.claude/skills/debate/SKILL.md` 已提供 Claude Code 原生项目 skill 入口，指回当前真源而不是复制出第二套协议
@@ -237,6 +238,7 @@ round-table-workspace/
 - generic local agent 适配：`docs/generic-local-agent-adapter.md`
 - agent consumer quickstart：`docs/agent-consumer-quickstart.md`
 - agent consumer self-check：`python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py`
+- post-release consumer audit：`python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py`
 - generic local agent adapter 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
 - third-party agent wrapper recipes：`docs/third-party-agent-wrapper-recipes.md`
 - generic agent JSON wrapper 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`

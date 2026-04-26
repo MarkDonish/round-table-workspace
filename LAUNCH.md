@@ -45,7 +45,22 @@ It does not mean every third-party agent host or provider has passed live
 execution. Only a host matrix row with `matrix_status=live_passed` can be
 claimed as real host-live support.
 
-## 4. Pick The Matching Runtime Path
+## 4. Audit The Published Release Path
+
+After a release is tagged, use the post-release audit to simulate a fresh
+consumer checkout of the release tag:
+
+```bash
+python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
+  --ref v0.1.0 \
+  --state-root /tmp/round-table-post-release-consumer-audit
+```
+
+This clones the requested ref into a temporary checkout and reruns the
+consumer-facing self-check, Claude project-skill validation, and strict release
+readiness from that checkout. It still does not require provider URLs.
+
+## 5. Pick The Matching Runtime Path
 
 Codex local mainline:
 
@@ -80,7 +95,7 @@ python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
   --state-root /tmp/round-table-<host-id>-validation
 ```
 
-## 5. Keep The Source Boundary Clear
+## 6. Keep The Source Boundary Clear
 
 Active source of truth:
 
@@ -101,7 +116,7 @@ Provider fallback is available for intentional Chat Completions-compatible
 regression or live testing, but it is not the local meeting room and is not
 required for the local mainline.
 
-## 6. Save A Repo-Local Checkpoint
+## 7. Save A Repo-Local Checkpoint
 
 If the host's global memory is read-only or another machine will continue the
 work, write a project checkpoint instead:

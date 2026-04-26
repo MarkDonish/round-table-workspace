@@ -10,7 +10,10 @@ live validation evidence.
 
 ## Unreleased
 
-No release-scope changes yet.
+### Added
+
+- Post-release consumer audit runner that clones a fresh release checkout and
+  verifies the local-first consumer path from that checkout.
 
 ## v0.1.0 - 2026-04-26
 

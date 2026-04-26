@@ -80,6 +80,12 @@ For the checked-in agent consumer self-check:
 python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py --help
 ```
 
+For the checked-in post-release consumer audit:
+
+```bash
+python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py --help
+```
+
 For the checked-in real Claude Code local CLI live validation wrapper:
 
 ```bash
@@ -208,6 +214,14 @@ Run the clone-friendly consumer self-check without provider URLs or paid third-p
 ```bash
 python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
   --state-root /tmp/round-table-agent-consumer-self-check
+```
+
+Audit a tagged release from a fresh cloned checkout:
+
+```bash
+python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
+  --ref v0.1.0 \
+  --state-root /tmp/round-table-post-release-consumer-audit
 ```
 
 Validate a real local agent command with the same contract:

@@ -56,6 +56,7 @@ Current release target: `v0.1.0`.
 | Priority | Task | Status | Why Now | Completion Standard |
 |---|---|---|---|---|
 | P0 | Codex local mainline blocker | None known | The strict release gate currently reports no P0 blockers | Keep `release_readiness_check.py --include-fixture-runs --strict-git-clean` green |
+| P1 | Add post-release consumer audit | Completed | `v0.1.0` is tagged; new users need a fresh-checkout proof path, not just current-worktree validation | `post_release_consumer_audit.py --ref v0.1.0` passes and docs point to it |
 | P1 | Promote `v0.1.0-rc4` to `v0.1.0` | Completed | rc4 was the final launch-prep candidate and did not require widening the support claim | Final release notes/changelog point to v0.1.0, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Cut `v0.1.0-rc4` release candidate | Completed | `v0.1.0-rc3` predates Claude Code host-live evidence and repo-local checkpoints | Release notes/changelog point to rc4, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Improve third-party local agent validation matrix usability | Completed | The matrix now exposes both rendered shell commands and canonical argv for each selectable host command | Matrix output exposes copy-safe argv/run command evidence and fixture validation still passes |
@@ -80,6 +81,14 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
 If no additional real host is available or entitled, keep that lane
 blocked/pending and continue with source-of-truth alignment or P2 provider live validation only
 when `.env.room` and `.env.debate` are intentionally configured.
+
+After tagging a release, audit the fresh consumer path:
+
+```bash
+python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
+  --ref v0.1.0 \
+  --state-root /tmp/round-table-post-release-consumer-audit
+```
 
 ## Guardrails
 

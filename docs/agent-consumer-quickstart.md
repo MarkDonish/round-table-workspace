@@ -33,6 +33,22 @@ python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
   --state-root /tmp/round-table-agent-consumer-self-check-quick
 ```
 
+## Fresh Release Checkout Audit
+
+Maintainers can verify that a tagged release works from a fresh cloned checkout
+instead of only the current working tree:
+
+```bash
+python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
+  --ref v0.1.0 \
+  --state-root /tmp/round-table-post-release-consumer-audit
+```
+
+The audit clones the requested ref, runs the consumer self-check, validates the
+Claude Code project-skill structure, and reruns the strict release gate from the
+fresh checkout. It still does not require provider URLs or paid third-party
+accounts.
+
 ## How To Interpret PASS
 
 A passing self-check means:
