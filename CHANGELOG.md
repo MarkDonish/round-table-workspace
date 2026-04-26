@@ -10,7 +10,12 @@ live validation evidence.
 
 ## Unreleased
 
-No unreleased changes.
+### Added
+
+- GitHub Release publication status checker that reports whether the target
+  release page is published, whether the local tag and release draft exist, and
+  whether the current host has authenticated `gh` or token-based publication
+  capability.
 
 ## v0.1.1 - 2026-04-26
 

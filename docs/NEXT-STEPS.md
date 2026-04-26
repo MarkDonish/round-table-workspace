@@ -23,6 +23,9 @@ python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
 
 python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
   --state-root /tmp/round-table-live-lane-evidence
+
+python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
+  --state-root /tmp/round-table-github-release-publication
 ```
 
 Then read:
@@ -59,7 +62,7 @@ Current release target: `v0.1.1`.
 | Priority | Task | Status | Why Now | Completion Standard |
 |---|---|---|---|---|
 | P0 | Codex local mainline blocker | None known | The strict release gate currently reports no P0 blockers | Keep `release_readiness_check.py --include-fixture-runs --strict-git-clean` green |
-| P1 | Publish `v0.1.1` GitHub Release page | Ready, blocked in this host | The tag is pushed and the release is verified, but this host lacks `gh`, `GITHUB_TOKEN`, `GH_TOKEN`, and a release-capable connector endpoint | GitHub Release page exists for `v0.1.1`; use `docs/releases/v0.1.1-github-release.md` as the copy-ready body |
+| P1 | Publish `v0.1.1` GitHub Release page | Ready, blocked in this host | The tag is pushed and the release is verified, but this host lacks `gh`, `GITHUB_TOKEN`, `GH_TOKEN`, and a release-capable connector endpoint | `github_release_publication_check.py --strict-published` passes; use `docs/releases/v0.1.1-github-release.md` as the copy-ready body |
 | P1 | Promote `v0.1.1` patch release | Completed | `v0.1.0` predates post-release consumer audit and live lane evidence report tooling | Release notes/changelog point to v0.1.1, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Add host/provider live lane evidence report | Completed | Launch communication needs one claim-safe entry that separates claimable, missing, blocked, pending, and provider-not-configured lanes | `live_lane_evidence_report.py` writes JSON/Markdown and docs point to it |
 | P1 | Add post-release consumer audit | Completed | Tagged releases need a fresh-checkout proof path, not just current-worktree validation | `post_release_consumer_audit.py --ref v0.1.1` passes and docs point to it |
@@ -77,7 +80,13 @@ Current release target: `v0.1.1`.
 
 First publish the GitHub Release page if the current host has release-capable
 GitHub access. Use `docs/releases/v0.1.1-github-release.md` as the copy-ready
-release body.
+release body, then verify it with:
+
+```bash
+python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
+  --strict-published \
+  --state-root /tmp/round-table-github-release-publication
+```
 
 If another real third-party local agent is available on the target machine, run
 P2 real host validation with the matrix output, then regenerate the live lane

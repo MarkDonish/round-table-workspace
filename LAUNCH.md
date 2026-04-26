@@ -60,6 +60,14 @@ This clones the requested ref into a temporary checkout and reruns the
 consumer-facing self-check, Claude project-skill validation, and strict release
 readiness from that checkout. It still does not require provider URLs.
 
+Check whether the GitHub Release page exists and whether this host can publish
+it automatically:
+
+```bash
+python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
+  --state-root /tmp/round-table-github-release-publication
+```
+
 ## 5. Pick The Matching Runtime Path
 
 Codex local mainline:

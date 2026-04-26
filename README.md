@@ -237,11 +237,13 @@ round-table-workspace/
 - source boundary audit：`python3 .codex/skills/room-skill/runtime/source_boundary_audit.py`
 - changelog：`CHANGELOG.md`
 - 当前 release notes：`docs/releases/v0.1.1.md`
+- GitHub Release 发布稿：`docs/releases/v0.1.1-github-release.md`
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
 - generic local agent 适配：`docs/generic-local-agent-adapter.md`
 - agent consumer quickstart：`docs/agent-consumer-quickstart.md`
 - agent consumer self-check：`python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py`
 - post-release consumer audit：`python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py`
+- GitHub Release 发布状态检查：`python3 .codex/skills/room-skill/runtime/github_release_publication_check.py`
 - generic local agent adapter 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
 - third-party agent wrapper recipes：`docs/third-party-agent-wrapper-recipes.md`
 - generic agent JSON wrapper 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`

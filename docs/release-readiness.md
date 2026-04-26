@@ -166,6 +166,19 @@ This audit proves the release ref itself can run the clone-friendly local-first
 consumer path. It does not prove real provider-live support or live support for
 third-party local agent CLIs that are not installed and validated.
 
+To check the distribution page state separately from the release gate, run:
+
+```bash
+python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
+  --state-root /tmp/round-table-github-release-publication
+```
+
+This command does not create a GitHub Release. It reports whether the release
+page is confirmed published, whether the local tag and copy-ready release draft
+exist, and whether the current host has authenticated `gh` or token capability
+for automated publication. A missing GitHub Release page is not a P0 blocker
+for the Codex-local launch scope.
+
 If a real provider is available, run this separately:
 
 ```bash

@@ -92,6 +92,12 @@ For the checked-in post-release consumer audit:
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py --help
 ```
 
+For the checked-in GitHub Release publication status check:
+
+```bash
+python3 .codex/skills/room-skill/runtime/github_release_publication_check.py --help
+```
+
 For the checked-in real Claude Code local CLI live validation wrapper:
 
 ```bash
@@ -235,6 +241,14 @@ Audit a tagged release from a fresh cloned checkout:
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
   --ref v0.1.1 \
   --state-root /tmp/round-table-post-release-consumer-audit
+```
+
+Check whether the GitHub Release page exists and whether this host can publish
+it automatically:
+
+```bash
+python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
+  --state-root /tmp/round-table-github-release-publication
 ```
 
 Validate a real local agent command with the same contract:
