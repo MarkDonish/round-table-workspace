@@ -85,6 +85,13 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
 
 By default this command does not force real third-party agent execution. It writes JSON and Markdown evidence and keeps blocked hosts blocked instead of pretending they passed.
 
+For every host with a selectable command, the matrix writes both:
+
+- `recommended_validation_command`: a human-facing shell command rendered from the argv.
+- `recommended_validation_argv`: the canonical machine-readable argv list for scripts, CI, or another local agent.
+
+Use `recommended_validation_argv` when nested quoting is risky. The Markdown report prints both forms so another machine can copy the command or replay the argv without reconstructing shell quotes.
+
 When inventory reports a host as `ready_for_live_validation`, run only those ready hosts:
 
 ```bash

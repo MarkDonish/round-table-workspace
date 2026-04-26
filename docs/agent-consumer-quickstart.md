@@ -118,6 +118,10 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
 ```
 
+The matrix report includes both `recommended_validation_command` for human
+copy/paste and `recommended_validation_argv` for scripts or another local agent
+that should not re-parse nested shell quotes.
+
 Validate a real host command only after the host can run non-interactively:
 
 ```bash

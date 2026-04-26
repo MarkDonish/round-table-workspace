@@ -165,7 +165,8 @@ def build_host_row(
 ) -> dict[str, Any]:
     host_id = host["id"]
     command = command_overrides.get(host_id) or host.get("json_wrapper_command") or host.get("adapter_command")
-    validation_command = build_validation_command(host_id, command, state_root)
+    validation_argv = build_validation_argv(host_id, command, state_root, agent_timeout_seconds)
+    validation_command = build_shell_command(validation_argv)
     row: dict[str, Any] = {
         "id": host_id,
         "display_name": host.get("display_name"),
@@ -177,6 +178,8 @@ def build_host_row(
         "json_wrapper_command": host.get("json_wrapper_command"),
         "selected_agent_command": command,
         "recommended_validation_command": validation_command,
+        "recommended_validation_argv": validation_argv,
+        "recommended_validation_context": build_validation_context(validation_argv),
         "matrix_status": "pending",
         "severity": "P1",
         "claim": "not_live_validated",
@@ -275,15 +278,43 @@ def parse_command_overrides(values: list[str]) -> dict[str, str]:
     return overrides
 
 
-def build_validation_command(host_id: str, command: str | None, state_root: Path) -> str | None:
+def build_validation_argv(
+    host_id: str,
+    command: str | None,
+    state_root: Path,
+    timeout_seconds: int,
+) -> list[str] | None:
     if not command:
         return None
-    return (
-        f"python3 {VALIDATION_SCRIPT} "
-        f"--agent-label {shlex.quote(host_id)} "
-        f"--agent-command {shlex.quote(command)} "
-        f"--state-root {shlex.quote(str(state_root / host_id))}"
-    )
+    return [
+        "python3",
+        VALIDATION_SCRIPT,
+        "--agent-label",
+        host_id,
+        "--agent-command",
+        command,
+        "--state-root",
+        str(state_root / host_id),
+        "--timeout-seconds",
+        str(timeout_seconds),
+    ]
+
+
+def build_shell_command(argv: list[str] | None) -> str | None:
+    if not argv:
+        return None
+    return shlex.join(argv)
+
+
+def build_validation_context(argv: list[str] | None) -> dict[str, Any] | None:
+    if not argv:
+        return None
+    return {
+        "cwd": str(REPO_ROOT),
+        "argv_is_canonical": True,
+        "shell_command_is_rendered_from_argv": True,
+        "use_argv_for_automation": True,
+    }
 
 
 def run_validation(*, host_id: str, command: str, state_root: Path, timeout_seconds: int) -> dict[str, Any]:
@@ -377,13 +408,27 @@ def render_markdown(report: dict[str, Any]) -> str:
             "",
             "## Commands",
             "",
+            "Each row exposes the shell command for humans and the JSON argv for scripts. Prefer the argv field in automation when nested quoting is risky.",
+            "",
         ]
     )
     for row in report["hosts"]:
         command = row.get("recommended_validation_command")
         if not command:
             continue
+        argv = row.get("recommended_validation_argv")
         lines.extend([f"### {row['id']}", "", "```bash", command, "```", ""])
+        if argv:
+            lines.extend(
+                [
+                    "Machine-readable argv:",
+                    "",
+                    "```json",
+                    json.dumps(argv, ensure_ascii=False, indent=2),
+                    "```",
+                    "",
+                ]
+            )
     return "\n".join(lines) + "\n"
 
 
