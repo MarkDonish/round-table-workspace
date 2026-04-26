@@ -10,6 +10,10 @@ live validation evidence.
 
 ## Unreleased
 
+No unreleased changes.
+
+## v0.1.1 - 2026-04-26
+
 ### Added
 
 - Post-release consumer audit runner that clones a fresh release checkout and
@@ -17,6 +21,22 @@ live validation evidence.
 - Host/provider live lane evidence report that renders claimable, missing,
   blocked, pending, and provider-not-configured lanes without forcing live
   provider calls or third-party agent execution.
+
+### Supported Scope
+
+- Everything in `v0.1.0`.
+- Fresh-checkout release audit tooling for maintainers and local agent hosts.
+- Focused live-lane evidence reporting for host/provider support claims.
+
+### Not Claimed
+
+- Claude Code host-live support on machines/accounts that have not rerun and
+  passed `claude_code_live_validation.py`.
+- Gemini CLI, OpenCode, Aider, Goose, or Cursor Agent host-live support before
+  each host passes its own live validation.
+- Real Chat Completions-compatible provider-live support before `.env.room` and
+  `.env.debate` are valid and `chat_completions_live_validation.py` passes.
+- Universal production stability across every possible local agent host.
 
 ## v0.1.0 - 2026-04-26
 

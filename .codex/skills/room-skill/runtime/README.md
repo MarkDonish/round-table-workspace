@@ -233,7 +233,7 @@ Audit a tagged release from a fresh cloned checkout:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
-  --ref v0.1.0 \
+  --ref v0.1.1 \
   --state-root /tmp/round-table-post-release-consumer-audit
 ```
 

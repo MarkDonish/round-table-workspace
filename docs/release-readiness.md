@@ -29,9 +29,9 @@ machines/accounts must rerun `claude_code_live_validation.py`.
 
 The current reproducible release target is:
 
-- Tag: `v0.1.0`
+- Tag: `v0.1.1`
 - Changelog: `CHANGELOG.md`
-- Release notes: `docs/releases/v0.1.0.md`
+- Release notes: `docs/releases/v0.1.1.md`
 
 Create or update this tag only after the strict release gate and claim-safe
 release report pass from a clean Git tree.
@@ -158,7 +158,7 @@ consumer audit from a fresh cloned checkout of the release ref:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
-  --ref v0.1.0 \
+  --ref v0.1.1 \
   --state-root /tmp/round-table-post-release-consumer-audit
 ```
 

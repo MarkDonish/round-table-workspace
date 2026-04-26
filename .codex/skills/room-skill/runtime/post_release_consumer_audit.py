@@ -16,7 +16,7 @@ from typing import Any
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-post-release-consumer-audit"
-DEFAULT_REF = "v0.1.0"
+DEFAULT_REF = "v0.1.1"
 
 
 class AuditError(Exception):
