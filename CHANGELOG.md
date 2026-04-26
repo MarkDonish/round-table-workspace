@@ -10,16 +10,49 @@ live validation evidence.
 
 ## Unreleased
 
+No release-scope changes yet.
+
+## v0.1.0-rc4 - 2026-04-26
+
 ### Added
 
 - Host recipe consistency check to keep third-party local agent docs aligned
   with the checked-in host inventory candidates.
+- Repo-local development checkpoint writer for durable continuity when host
+  memory is read-only.
+- Checked-in Claude Code host-live evidence report for this validated Mac
+  account and default wrapper command.
 
 ### Changed
 
 - Clarified third-party local agent host recipes, decision tree, and host-live
   claim rules for Claude Code, Gemini CLI, OpenCode, Aider, Goose, and Cursor
   Agent.
+- Exposed copy-safe host validation argv in the local agent host validation
+  matrix.
+- Updated release readiness and release candidate reporting so checked-in,
+  machine/account-scoped host-live evidence can support a claim without
+  overclaiming every third-party agent host.
+- Updated the clone-friendly consumer self-check summary so checked-in host-live
+  evidence appears in the same support view as matrix live rows.
+
+### Supported Scope
+
+- Everything in `v0.1.0-rc3`.
+- Default Claude Code CLI host-live support for the validated Mac account where
+  `claude_code_live_validation.py` returned
+  `claimable_as_default_claude_code_host_live=true`.
+- Repo-local continuity checkpoints under `reports/checkpoints/generated/` as
+  historical handoff evidence, not implementation source.
+
+### Not Claimed
+
+- Claude Code host-live support on machines/accounts that have not rerun and
+  passed `claude_code_live_validation.py`.
+- Gemini CLI, OpenCode, Aider, Goose, or Cursor Agent host-live support before
+  each host passes its own live validation.
+- Real Chat Completions-compatible provider-live support before `.env.room` and
+  `.env.debate` are valid and `chat_completions_live_validation.py` passes.
 
 ## v0.1.0-rc3 - 2026-04-25
 

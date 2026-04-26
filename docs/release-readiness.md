@@ -28,9 +28,9 @@ machines/accounts must rerun `claude_code_live_validation.py`.
 
 The current reproducible release-candidate target is:
 
-- Tag: `v0.1.0-rc3`
+- Tag: `v0.1.0-rc4`
 - Changelog: `CHANGELOG.md`
-- Release notes: `docs/releases/v0.1.0-rc3.md`
+- Release notes: `docs/releases/v0.1.0-rc4.md`
 
 Create or update this tag only after the strict release gate and release
 candidate report pass from a clean Git tree.

@@ -49,11 +49,14 @@ The current launchable scope is the Codex local mainline:
 This does not mean every real local agent host or provider has been
 live-validated.
 
+Current release candidate target: `v0.1.0-rc4`.
+
 ## Priority Queue
 
 | Priority | Task | Status | Why Now | Completion Standard |
 |---|---|---|---|---|
 | P0 | Codex local mainline blocker | None known | The strict release gate currently reports no P0 blockers | Keep `release_readiness_check.py --include-fixture-runs --strict-git-clean` green |
+| P1 | Cut `v0.1.0-rc4` release candidate | Completed | `v0.1.0-rc3` predates Claude Code host-live evidence and repo-local checkpoints | Release notes/changelog point to rc4, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Improve third-party local agent validation matrix usability | Completed | The matrix now exposes both rendered shell commands and canonical argv for each selectable host command | Matrix output exposes copy-safe argv/run command evidence and fixture validation still passes |
 | P1 | Retry real Claude Code default CLI live validation | Completed on this Mac | The default wrapper passed preflight, smoke, and full `/room -> /debate` integration on 2026-04-26 | Full default wrapper reported `claimable_as_default_claude_code_host_live=true`; future machines still need their own live validation |
 | P1 | Keep current source-of-truth docs aligned after each runtime change | Ongoing | Future agents start from `docs/`, not old session reports | `README.md`, `docs/NEXT-STEPS.md`, release docs, and relevant adapter docs agree |

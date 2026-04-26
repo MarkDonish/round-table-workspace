@@ -117,4 +117,4 @@ python3 .codex/skills/room-skill/runtime/development_checkpoint.py \
 Checkpoint outputs under `reports/checkpoints/generated/` are historical
 continuity records, not implementation source.
 
-Current release-candidate notes: `docs/releases/v0.1.0-rc3.md`.
+Current release-candidate notes: `docs/releases/v0.1.0-rc4.md`.

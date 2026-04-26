@@ -190,12 +190,29 @@ def extract_host_summary(readiness_payload: dict[str, Any]) -> dict[str, Any]:
     matrix_payload = matrix.get("payload", {}) if isinstance(matrix, dict) else {}
     summary = matrix_payload.get("summary", {}) if isinstance(matrix_payload, dict) else {}
     hosts = matrix_payload.get("hosts", []) if isinstance(matrix_payload, dict) else []
+    checked_evidence = readiness_payload.get("checked_in_host_live_evidence", [])
+    checked_evidence = checked_evidence if isinstance(checked_evidence, list) else []
+    checked_live_hosts = sorted(
+        {
+            item.get("host_id")
+            for item in checked_evidence
+            if isinstance(item, dict) and item.get("host_id")
+        }
+    )
+    matrix_live_hosts = summary.get("live_passed_hosts", [])
+    matrix_live_hosts = matrix_live_hosts if isinstance(matrix_live_hosts, list) else []
+    live_passed_hosts = sorted(set(matrix_live_hosts) | set(checked_live_hosts))
+    pending_hosts = summary.get("pending_hosts", [])
+    pending_hosts = pending_hosts if isinstance(pending_hosts, list) else []
     return {
         "counts": summary.get("counts", {}),
-        "live_passed_hosts": summary.get("live_passed_hosts", []),
+        "live_passed_hosts": live_passed_hosts,
+        "matrix_live_passed_hosts": matrix_live_hosts,
+        "checked_in_host_live_evidence": checked_evidence,
         "blocked_hosts": summary.get("blocked_hosts", []),
         "missing_hosts": summary.get("missing_hosts", []),
-        "pending_hosts": summary.get("pending_hosts", []),
+        "pending_hosts": [host_id for host_id in pending_hosts if host_id not in set(checked_live_hosts)],
+        "matrix_pending_hosts": pending_hosts,
         "failed_hosts": summary.get("failed_hosts", []),
         "host_rows": [
             {
@@ -370,12 +387,14 @@ def render_markdown(report: dict[str, Any]) -> str:
             "## Current Host Status",
             "",
             f"- Live-passed hosts: `{host_summary.get('live_passed_hosts', [])}`",
+            f"- Matrix live-passed hosts: `{host_summary.get('matrix_live_passed_hosts', [])}`",
+            f"- Checked-in host-live evidence: `{host_summary.get('checked_in_host_live_evidence', [])}`",
             f"- Blocked hosts: `{host_summary.get('blocked_hosts', [])}`",
             f"- Missing hosts: `{host_summary.get('missing_hosts', [])}`",
             f"- Pending hosts: `{host_summary.get('pending_hosts', [])}`",
             f"- Failed hosts: `{host_summary.get('failed_hosts', [])}`",
             "",
-            "Only hosts with `matrix_status=live_passed` may be claimed as real host-live support.",
+            "Only hosts with `matrix_status=live_passed`, or checked-in machine/account-scoped evidence from the full Claude Code wrapper, may be claimed as real host-live support.",
             "",
             "## Provider Lane",
             "",
