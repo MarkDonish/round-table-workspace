@@ -74,6 +74,12 @@ For the checked-in local agent host validation matrix:
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py --help
 ```
 
+For the checked-in host/provider live-lane evidence report:
+
+```bash
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py --help
+```
+
 For the checked-in agent consumer self-check:
 
 ```bash
@@ -207,6 +213,13 @@ Build a durable host validation matrix without forcing live third-party executio
 ```bash
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
+```
+
+Generate a claim-safe live lane evidence report:
+
+```bash
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
 ```
 
 Run the clone-friendly consumer self-check without provider URLs or paid third-party accounts:
@@ -531,6 +544,8 @@ The bridge then validates those JSON outputs and performs the state writeback th
 `agent_host_inventory.py` is the checked-in readiness inventory for real local agent hosts. It detects common CLI candidates, records lightweight version/auth evidence where available, and explicitly separates `missing_cli`, `blocked_auth`, and `ready_for_live_validation` from actual `/room -> /debate` live validation.
 
 `local_agent_host_validation_matrix.py` is the checked-in evidence matrix for real local agent hosts. It safely persists `missing_cli`, `blocked`, `pending_live_validation`, `live_passed`, and `live_failed` rows, and only runs live validations when explicitly requested by `--run-live-ready`, `--run-installed`, or `--force-host`.
+
+`live_lane_evidence_report.py` is the checked-in support-claim summary for host/provider live lanes. It aggregates the host matrix, provider readiness, and checked-in host-live evidence into JSON/Markdown, and keeps `claimable`, `missing_cli`, `blocked`, `pending_live_validation`, and provider-not-configured lanes separate.
 
 It also exposes a checked-in `gpt54_family` preset. That preset freezes the currently validated Mac-local lane: `gpt-5.4` primary child-task model, `gpt-5.4-mini` same-family fallback, `low` reasoning effort, bounded timeouts, and prompt-level step policies.
 

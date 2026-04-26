@@ -38,6 +38,7 @@
 - `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py` 已提供 wrapper 离线验证入口，覆盖 markdown / stdout noise / output file 三类常见脏输出
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供真实本地 agent 宿主 inventory/preflight，可区分 CLI 缺失、auth 阻塞、可进入 live validation
 - `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py` 已提供真实本地 agent 宿主 validation matrix/report，可把 missing / blocked / pending / live passed / live failed 分级落盘
+- `.codex/skills/room-skill/runtime/live_lane_evidence_report.py` 已提供 host/provider live lane 证据总报告，可把 claimable、blocked、missing、pending、provider not configured 分开输出，不把 readiness 或 fixture 误报成 live pass
 - `.codex/skills/room-skill/runtime/agent_consumer_self_check.py` 已提供 clone-friendly 的消费者自检入口，可在不需要 provider URL、不需要第三方付费账号的前提下聚合 source-boundary、release readiness、Claude project skill、generic adapter fixture、JSON wrapper、host matrix 证据
 - `.codex/skills/room-skill/runtime/post_release_consumer_audit.py` 已提供发布后 fresh-checkout 审计入口，可从指定 release ref 克隆临时 checkout 并重跑消费者自检、Claude project skill 校验与 strict release readiness
 - `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI validation wrapper；它把 `preflight_only`、`smoke_only`、完整 `/room -> /debate` 分层落盘，只有 `claimable_as_default_claude_code_host_live=true` 才能声明默认 Claude Code host-live 通过
@@ -63,6 +64,7 @@
 - `/room -> /debate generic_cli` 已通过 checked-in fixture agent 跑通完整 adapter integration
 - generic local agent adapter kit 已收口成 checked-in 文档和一键验证命令，其他本地 agent 可按同一 stdin / JSON contract 接入
 - local agent host inventory 已可输出本机真实宿主 readiness，不会把 auth blocked 或 CLI missing 误报成 live pass
+- live lane evidence report 已可一键审计当前 host/provider live 声明边界，明确 provider URL 不是会议场所，也不是 Codex local mainline 的前置条件
 - agent consumer self-check 已可给 Codex、Claude Code 和其他本地 agent 用户生成一份 clone 后可读的 PASS/FAIL 与 next commands 报告
 - provider fallback regression 已复跑通过；provider readiness 会把当前真实 `.env.room` / `.env.debate` 的缺失配置报告为 blocked，不误报为 live pass
 - release readiness gate 已入仓；上线判断不再只依赖口头汇报或历史 reports
@@ -228,6 +230,7 @@ round-table-workspace/
 - 发布 readiness 检查：`python3 .codex/skills/room-skill/runtime/release_readiness_check.py`
 - release candidate scope：`docs/release-candidate-scope.md`
 - release candidate 总报告：`python3 .codex/skills/room-skill/runtime/release_candidate_report.py`
+- live lane evidence 总报告：`python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py`
 - agent continuity checkpoints：`docs/agent-continuity-checkpoints.md`
 - development checkpoint writer：`python3 .codex/skills/room-skill/runtime/development_checkpoint.py`
 - 历史材料边界审计：`docs/historical-materials-audit.md`
@@ -245,6 +248,7 @@ round-table-workspace/
 - local agent host recipes：`docs/local-agent-host-recipes.md`
 - local agent host inventory：`python3 .codex/skills/room-skill/runtime/agent_host_inventory.py`
 - local agent host validation matrix：`python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py`
+- live lane evidence report：`python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py`
 - provider live readiness：`docs/provider-live-readiness.md`
 - provider readiness check：`python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py`
 - Claude Code skill 适配：`docs/claude-code-skill-adapter.md`

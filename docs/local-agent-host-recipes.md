@@ -83,7 +83,15 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
 ```
 
-By default this command does not force real third-party agent execution. It writes JSON and Markdown evidence and keeps blocked hosts blocked instead of pretending they passed.
+Use the live lane evidence report when you need a support-claim summary across
+host and provider lanes:
+
+```bash
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
+```
+
+By default the matrix command does not force real third-party agent execution. It writes JSON and Markdown evidence and keeps blocked hosts blocked instead of pretending they passed.
 
 For every host with a selectable command, the matrix writes both:
 

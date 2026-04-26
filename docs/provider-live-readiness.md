@@ -53,6 +53,17 @@ python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py --strict
 
 Strict mode exits non-zero unless both provider scopes are ready for a real live run.
 
+For a cross-lane support-claim summary that also includes local agent host
+evidence, run:
+
+```bash
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
+```
+
+This report does not send provider requests. It records provider live as
+`blocked_or_not_configured` until `.env.room` and `.env.debate` are ready.
+
 ## Required Local Files
 
 The real live lane expects local, untracked files:

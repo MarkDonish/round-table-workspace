@@ -14,6 +14,7 @@ The repository may currently be claimed as ready for:
 - default Claude Code CLI host-live support on the Mac where `claude_code_live_validation.py` reports `claimable_as_default_claude_code_host_live=true`
 - generic local agent adapter contract with fixture-backed validation
 - third-party local agent JSON wrapper and host validation matrix tooling
+- host/provider live-lane evidence report tooling
 - clone-friendly agent consumer self-check tooling
 - clone-friendly launch quickstart
 - Chat Completions-compatible fallback/mock regression tooling
@@ -59,12 +60,21 @@ The command writes:
 
 Use the Markdown report for human review and the JSON report for future automation.
 
+For a focused host/provider support-claim view, generate the live lane evidence
+report:
+
+```bash
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
+```
+
 ## Interpretation Rules
 
 - `release_decision: "ready_for_codex_local_mainline_scope"` means the Codex local mainline can be launched within the current scope.
 - `release_decision: "blocked"` means at least one P0 release gate blocker exists.
 - `real_host_live_passed` is the list that can support a real third-party host-live claim. It may be populated by host matrix `live_passed` rows or by checked-in machine/account-scoped live evidence reports that cite the checked-in validation command and a `claimable=true` result.
 - `provider_live_ready: false` means provider support is still fallback/mock/readiness tooling only.
+- `live_lane_evidence_report.py` is the focused view for current claimable, missing, blocked, pending, and provider-not-configured lanes.
 - `reports/` remains historical evidence and must not override this document or `docs/release-readiness.md`.
 
 ## Current Known Gaps

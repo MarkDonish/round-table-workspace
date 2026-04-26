@@ -89,11 +89,18 @@ rules before validating a real third-party command.
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
 
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
+
 python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
   --agent-label <host_id> \
   --agent-command "python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --agent-command '<real agent command>'" \
   --state-root /tmp/round-table-<host-id>-validation
 ```
+
+Use the live lane evidence report before making support claims. It summarizes
+which host/provider lanes are claimable, blocked, missing, pending, or not
+configured without requiring provider URLs.
 
 ## 6. Keep The Source Boundary Clear
 

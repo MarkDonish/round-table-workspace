@@ -20,6 +20,9 @@ python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
   --include-fixture-runs \
   --strict-git-clean \
   --output-json /tmp/round-table-release-readiness.json
+
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
 ```
 
 Then read:
@@ -56,6 +59,7 @@ Current release target: `v0.1.0`.
 | Priority | Task | Status | Why Now | Completion Standard |
 |---|---|---|---|---|
 | P0 | Codex local mainline blocker | None known | The strict release gate currently reports no P0 blockers | Keep `release_readiness_check.py --include-fixture-runs --strict-git-clean` green |
+| P1 | Add host/provider live lane evidence report | Completed | Launch communication needs one claim-safe entry that separates claimable, missing, blocked, pending, and provider-not-configured lanes | `live_lane_evidence_report.py` writes JSON/Markdown and docs point to it |
 | P1 | Add post-release consumer audit | Completed | `v0.1.0` is tagged; new users need a fresh-checkout proof path, not just current-worktree validation | `post_release_consumer_audit.py --ref v0.1.0` passes and docs point to it |
 | P1 | Promote `v0.1.0-rc4` to `v0.1.0` | Completed | rc4 was the final launch-prep candidate and did not require widening the support claim | Final release notes/changelog point to v0.1.0, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Cut `v0.1.0-rc4` release candidate | Completed | `v0.1.0-rc3` predates Claude Code host-live evidence and repo-local checkpoints | Release notes/changelog point to rc4, strict release gate passes from clean Git tree, tag is pushed |
@@ -70,12 +74,16 @@ Current release target: `v0.1.0`.
 ## Recommended Next Task
 
 If another real third-party local agent is available on the target machine, run
-P2 real host validation with the matrix output:
+P2 real host validation with the matrix output, then regenerate the live lane
+evidence report before claiming support:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --run-live-ready \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
+
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
 ```
 
 If no additional real host is available or entitled, keep that lane

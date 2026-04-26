@@ -12,6 +12,7 @@ The repository can be treated as ready for the current supported scope when the 
 - generic local agent adapter contract and fixture-backed validation path
 - third-party local agent JSON wrapper tooling and recipes
 - third-party local agent validation matrix/report tooling
+- host/provider live-lane evidence report tooling
 - third-party local agent host recipe consistency tooling
 - clone-friendly agent consumer self-check tooling
 - clone-friendly launch quickstart
@@ -55,6 +56,7 @@ For the current launch scope, a P0 blocker means the repository cannot honestly 
 | Claude project-skill structure drift | Cross-host adapter discovery would point to stale or missing sources | Run and fix `python3 .claude/scripts/validate_project_skills.py` |
 | Readiness tooling failure | The release gate cannot distinguish real blockers from non-blocking live gaps | Fix `agent_host_inventory.py`, `local_agent_host_validation_matrix.py`, or `chat_completions_readiness.py`, then rerun the gate |
 | Local agent host validation matrix tooling failure | The release gate cannot classify third-party host lanes into missing/blocked/pending/passed/failed | Fix `local_agent_host_validation_matrix.py`, then rerun the gate |
+| Live lane evidence report tooling failure | Support claims would lose the one-command summary separating claimable, blocked, missing, pending, and provider-not-configured lanes | Fix `live_lane_evidence_report.py`, then rerun the gate and report |
 | Host recipe consistency failure | External-agent docs no longer cover every checked-in host candidate or have lost the claim-boundary warnings | Fix `docs/local-agent-host-recipes.md`, `docs/agent-consumer-quickstart.md`, or `LAUNCH.md`, then rerun `host_recipes_consistency_check.py` |
 | Generic fixture adapter validation fails when included | The host-neutral adapter contract no longer runs end to end | Run with `--include-fixture-runs`, inspect the report, fix adapter/runtime drift |
 | Generic JSON wrapper validation fails when included | Noisy third-party agent output can no longer be normalized safely | Run `generic_agent_json_wrapper_validation.py`, inspect the failing mode, fix wrapper/runtime drift |
@@ -127,6 +129,9 @@ python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.p
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
 
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
+
 python3 .codex/skills/room-skill/runtime/host_recipes_consistency_check.py \
   --output-json /tmp/round-table-host-recipes-consistency.json
 
@@ -176,6 +181,9 @@ If a real local agent host is available, run:
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --run-live-ready \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
+
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
 
 python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
   --agent-label <host_id> \

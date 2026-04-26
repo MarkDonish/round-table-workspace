@@ -134,6 +134,16 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
 ```
 
+Generate a focused live-lane evidence summary before making support claims:
+
+```bash
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
+```
+
+This report also states that provider URLs are not required for the local
+mainline and are not the meeting room.
+
 The matrix report includes both `recommended_validation_command` for human
 copy/paste and `recommended_validation_argv` for scripts or another local agent
 that should not re-parse nested shell quotes.

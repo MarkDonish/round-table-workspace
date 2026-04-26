@@ -163,6 +163,7 @@ def build_summary(
     ]
     host_summary = extract_host_summary(readiness_payload)
     provider_summary = extract_provider_summary(readiness_payload)
+    live_lane_summary = extract_live_lane_summary(readiness_payload)
     source_summary = {}
     if isinstance(source_audit.get("payload"), dict):
         source_summary = source_audit["payload"].get("summary", {})
@@ -180,6 +181,7 @@ def build_summary(
         "pass_criteria": pass_criteria,
         "host_summary": host_summary,
         "provider_summary": provider_summary,
+        "live_lane_summary": live_lane_summary,
         "source_boundary_summary": source_summary,
     }
 
@@ -242,6 +244,23 @@ def extract_provider_summary(readiness_payload: dict[str, Any]) -> dict[str, Any
     }
 
 
+def extract_live_lane_summary(readiness_payload: dict[str, Any]) -> dict[str, Any]:
+    checks = readiness_payload.get("checks", {}) if isinstance(readiness_payload, dict) else {}
+    live_lane = checks.get("live_lane_evidence_report", {}) if isinstance(checks, dict) else {}
+    payload = live_lane.get("payload", {}) if isinstance(live_lane, dict) else {}
+    summary = payload.get("summary", {}) if isinstance(payload, dict) else {}
+    release_impact = payload.get("release_impact", {}) if isinstance(payload, dict) else {}
+    return {
+        "claimable_host_live": summary.get("claimable_host_live", []),
+        "missing_host_cli": summary.get("missing_host_cli", []),
+        "blocked_host_live": summary.get("blocked_host_live", []),
+        "pending_host_live": summary.get("pending_host_live", []),
+        "provider_live_ready": summary.get("provider_live_ready"),
+        "provider_url_required_for_local_mainline": summary.get("provider_url_required_for_local_mainline"),
+        "blocks_current_launch_scope": release_impact.get("blocks_current_launch_scope"),
+    }
+
+
 def summarize_source_audit(result: dict[str, Any]) -> dict[str, Any]:
     payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
     return {
@@ -290,6 +309,7 @@ def next_commands() -> dict[str, list[str]]:
         "generic_third_party_agent": [
             "python3 .codex/skills/room-skill/runtime/agent_host_inventory.py --output-json /tmp/round-table-agent-host-inventory.json",
             "python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py --state-root /tmp/round-table-local-agent-host-validation-matrix",
+            "python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py --state-root /tmp/round-table-live-lane-evidence",
             "python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py --agent-label <host_id> --agent-command \"python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --agent-command '<real agent command>'\" --state-root /tmp/round-table-<host-id>-validation",
         ],
     }

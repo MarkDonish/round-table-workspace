@@ -14,6 +14,9 @@ live validation evidence.
 
 - Post-release consumer audit runner that clones a fresh release checkout and
   verifies the local-first consumer path from that checkout.
+- Host/provider live lane evidence report that renders claimable, missing,
+  blocked, pending, and provider-not-configured lanes without forcing live
+  provider calls or third-party agent execution.
 
 ## v0.1.0 - 2026-04-26
 
