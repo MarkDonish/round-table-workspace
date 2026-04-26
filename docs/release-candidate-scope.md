@@ -1,8 +1,8 @@
-# Release Candidate Scope
+# Release Support Scope
 
-This document is the source of truth for turning the current readiness checks into a claim-safe release candidate summary.
+This document is the source of truth for turning the current readiness checks into a claim-safe release summary.
 
-## Current Release Candidate Claim
+## Current Release Claim
 
 The repository may currently be claimed as ready for:
 
@@ -20,17 +20,17 @@ The repository may currently be claimed as ready for:
 
 This is not the same as claiming every local agent host or every provider is live-validated.
 
-## Current Release Candidate Artifact
+## Current Release Artifact
 
-The current release candidate is `v0.1.0-rc4`.
+The current release is `v0.1.0`.
 
 Use:
 
 - `CHANGELOG.md` for the release history.
-- `docs/releases/v0.1.0-rc4.md` for the human-readable release note.
+- `docs/releases/v0.1.0.md` for the human-readable release note.
 - `release_candidate_report.py` output for machine-readable support-scope evidence.
 
-The tag must point to a commit that has passed the strict release candidate gate.
+The tag must point to a commit that has passed the strict release gate.
 
 ## Not Claimed
 
@@ -43,7 +43,7 @@ Do not claim these until the matching live validation report exists:
 
 ## One-Command Report
 
-Generate the release candidate report:
+Generate the claim-safe release report:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/release_candidate_report.py \

@@ -24,16 +24,16 @@ Current host-live evidence: the default Claude Code CLI wrapper passed full
 claimable for the tested Mac account and default wrapper command only; new
 machines/accounts must rerun `claude_code_live_validation.py`.
 
-## Current Release Candidate
+## Current Release
 
-The current reproducible release-candidate target is:
+The current reproducible release target is:
 
-- Tag: `v0.1.0-rc4`
+- Tag: `v0.1.0`
 - Changelog: `CHANGELOG.md`
-- Release notes: `docs/releases/v0.1.0-rc4.md`
+- Release notes: `docs/releases/v0.1.0.md`
 
-Create or update this tag only after the strict release gate and release
-candidate report pass from a clean Git tree.
+Create or update this tag only after the strict release gate and claim-safe
+release report pass from a clean Git tree.
 
 ## Not Claimed By This Scope
 
@@ -86,7 +86,7 @@ python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
   --output-json /tmp/round-table-release-readiness.json
 ```
 
-Run the strict Git gate for a release candidate:
+Run the strict Git gate for a release tag:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
@@ -97,9 +97,9 @@ python3 .codex/skills/room-skill/runtime/release_readiness_check.py \
 
 The command does not send real provider requests and does not require third-party agent subscriptions.
 
-## Release Candidate Report
+## Claim-Safe Release Report
 
-Generate a claim-safe release candidate summary:
+Generate a claim-safe release summary:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/release_candidate_report.py \
@@ -110,7 +110,7 @@ python3 .codex/skills/room-skill/runtime/release_candidate_report.py \
 
 The support-scope rules for interpreting that report live in `docs/release-candidate-scope.md`.
 
-## Recommended Release Candidate Validation
+## Recommended Release Validation
 
 Before tagging or announcing a release, run:
 
