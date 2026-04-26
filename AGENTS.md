@@ -40,6 +40,7 @@ For every new development task, follow:
 - `docs/development-sync-protocol.md`
 - `docs/release-readiness.md` when deciding launch readiness or remaining blockers
 - `docs/release-candidate-scope.md` when creating a launch/support claim
+- `docs/agent-continuity-checkpoints.md` when host-level memory is read-only or another agent will continue the work
 - `docs/superpowers/local-development-integration.md` when local Superpowers is installed
 
 Default rule:

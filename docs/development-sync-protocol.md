@@ -169,6 +169,24 @@ Do not blur:
 - not started
 - blocked
 
+## Project-Local Checkpoint Rule
+
+Host-level agent memory may be read-only. When a session needs durable
+continuity beyond chat history, use the repo-local checkpoint command instead
+of treating platform memory as writable:
+
+```bash
+python3 .codex/skills/room-skill/runtime/development_checkpoint.py \
+  --title "Development Checkpoint" \
+  --topic "Current work" \
+  --completed "Completed item" \
+  --next-task "Next task"
+```
+
+The checkpoint output belongs under `reports/checkpoints/generated/` by default.
+It is historical continuity evidence, not active protocol source. See
+`docs/agent-continuity-checkpoints.md`.
+
 ---
 
 ## Secrets And Local Config

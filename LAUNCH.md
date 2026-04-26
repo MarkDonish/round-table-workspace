@@ -101,4 +101,20 @@ Provider fallback is available for intentional Chat Completions-compatible
 regression or live testing, but it is not the local meeting room and is not
 required for the local mainline.
 
+## 6. Save A Repo-Local Checkpoint
+
+If the host's global memory is read-only or another machine will continue the
+work, write a project checkpoint instead:
+
+```bash
+python3 .codex/skills/room-skill/runtime/development_checkpoint.py \
+  --title "Development Checkpoint" \
+  --topic "Current work" \
+  --completed "Completed item" \
+  --next-task "Next task"
+```
+
+Checkpoint outputs under `reports/checkpoints/generated/` are historical
+continuity records, not implementation source.
+
 Current release-candidate notes: `docs/releases/v0.1.0-rc3.md`.
