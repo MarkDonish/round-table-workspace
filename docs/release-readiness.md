@@ -182,8 +182,11 @@ for automated publication. It also checks that the repository-side publication
 workflow `.github/workflows/publish-github-release.yml` exists; that workflow
 uses `.codex/skills/room-skill/runtime/extract_github_release_body.py` to keep
 Actions publication and manual fallback publication on the same checked-in
-release body. A missing GitHub Release page is not a P0 blocker for the
-Codex-local launch scope.
+release body. When the current host has authenticated `gh` or `GITHUB_TOKEN` /
+`GH_TOKEN`, the checker also inspects recent release workflow runs so a failed
+Actions publication can be separated from an unconfirmed private-repo release
+page. A missing GitHub Release page is not a P0 blocker for the Codex-local
+launch scope.
 
 If a real provider is available, run this separately:
 

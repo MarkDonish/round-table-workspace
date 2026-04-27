@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
+from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 
@@ -21,6 +22,7 @@ DEFAULT_REPOSITORY = "MarkDonish/round-table-workspace"
 DEFAULT_TAG = "v0.1.1"
 DEFAULT_RELEASE_DRAFT = "docs/releases/v0.1.1-github-release.md"
 DEFAULT_RELEASE_WORKFLOW = ".github/workflows/publish-github-release.yml"
+DEFAULT_WORKFLOW_RUN_LIMIT = 5
 
 
 def main() -> int:
@@ -75,6 +77,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Timeout for git, gh, and GitHub API checks.",
     )
     parser.add_argument(
+        "--workflow-run-limit",
+        type=int,
+        default=DEFAULT_WORKFLOW_RUN_LIMIT,
+        help="Maximum number of recent release workflow runs to inspect when authenticated access exists.",
+    )
+    parser.add_argument(
         "--strict-published",
         action="store_true",
         help="Exit non-zero unless the release page is confirmed published.",
@@ -93,6 +101,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     local_tag = check_local_tag(args.tag, args.timeout_seconds)
     release_draft = check_release_draft(args.release_draft)
     release_workflow = check_release_workflow(args.release_workflow)
+    workflow_runs = check_github_actions_workflow_runs(
+        repository=args.repository,
+        release_workflow=args.release_workflow,
+        token=token_state["token_value"],
+        gh_state=gh_state,
+        timeout_seconds=args.timeout_seconds,
+        limit=args.workflow_run_limit,
+    )
     api_check = check_github_release_api(
         repository=args.repository,
         tag=args.tag,
@@ -106,6 +122,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         local_tag=local_tag,
         release_draft=release_draft,
         release_workflow=release_workflow,
+        workflow_runs=workflow_runs,
         repository=args.repository,
         tag=args.tag,
     )
@@ -126,6 +143,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "local_tag": local_tag,
             "release_draft": release_draft,
             "release_publication_workflow": release_workflow,
+            "github_actions_workflow_runs": workflow_runs,
             "github_api_release": redact_api_check(api_check),
             "local_publication_capability": {
                 "gh": gh_state,
@@ -160,6 +178,7 @@ def build_summary(
     local_tag: dict[str, Any],
     release_draft: dict[str, Any],
     release_workflow: dict[str, Any],
+    workflow_runs: dict[str, Any],
     repository: str,
     tag: str,
 ) -> dict[str, Any]:
@@ -177,9 +196,16 @@ def build_summary(
         release_page_status = "unknown_api_error"
 
     repo_automation_available = release_workflow["usable"]
+    workflow_run_status = summarize_workflow_run_status(workflow_runs)
     can_publish = bool(token_present or gh_state.get("authenticated"))
     if release_page_status == "published":
         publication_decision = "published"
+    elif workflow_run_status == "latest_success":
+        publication_decision = "release_workflow_succeeded_release_page_requires_authenticated_confirmation"
+    elif workflow_run_status in {"latest_failure", "latest_cancelled", "latest_timed_out"}:
+        publication_decision = "release_workflow_failed"
+    elif workflow_run_status == "latest_in_progress":
+        publication_decision = "release_workflow_in_progress"
     elif can_publish:
         publication_decision = "ready_to_publish_from_capable_host"
     elif repo_automation_available:
@@ -197,6 +223,9 @@ def build_summary(
         "release_publication_workflow_exists": release_workflow["exists"],
         "release_publication_workflow_usable": release_workflow["usable"],
         "repo_automation_available": repo_automation_available,
+        "release_workflow_run_status": workflow_run_status,
+        "release_workflow_latest_run": workflow_runs.get("latest_run"),
+        "can_check_workflow_runs_from_this_host": workflow_runs.get("authenticated") is True,
         "can_attempt_automated_publication_from_this_host": can_publish,
         "gh_installed": gh_state.get("installed") is True,
         "github_token_present": token_present,
@@ -221,6 +250,41 @@ def build_next_actions(
                 "why": f"GitHub Release `{tag}` is already published; remaining work is host/provider validation expansion.",
             }
         ]
+    workflow_status = summary.get("release_workflow_run_status")
+    if workflow_status == "latest_success":
+        return [
+            {
+                "priority": "P1",
+                "task": f"Confirm GitHub Release `{tag}` page with authenticated release access",
+                "why": "The latest release workflow run appears successful, but strict publication still requires release-page confirmation.",
+            },
+            {
+                "priority": "P2",
+                "task": "Validate additional real local agent hosts only when their authenticated CLIs exist",
+                "why": "Missing host CLIs block only their own lanes, not the Codex local mainline.",
+            },
+        ]
+    if workflow_status in {"latest_failure", "latest_cancelled", "latest_timed_out"}:
+        return [
+            {
+                "priority": "P1",
+                "task": f"Inspect and fix the failed GitHub Actions release workflow for `{tag}`",
+                "why": f"`{release_workflow}` reported `{workflow_status}`; use the run URL in the checker output before attempting manual publication.",
+            },
+            {
+                "priority": "P1",
+                "task": f"Publish GitHub Release `{tag}` manually only if the workflow cannot be repaired quickly",
+                "why": f"Use `{release_draft}` as the copy-ready fallback body at https://github.com/{repository}/releases/new?tag={tag}.",
+            },
+        ]
+    if workflow_status == "latest_in_progress":
+        return [
+            {
+                "priority": "P1",
+                "task": f"Wait for the GitHub Actions release workflow for `{tag}` to finish",
+                "why": "The latest release workflow run is still queued or running.",
+            }
+        ]
     if summary["can_attempt_automated_publication_from_this_host"]:
         return [
             {
@@ -233,10 +297,10 @@ def build_next_actions(
         return [
             {
                 "priority": "P1",
-                "task": f"Wait for or manually run the GitHub Actions release workflow for `{tag}`",
+                "task": f"Check or manually run the GitHub Actions release workflow for `{tag}` from an authenticated host",
                 "why": (
-                    f"`{release_workflow}` can publish or update the release with the repository GITHUB_TOKEN; "
-                    "rerun this checker with authenticated GitHub access to confirm publication."
+                    f"`{release_workflow}` can publish or update the release with the repository GITHUB_TOKEN; this host "
+                    "cannot list workflow runs without gh or a token."
                 ),
             },
             {
@@ -302,6 +366,85 @@ def check_release_workflow(release_workflow: str) -> dict[str, Any]:
         "has_workflow_dispatch": has_workflow_dispatch,
         "has_push_trigger": has_push_trigger,
         "publishes_release": publishes_release,
+    }
+
+
+def check_github_actions_workflow_runs(
+    *,
+    repository: str,
+    release_workflow: str,
+    token: str | None,
+    gh_state: dict[str, Any],
+    timeout_seconds: int,
+    limit: int,
+) -> dict[str, Any]:
+    workflow_file = Path(release_workflow).name
+    if gh_state.get("installed") and gh_state.get("authenticated"):
+        gh_check = run_command(
+            [
+                "gh",
+                "run",
+                "list",
+                "--repo",
+                repository,
+                "--workflow",
+                workflow_file,
+                "--branch",
+                "main",
+                "--limit",
+                str(limit),
+                "--json",
+                "databaseId,status,conclusion,event,headSha,displayTitle,createdAt,updatedAt,url,workflowName",
+            ],
+            timeout_seconds=timeout_seconds,
+        )
+        payload = parse_json_or_none(gh_check["stdout"]) if gh_check["returncode"] == 0 else None
+        runs = payload if isinstance(payload, list) else []
+        return {
+            "request_completed": gh_check["returncode"] == 0,
+            "authenticated": True,
+            "method": "gh",
+            "workflow_file": workflow_file,
+            "run_count": len(runs),
+            "latest_run": runs[0] if runs else None,
+            "runs": runs,
+            "error": None if gh_check["returncode"] == 0 else (gh_check["stderr"] or gh_check["stdout"] or "gh_run_list_failed"),
+        }
+
+    if token:
+        workflow_id = quote(workflow_file, safe="")
+        url = (
+            f"https://api.github.com/repos/{repository}/actions/workflows/{workflow_id}/runs"
+            f"?branch=main&per_page={max(1, min(limit, 100))}"
+        )
+        api_check = check_github_json_api(url=url, token=token, timeout_seconds=timeout_seconds)
+        payload = api_check.get("payload") if isinstance(api_check.get("payload"), dict) else {}
+        runs = payload.get("workflow_runs", []) if isinstance(payload, dict) else []
+        return {
+            "request_completed": api_check["request_completed"],
+            "authenticated": True,
+            "method": "github_api",
+            "workflow_file": workflow_file,
+            "status_code": api_check.get("status_code"),
+            "run_count": len(runs) if isinstance(runs, list) else 0,
+            "latest_run": normalize_workflow_run(runs[0]) if isinstance(runs, list) and runs else None,
+            "runs": [normalize_workflow_run(run) for run in runs] if isinstance(runs, list) else [],
+            "error": api_check.get("error"),
+        }
+
+    return {
+        "request_completed": False,
+        "authenticated": False,
+        "method": "none",
+        "workflow_file": workflow_file,
+        "run_count": None,
+        "latest_run": None,
+        "runs": [],
+        "error": "auth_required_for_workflow_runs",
+        "next_check_commands": [
+            f"gh run list --repo {repository} --workflow {workflow_file} --branch main --limit {limit}",
+            f"gh release view {DEFAULT_TAG} --repo {repository}",
+        ],
     }
 
 
@@ -390,6 +533,78 @@ def check_github_release_api(
         }
 
 
+def check_github_json_api(*, url: str, token: str, timeout_seconds: int) -> dict[str, Any]:
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+        "User-Agent": "round-table-release-publication-check",
+    }
+    request = Request(url, headers=headers)
+    try:
+        with urlopen(request, timeout=timeout_seconds) as response:
+            raw = response.read().decode("utf-8")
+            return {
+                "request_completed": True,
+                "authenticated": True,
+                "status_code": response.status,
+                "payload": json.loads(raw) if raw.strip() else {},
+                "error": None,
+            }
+    except HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        return {
+            "request_completed": True,
+            "authenticated": True,
+            "status_code": exc.code,
+            "payload": parse_json_or_none(body),
+            "error": body,
+        }
+    except (URLError, TimeoutError) as exc:
+        return {
+            "request_completed": False,
+            "authenticated": True,
+            "status_code": None,
+            "payload": None,
+            "error": str(exc),
+        }
+
+
+def normalize_workflow_run(run: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "databaseId": run.get("databaseId") or run.get("id"),
+        "status": run.get("status"),
+        "conclusion": run.get("conclusion"),
+        "event": run.get("event"),
+        "headSha": run.get("headSha") or run.get("head_sha"),
+        "displayTitle": run.get("displayTitle") or run.get("display_title"),
+        "createdAt": run.get("createdAt") or run.get("created_at"),
+        "updatedAt": run.get("updatedAt") or run.get("updated_at"),
+        "url": run.get("url") or run.get("html_url"),
+        "workflowName": run.get("workflowName") or run.get("name"),
+    }
+
+
+def summarize_workflow_run_status(workflow_runs: dict[str, Any]) -> str:
+    if workflow_runs.get("authenticated") is not True:
+        return "unknown_auth_required"
+    latest_run = workflow_runs.get("latest_run")
+    if not latest_run:
+        return "no_runs_found"
+    status = latest_run.get("status")
+    conclusion = latest_run.get("conclusion")
+    if status in {"queued", "in_progress", "requested", "waiting", "pending"}:
+        return "latest_in_progress"
+    if status == "completed" and conclusion == "success":
+        return "latest_success"
+    if status == "completed" and conclusion == "failure":
+        return "latest_failure"
+    if status == "completed" and conclusion == "cancelled":
+        return "latest_cancelled"
+    if status == "completed" and conclusion == "timed_out":
+        return "latest_timed_out"
+    return "latest_unknown"
+
+
 def redact_api_check(api_check: dict[str, Any]) -> dict[str, Any]:
     payload = api_check.get("payload")
     if isinstance(payload, dict) and api_check.get("status_code") == 200:
@@ -432,6 +647,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         row("Release publication workflow exists", str(summary["release_publication_workflow_exists"]).lower()),
         row("Release publication workflow usable", str(summary["release_publication_workflow_usable"]).lower()),
         row("Repo automation available", str(summary["repo_automation_available"]).lower()),
+        row("Release workflow run status", summary["release_workflow_run_status"]),
+        row("Can check workflow runs from this host", str(summary["can_check_workflow_runs_from_this_host"]).lower()),
         row("GitHub API status", summary["api_status_code"]),
         row("API check authenticated", str(summary["api_check_authenticated"]).lower()),
         row("gh installed", str(summary["gh_installed"]).lower()),
