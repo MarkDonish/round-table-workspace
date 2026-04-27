@@ -20,6 +20,7 @@ DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-githu
 DEFAULT_REPOSITORY = "MarkDonish/round-table-workspace"
 DEFAULT_TAG = "v0.1.1"
 DEFAULT_RELEASE_DRAFT = "docs/releases/v0.1.1-github-release.md"
+DEFAULT_RELEASE_WORKFLOW = ".github/workflows/publish-github-release.yml"
 
 
 def main() -> int:
@@ -58,6 +59,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Repo-relative copy-ready release draft path.",
     )
     parser.add_argument(
+        "--release-workflow",
+        default=DEFAULT_RELEASE_WORKFLOW,
+        help="Repo-relative GitHub Actions workflow path for repository-side release publication.",
+    )
+    parser.add_argument(
         "--state-root",
         default=str(DEFAULT_STATE_ROOT),
         help="Directory for generated JSON/Markdown status evidence.",
@@ -86,6 +92,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     gh_state = detect_gh_state(args.timeout_seconds)
     local_tag = check_local_tag(args.tag, args.timeout_seconds)
     release_draft = check_release_draft(args.release_draft)
+    release_workflow = check_release_workflow(args.release_workflow)
     api_check = check_github_release_api(
         repository=args.repository,
         tag=args.tag,
@@ -98,11 +105,12 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         token_state=token_state,
         local_tag=local_tag,
         release_draft=release_draft,
+        release_workflow=release_workflow,
         repository=args.repository,
         tag=args.tag,
     )
     report = {
-        "ok": local_tag["exists"] and release_draft["exists"],
+        "ok": local_tag["exists"] and release_draft["exists"] and release_workflow["usable"],
         "action": "github-release-publication-check",
         "generated_at": utc_now_iso(),
         "repo_root": str(REPO_ROOT),
@@ -117,6 +125,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "checks": {
             "local_tag": local_tag,
             "release_draft": release_draft,
+            "release_publication_workflow": release_workflow,
             "github_api_release": redact_api_check(api_check),
             "local_publication_capability": {
                 "gh": gh_state,
@@ -134,7 +143,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 "not authorized, or hidden by repository privacy. Use gh, a token, or the GitHub web UI to confirm."
             ),
         },
-        "next_actions": build_next_actions(summary, args.repository, args.tag, args.release_draft),
+        "next_actions": build_next_actions(summary, args.repository, args.tag, args.release_draft, args.release_workflow),
         "artifacts": {
             "json": str(state_root / "github-release-publication-check.json"),
             "markdown": str(state_root / "github-release-publication-check.md"),
@@ -150,6 +159,7 @@ def build_summary(
     token_state: dict[str, Any],
     local_tag: dict[str, Any],
     release_draft: dict[str, Any],
+    release_workflow: dict[str, Any],
     repository: str,
     tag: str,
 ) -> dict[str, Any]:
@@ -166,11 +176,14 @@ def build_summary(
     else:
         release_page_status = "unknown_api_error"
 
+    repo_automation_available = release_workflow["usable"]
     can_publish = bool(token_present or gh_state.get("authenticated"))
     if release_page_status == "published":
         publication_decision = "published"
     elif can_publish:
         publication_decision = "ready_to_publish_from_capable_host"
+    elif repo_automation_available:
+        publication_decision = "ready_to_publish_from_repo_workflow"
     else:
         publication_decision = "blocked_on_local_release_capability"
 
@@ -181,6 +194,9 @@ def build_summary(
         "tag": tag,
         "local_tag_exists": local_tag["exists"],
         "release_draft_exists": release_draft["exists"],
+        "release_publication_workflow_exists": release_workflow["exists"],
+        "release_publication_workflow_usable": release_workflow["usable"],
+        "repo_automation_available": repo_automation_available,
         "can_attempt_automated_publication_from_this_host": can_publish,
         "gh_installed": gh_state.get("installed") is True,
         "github_token_present": token_present,
@@ -189,7 +205,13 @@ def build_summary(
     }
 
 
-def build_next_actions(summary: dict[str, Any], repository: str, tag: str, release_draft: str) -> list[dict[str, str]]:
+def build_next_actions(
+    summary: dict[str, Any],
+    repository: str,
+    tag: str,
+    release_draft: str,
+    release_workflow: str,
+) -> list[dict[str, str]]:
     status = summary["release_page_status"]
     if status == "published":
         return [
@@ -206,6 +228,27 @@ def build_next_actions(summary: dict[str, Any], repository: str, tag: str, relea
                 "task": f"Publish GitHub Release `{tag}` from this capable host",
                 "why": "This host appears to have authenticated gh or token capability; use the checked release draft and rerun this check.",
             }
+        ]
+    if summary["repo_automation_available"]:
+        return [
+            {
+                "priority": "P1",
+                "task": f"Wait for or manually run the GitHub Actions release workflow for `{tag}`",
+                "why": (
+                    f"`{release_workflow}` can publish or update the release with the repository GITHUB_TOKEN; "
+                    "rerun this checker with authenticated GitHub access to confirm publication."
+                ),
+            },
+            {
+                "priority": "P1",
+                "task": f"Publish GitHub Release `{tag}` manually only if Actions is disabled",
+                "why": f"Use `{release_draft}` as the copy-ready fallback body at https://github.com/{repository}/releases/new?tag={tag}.",
+            },
+            {
+                "priority": "P2",
+                "task": "Validate additional real local agent hosts only when their authenticated CLIs exist",
+                "why": "Missing host CLIs block only their own lanes, not the Codex local mainline.",
+            },
         ]
     return [
         {
@@ -239,6 +282,26 @@ def check_release_draft(release_draft: str) -> dict[str, Any]:
         "path": release_draft,
         "absolute_path": str(path),
         "size_bytes": path.stat().st_size if path.is_file() else None,
+    }
+
+
+def check_release_workflow(release_workflow: str) -> dict[str, Any]:
+    path = REPO_ROOT / release_workflow
+    text = path.read_text(encoding="utf-8") if path.is_file() else ""
+    uses_github_token = "GH_TOKEN: ${{ github.token }}" in text
+    has_workflow_dispatch = "workflow_dispatch:" in text
+    has_push_trigger = "push:" in text
+    publishes_release = "gh release create" in text or "gh release edit" in text
+    return {
+        "exists": path.is_file(),
+        "path": release_workflow,
+        "absolute_path": str(path),
+        "size_bytes": path.stat().st_size if path.is_file() else None,
+        "usable": bool(path.is_file() and uses_github_token and has_workflow_dispatch and has_push_trigger and publishes_release),
+        "uses_github_token": uses_github_token,
+        "has_workflow_dispatch": has_workflow_dispatch,
+        "has_push_trigger": has_push_trigger,
+        "publishes_release": publishes_release,
     }
 
 
@@ -366,6 +429,9 @@ def render_markdown(report: dict[str, Any]) -> str:
         "|---|---|",
         row("Local tag exists", str(summary["local_tag_exists"]).lower()),
         row("Release draft exists", str(summary["release_draft_exists"]).lower()),
+        row("Release publication workflow exists", str(summary["release_publication_workflow_exists"]).lower()),
+        row("Release publication workflow usable", str(summary["release_publication_workflow_usable"]).lower()),
+        row("Repo automation available", str(summary["repo_automation_available"]).lower()),
         row("GitHub API status", summary["api_status_code"]),
         row("API check authenticated", str(summary["api_check_authenticated"]).lower()),
         row("gh installed", str(summary["gh_installed"]).lower()),

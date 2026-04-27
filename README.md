@@ -69,6 +69,7 @@
 - provider fallback regression 已复跑通过；provider readiness 会把当前真实 `.env.room` / `.env.debate` 的缺失配置报告为 blocked，不误报为 live pass
 - release readiness gate 已入仓；上线判断不再只依赖口头汇报或历史 reports
 - release candidate scope 和总报告生成器已入仓；当前可声明范围与不可声明范围可以一键生成审查材料
+- GitHub Release 发布 workflow 和 release body 提取器已入仓；当前本机不具备本地发布权限时，可以通过仓库侧 Actions 使用同一份 checked-in 发布稿创建或更新 release page
 - `/room -> /debate claude_code` 已通过 checked-in fixture agent 跑通 executor route；默认 Claude Code CLI wrapper 也已在本机 Mac 上通过真实 full integration live validation
 - Claude Code project skill 包装层已通过 checked-in 结构验证；这证明 Claude Code 用户 clone 仓库后有标准 `.claude/skills/` 入口
 - 真实 Claude Code CLI validation 已在本机 Mac 上完成 `preflight_only`、`smoke_only`、完整 `/room -> /debate` 三层验证；full wrapper 返回 `claimable_as_default_claude_code_host_live=true`
@@ -86,6 +87,7 @@
 - generic CLI adapter 已证明 host abstraction 可以跑完整 `/room -> /debate` 链路；默认 Claude Code wrapper 已在本机 Mac 上 live-validated，其他第三方本地 agent 仍需要各自 live validation
 - generic local agent adapter kit 已提供通用接入合同和验证 wrapper；真实第三方 agent 的稳定性仍取决于各自 CLI 是否遵守 stdout / output-file JSON contract
 - Claude Code project skill 入口已入仓并可离线验证；真实 Claude Code live support 仍按机器/账号逐次验证，不从本机 Mac 结果外推到所有用户
+- GitHub Release 页面 publication 仍需要 GitHub Actions 成功运行或带认证的 GitHub 访问来确认；当前本机的 unauthenticated API 404 不能证明 release 未发布，也不能证明已发布
 
 简化结论：
 
@@ -238,6 +240,8 @@ round-table-workspace/
 - changelog：`CHANGELOG.md`
 - 当前 release notes：`docs/releases/v0.1.1.md`
 - GitHub Release 发布稿：`docs/releases/v0.1.1-github-release.md`
+- GitHub Release 发布 workflow：`.github/workflows/publish-github-release.yml`
+- GitHub Release body 提取器：`python3 .codex/skills/room-skill/runtime/extract_github_release_body.py`
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
 - generic local agent 适配：`docs/generic-local-agent-adapter.md`
 - agent consumer quickstart：`docs/agent-consumer-quickstart.md`

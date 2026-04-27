@@ -178,8 +178,12 @@ python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
 This command does not create a GitHub Release. It reports whether the release
 page is confirmed published, whether the local tag and copy-ready release draft
 exist, and whether the current host has authenticated `gh` or token capability
-for automated publication. A missing GitHub Release page is not a P0 blocker
-for the Codex-local launch scope.
+for automated publication. It also checks that the repository-side publication
+workflow `.github/workflows/publish-github-release.yml` exists; that workflow
+uses `.codex/skills/room-skill/runtime/extract_github_release_body.py` to keep
+Actions publication and manual fallback publication on the same checked-in
+release body. A missing GitHub Release page is not a P0 blocker for the
+Codex-local launch scope.
 
 If a real provider is available, run this separately:
 

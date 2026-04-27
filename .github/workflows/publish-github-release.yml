@@ -1,0 +1,101 @@
+name: Publish GitHub Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish or update."
+        required: false
+        default: "v0.1.1"
+      release_draft:
+        description: "Repo-relative release draft containing the GitHub Release body."
+        required: false
+        default: "docs/releases/v0.1.1-github-release.md"
+      dry_run:
+        description: "Extract and inspect the body without creating or editing the release."
+        required: false
+        type: boolean
+        default: false
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/publish-github-release.yml"
+      - ".codex/skills/room-skill/runtime/extract_github_release_body.py"
+      - "docs/releases/v0.1.1-github-release.md"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-github-release-${{ github.event.inputs.tag || 'v0.1.1' }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG_INPUT: ${{ github.event.inputs.tag }}
+      RELEASE_DRAFT_INPUT: ${{ github.event.inputs.release_draft }}
+      DRY_RUN_INPUT: ${{ github.event.inputs.dry_run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Normalize inputs
+        shell: bash
+        run: |
+          tag="${TAG_INPUT:-v0.1.1}"
+          release_draft="${RELEASE_DRAFT_INPUT:-docs/releases/v0.1.1-github-release.md}"
+          dry_run="${DRY_RUN_INPUT:-false}"
+          echo "TAG=${tag}" >> "$GITHUB_ENV"
+          echo "RELEASE_DRAFT=${release_draft}" >> "$GITHUB_ENV"
+          echo "DRY_RUN=${dry_run}" >> "$GITHUB_ENV"
+
+      - name: Verify tag exists
+        shell: bash
+        run: |
+          git fetch --tags --force
+          git rev-parse --verify "refs/tags/${TAG}"
+
+      - name: Extract release body
+        shell: bash
+        run: |
+          python3 .codex/skills/room-skill/runtime/extract_github_release_body.py \
+            --release-draft "$RELEASE_DRAFT" \
+            --output /tmp/github-release-body.md \
+            --output-json /tmp/github-release-body.json
+
+      - name: Dry run
+        if: env.DRY_RUN == 'true'
+        shell: bash
+        run: |
+          cat /tmp/github-release-body.json
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --json tagName,name,isDraft,isPrerelease,isLatest,url || true
+
+      - name: Publish or update release
+        if: env.DRY_RUN != 'true'
+        shell: bash
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /tmp/github-release-view.json 2> /tmp/github-release-view.err; then
+            gh release edit "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$TAG" \
+              --notes-file /tmp/github-release-body.md \
+              --draft=false \
+              --prerelease=false \
+              --latest
+          else
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "$TAG" \
+              --notes-file /tmp/github-release-body.md \
+              --verify-tag \
+              --latest
+          fi
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --json tagName,name,isDraft,isPrerelease,isLatest,url
