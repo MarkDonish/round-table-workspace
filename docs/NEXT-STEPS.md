@@ -1,7 +1,7 @@
 # NEXT STEPS
 
 > Purpose: active source-of-truth task queue for the next local agent or developer continuing this repository.
-> Last updated: 2026-04-26
+> Last updated: 2026-04-27
 
 This file is not a historical report. It must reflect the current checked-in
 state from `README.md`, `docs/release-readiness.md`,
@@ -55,7 +55,17 @@ The current launchable scope is the Codex local mainline:
 This does not mean every real local agent host or provider has been
 live-validated.
 
-Current release target: `v0.1.1`.
+Latest tagged release target: `v0.1.1`.
+
+Current `main` also contains post-`v0.1.1` unreleased changes. Do not assume
+those changes are included in the `v0.1.1` tag unless a later tag is cut.
+
+Latest checked-in Claude Code host-live evidence:
+
+- `reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md`
+- `claimable_as_default_claude_code_host_live=true`
+- The claim remains machine/account-scoped; every new machine/account must rerun
+  `claude_code_live_validation.py` before claiming Claude Code host-live support.
 
 ## Priority Queue
 
@@ -69,7 +79,8 @@ Current release target: `v0.1.1`.
 | P1 | Promote `v0.1.0-rc4` to `v0.1.0` | Completed | rc4 was the final launch-prep candidate and did not require widening the support claim | Final release notes/changelog point to v0.1.0, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Cut `v0.1.0-rc4` release candidate | Completed | `v0.1.0-rc3` predates Claude Code host-live evidence and repo-local checkpoints | Release notes/changelog point to rc4, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Improve third-party local agent validation matrix usability | Completed | The matrix now exposes both rendered shell commands and canonical argv for each selectable host command | Matrix output exposes copy-safe argv/run command evidence and fixture validation still passes |
-| P1 | Retry real Claude Code default CLI live validation | Completed on this Mac | The default wrapper passed preflight, smoke, and full `/room -> /debate` integration on 2026-04-26 | Full default wrapper reported `claimable_as_default_claude_code_host_live=true`; future machines still need their own live validation |
+| P1 | Retry real Claude Code default CLI live validation | Completed and refreshed on this Mac | The default wrapper passed preflight, smoke, and full `/room -> /debate` integration on 2026-04-27 | Full default wrapper reported `claimable_as_default_claude_code_host_live=true`; future machines still need their own live validation |
+| P1 | Keep checked-in Claude Code evidence discovery fresh | Completed | Release/readiness tools now need to follow the latest valid report, not a hard-coded dated report | `release_readiness_check.py`, `release_candidate_report.py`, and `live_lane_evidence_report.py` point to `reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md` |
 | P1 | Keep current source-of-truth docs aligned after each runtime change | Ongoing | Future agents start from `docs/`, not old session reports | `README.md`, `docs/NEXT-STEPS.md`, release docs, and relevant adapter docs agree |
 | P2 | Use repo-local development checkpoints when host memory is read-only | Available | Host-level memory may be readable but not writable; cross-session continuity should not depend on chat history only | `development_checkpoint.py` writes Markdown/JSON under `reports/checkpoints/generated/` and docs keep reports as historical |
 | P2 | Run real Chat Completions-compatible provider live validation | Not configured | Provider lane is optional fallback, but still part of full multi-provider readiness | `.env.room` and `.env.debate` are locally ready and `chat_completions_live_validation.py` passes |
@@ -102,8 +113,9 @@ python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
 ```
 
 If no additional real host is available or entitled, keep that lane
-blocked/pending and continue with source-of-truth alignment or P2 provider live validation only
-when `.env.room` and `.env.debate` are intentionally configured.
+blocked/pending and continue with source-of-truth alignment. Run P2 provider
+live validation only when `.env.room` and `.env.debate` are intentionally
+configured.
 
 After tagging a release, audit the fresh consumer path:
 
