@@ -55,6 +55,16 @@ def build_parser() -> argparse.ArgumentParser:
         default=30,
         help="Timeout for lightweight host inventory and provider readiness commands.",
     )
+    parser.add_argument(
+        "--skip-host",
+        action="append",
+        default=[],
+        metavar="HOST_ID=REASON",
+        help=(
+            "Pass through an explicit host skip reason to local_agent_host_validation_matrix.py. "
+            "Skipped hosts are not claimable, but they stop appearing as unresolved missing CLI work for this machine."
+        ),
+    )
     parser.add_argument("--output-json", help="Optional path to write the report JSON.")
     parser.add_argument("--output-markdown", help="Optional path to write the report Markdown.")
     return parser
@@ -64,15 +74,19 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     state_root = Path(args.state_root).expanduser().resolve()
     state_root.mkdir(parents=True, exist_ok=True)
 
+    host_matrix_command = [
+        sys.executable,
+        ".codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py",
+        "--timeout-seconds",
+        str(args.timeout_seconds),
+        "--state-root",
+        str(state_root / "local-agent-host-validation-matrix"),
+    ]
+    for skip_host in args.skip_host:
+        host_matrix_command.extend(["--skip-host", skip_host])
+
     host_matrix = release_readiness_check.run_json_command(
-        [
-            sys.executable,
-            ".codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py",
-            "--timeout-seconds",
-            str(args.timeout_seconds),
-            "--state-root",
-            str(state_root / "local-agent-host-validation-matrix"),
-        ],
+        host_matrix_command,
         timeout_seconds=args.timeout_seconds + 10,
     )
     provider_readiness = release_readiness_check.run_json_command(
@@ -93,6 +107,10 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "generated_at": utc_now_iso(),
         "repo_root": str(REPO_ROOT),
         "state_root": str(state_root),
+        "run_policy": {
+            "skipped_hosts": args.skip_host,
+            "live_execution_default": "disabled",
+        },
         "release_impact": {
             "current_launch_scope": "Codex local mainline",
             "local_mainline_requires_provider_url": False,
@@ -182,6 +200,8 @@ def derive_host_evidence_status(matrix_status: Any, checked_evidence: dict[str, 
         return "blocked"
     if matrix_status == "missing_cli":
         return "missing_cli"
+    if matrix_status == "skipped":
+        return "explicitly_skipped"
     if matrix_status == "pending_live_validation":
         return "pending_live_validation"
     return str(matrix_status or "unknown")
@@ -202,6 +222,8 @@ def host_next_action(evidence_status: str, row: dict[str, Any]) -> str:
         return "Persist or cite the matrix artifact before making this host-live claim."
     if evidence_status == "missing_cli":
         return row.get("next_action") or "Install the host CLI or skip this host on this machine."
+    if evidence_status == "explicitly_skipped":
+        return row.get("next_action") or "This host is explicitly not claimed on this machine."
     if evidence_status == "blocked":
         return row.get("next_action") or "Clear auth/config blocker before live validation."
     if evidence_status == "pending_live_validation":
@@ -252,6 +274,9 @@ def build_summary(host_lanes: list[dict[str, Any]], provider_lane: dict[str, Any
         ],
         "pending_host_live": [
             lane["host_id"] for lane in host_lanes if lane.get("evidence_status") == "pending_live_validation"
+        ],
+        "skipped_host_live": [
+            lane["host_id"] for lane in host_lanes if lane.get("evidence_status") == "explicitly_skipped"
         ],
         "failed_host_live": [
             lane["host_id"] for lane in host_lanes if lane.get("evidence_status") == "live_failed_current_matrix_run"
@@ -321,6 +346,14 @@ def build_next_actions(host_lanes: list[dict[str, Any]], provider_lane: dict[str
                 "why": "Provider URL is optional fallback infrastructure, not the local meeting room.",
             }
         )
+    if any(lane.get("evidence_status") == "explicitly_skipped" for lane in host_lanes):
+        actions.append(
+            {
+                "priority": "P3",
+                "task": "Keep explicit host skips current",
+                "why": "Skipped hosts are not support claims; revisit them only when the CLI is installed and entitled.",
+            }
+        )
     if not actions:
         actions.append(
             {
@@ -349,6 +382,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         row("Missing host CLIs", ", ".join(report["summary"]["missing_host_cli"]) or "none"),
         row("Blocked host-live lanes", ", ".join(report["summary"]["blocked_host_live"]) or "none"),
         row("Pending host-live lanes", ", ".join(report["summary"]["pending_host_live"]) or "none"),
+        row("Skipped host-live lanes", ", ".join(report["summary"]["skipped_host_live"]) or "none"),
         row("Provider live ready", str(report["summary"]["provider_live_ready"]).lower()),
         row("Provider URL required for local mainline", str(report["summary"]["provider_url_required_for_local_mainline"]).lower()),
         "",

@@ -134,10 +134,27 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
 ```
 
+If a host is intentionally not installed or not in scope for this machine, make
+that explicit instead of treating the missing CLI as unresolved work:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --skip-host 'gemini_cli=not installed on this machine; not claimed' \
+  --state-root /tmp/round-table-local-agent-host-validation-matrix
+```
+
 Generate a focused live-lane evidence summary before making support claims:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
+```
+
+The live-lane report accepts the same skip markers:
+
+```bash
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --skip-host 'gemini_cli=not installed on this machine; not claimed' \
   --state-root /tmp/round-table-live-lane-evidence
 ```
 

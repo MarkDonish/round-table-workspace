@@ -83,6 +83,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Force live validation for a specific host id even if inventory reports it as blocked or pending.",
     )
     parser.add_argument(
+        "--skip-host",
+        action="append",
+        default=[],
+        metavar="HOST_ID=REASON",
+        help=(
+            "Explicitly skip a host on this machine and record the reason. "
+            "Use this when a CLI is intentionally not installed or not entitled, and do not claim host-live support."
+        ),
+    )
+    parser.add_argument(
         "--agent-command",
         action="append",
         default=[],
@@ -102,7 +112,12 @@ def build_matrix(args: argparse.Namespace) -> dict[str, Any]:
     state_root.mkdir(parents=True, exist_ok=True)
     command_overrides = parse_command_overrides(args.agent_command)
     forced_hosts = set(args.force_host or [])
+    skip_reasons = parse_skip_hosts(args.skip_host)
     inventory = agent_host_inventory.build_inventory(timeout_seconds=args.timeout_seconds)
+    inventory_host_ids = {host["id"] for host in inventory["hosts"]}
+    unknown_skips = sorted(set(skip_reasons) - inventory_host_ids)
+    if unknown_skips:
+        raise SystemExit(f"Unknown --skip-host host id(s): {', '.join(unknown_skips)}")
     rows = []
     for host in inventory["hosts"]:
         row = build_host_row(
@@ -110,6 +125,7 @@ def build_matrix(args: argparse.Namespace) -> dict[str, Any]:
             state_root=state_root,
             command_overrides=command_overrides,
             forced_hosts=forced_hosts,
+            skip_reasons=skip_reasons,
             run_live_ready=args.run_live_ready,
             run_installed=args.run_installed,
             agent_timeout_seconds=args.agent_timeout_seconds,
@@ -131,6 +147,7 @@ def build_matrix(args: argparse.Namespace) -> dict[str, Any]:
             "run_live_ready": args.run_live_ready,
             "run_installed": args.run_installed,
             "forced_hosts": sorted(forced_hosts),
+            "skipped_hosts": skip_reasons,
             "live_execution_default": "disabled",
         },
         "summary": summary,
@@ -159,6 +176,7 @@ def build_host_row(
     state_root: Path,
     command_overrides: dict[str, str],
     forced_hosts: set[str],
+    skip_reasons: dict[str, str],
     run_live_ready: bool,
     run_installed: bool,
     agent_timeout_seconds: int,
@@ -186,6 +204,21 @@ def build_host_row(
         "next_action": None,
         "evidence": {},
     }
+
+    if host_id in skip_reasons:
+        row.update(
+            {
+                "matrix_status": "skipped",
+                "severity": "clear",
+                "claim": "explicitly_not_claimed_on_this_machine",
+                "next_action": (
+                    f"Skipped on this machine: {skip_reasons[host_id]}. "
+                    "Install and validate this host later before claiming support."
+                ),
+                "evidence": {"skip_reason": skip_reasons[host_id]},
+            }
+        )
+        return row
 
     readiness = host.get("live_readiness")
     if not host.get("installed"):
@@ -276,6 +309,20 @@ def parse_command_overrides(values: list[str]) -> dict[str, str]:
             raise SystemExit(f"Invalid --agent-command value {value!r}; expected HOST_ID=COMMAND.")
         overrides[host_id] = command
     return overrides
+
+
+def parse_skip_hosts(values: list[str]) -> dict[str, str]:
+    skips: dict[str, str] = {}
+    for value in values:
+        if "=" not in value:
+            raise SystemExit(f"Invalid --skip-host value {value!r}; expected HOST_ID=REASON.")
+        host_id, reason = value.split("=", 1)
+        host_id = host_id.strip()
+        reason = reason.strip()
+        if not host_id or not reason:
+            raise SystemExit(f"Invalid --skip-host value {value!r}; expected HOST_ID=REASON.")
+        skips[host_id] = reason
+    return skips
 
 
 def build_validation_argv(
@@ -369,6 +416,7 @@ def summarize_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "blocked_hosts": [row["id"] for row in rows if row["matrix_status"] == "blocked"],
         "missing_hosts": [row["id"] for row in rows if row["matrix_status"] == "missing_cli"],
         "pending_hosts": [row["id"] for row in rows if row["matrix_status"] == "pending_live_validation"],
+        "skipped_hosts": [row["id"] for row in rows if row["matrix_status"] == "skipped"],
         "failed_hosts": [row["id"] for row in rows if row["matrix_status"] == "live_failed"],
         "counts": counts,
     }

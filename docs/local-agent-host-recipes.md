@@ -14,7 +14,8 @@ Use this order for every non-Codex host:
 
 1. Run `agent_consumer_self_check.py` to confirm the repo-local launch scope.
 2. Run `agent_host_inventory.py` to classify installed, missing, auth-blocked, or ready hosts.
-3. If the host is missing, install it or skip that host on this machine.
+3. If the host is missing, install it or explicitly skip that host on this
+   machine with a reason.
 4. If the host is auth-blocked, log in or skip that host; do not run live validation and call it passed.
 5. If the host is installed and can run non-interactively, validate the wrapped command with `generic_agent_adapter_validation.py`.
 6. Claim support only when the matrix row is `matrix_status=live_passed`.
@@ -83,11 +84,33 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
 ```
 
+If a host is intentionally not installed, not entitled, or out of scope for the
+current machine, record that decision instead of leaving it as ambiguous missing
+work:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --skip-host 'gemini_cli=not installed on this machine; not claimed' \
+  --skip-host 'opencode=not installed on this machine; not claimed' \
+  --state-root /tmp/round-table-local-agent-host-validation-matrix
+```
+
+Skipped hosts are not support claims. They mean only that this machine is
+explicitly not claiming that host-live lane.
+
 Use the live lane evidence report when you need a support-claim summary across
 host and provider lanes:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
+```
+
+The same explicit skip reasons can be passed through the live lane report:
+
+```bash
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --skip-host 'gemini_cli=not installed on this machine; not claimed' \
   --state-root /tmp/round-table-live-lane-evidence
 ```
 

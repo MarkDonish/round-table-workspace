@@ -84,7 +84,7 @@ Latest checked-in Claude Code host-live evidence:
 | P1 | Keep current source-of-truth docs aligned after each runtime change | Ongoing | Future agents start from `docs/`, not old session reports | `README.md`, `docs/NEXT-STEPS.md`, release docs, and relevant adapter docs agree |
 | P2 | Use repo-local development checkpoints when host memory is read-only | Available | Host-level memory may be readable but not writable; cross-session continuity should not depend on chat history only | `development_checkpoint.py` writes Markdown/JSON under `reports/checkpoints/generated/` and docs keep reports as historical |
 | P2 | Run real Chat Completions-compatible provider live validation | Not configured | Provider lane is optional fallback, but still part of full multi-provider readiness | `.env.room` and `.env.debate` are locally ready and `chat_completions_live_validation.py` passes |
-| P2 | Validate additional real local agent hosts | Not started on this Mac | Gemini/OpenCode/Aider/Goose/Cursor Agent CLIs are not installed here | Each installed host either reaches `matrix_status=live_passed` or is explicitly documented as skipped/blocked |
+| P2 | Validate additional real local agent hosts | Explicit skip evidence available | Gemini/OpenCode/Aider/Goose/Cursor Agent CLIs are not installed here, and missing should be separated from explicitly not claimed | Each installed host reaches `matrix_status=live_passed`, or each unavailable host is explicitly documented with `--skip-host HOST_ID=REASON` |
 | P3 | Reduce historical-material ambiguity | Ongoing | Old reports and artifacts are useful but can mislead if treated as current source | `source_boundary_audit.py` remains green and docs clearly point to active sources |
 
 ## Recommended Next Task
@@ -110,6 +110,15 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
 
 python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
   --state-root /tmp/round-table-live-lane-evidence
+```
+
+If a host is intentionally unavailable on the current machine, record that as
+an explicit non-claim instead of leaving it as ambiguous missing work:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --skip-host 'gemini_cli=not installed on this machine; not claimed' \
+  --state-root /tmp/round-table-local-agent-host-validation-matrix
 ```
 
 If no additional real host is available or entitled, keep that lane
