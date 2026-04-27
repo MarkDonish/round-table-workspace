@@ -72,7 +72,7 @@ Latest checked-in Claude Code host-live evidence:
 | Priority | Task | Status | Why Now | Completion Standard |
 |---|---|---|---|---|
 | P0 | Codex local mainline blocker | None known | The strict release gate currently reports no P0 blockers | Keep `release_readiness_check.py --include-fixture-runs --strict-git-clean` green |
-| P1 | Publish `v0.1.1` GitHub Release page | Repo workflow prepared; publication still needs authenticated confirmation | The tag is pushed and the release is verified; this host still lacks local `gh`, `GITHUB_TOKEN`, `GH_TOKEN`, a release-capable connector endpoint, and browser MCP access, so repository-side Actions is the preferred path | From an authenticated host, `github_release_publication_check.py` reports release workflow success and `--strict-published` passes; use `docs/releases/v0.1.1-github-release.md` as the manual fallback body |
+| P1 | Publish `v0.1.1` GitHub Release page | Completed; release page is published, workflow compatibility fix is pending remote rerun | The tag is pushed, authenticated `gh release view` confirms `v0.1.1` is published, and the previous Actions failure was caused by an unsupported `isLatest` JSON field | `github_release_publication_check.py --strict-published` passes from an authenticated host and the next `publish-github-release.yml` run succeeds after the compatibility fix is pushed |
 | P1 | Promote `v0.1.1` patch release | Completed | `v0.1.0` predates post-release consumer audit and live lane evidence report tooling | Release notes/changelog point to v0.1.1, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Add host/provider live lane evidence report | Completed | Launch communication needs one claim-safe entry that separates claimable, missing, blocked, pending, and provider-not-configured lanes | `live_lane_evidence_report.py` writes JSON/Markdown and docs point to it |
 | P1 | Add post-release consumer audit | Completed | Tagged releases need a fresh-checkout proof path, not just current-worktree validation | `post_release_consumer_audit.py --ref v0.1.1` passes and docs point to it |
@@ -102,9 +102,12 @@ python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
   --state-root /tmp/round-table-github-release-publication
 ```
 
-If the current host has no `gh` or token, that checker can still verify the
-local tag, draft, and workflow source, but workflow run status and release page
-publication will remain `unknown_auth_required` / `unknown_requires_authenticated_check`.
+If the current host has authenticated `gh`, the checker confirms the private
+repository release page through `gh release view`; unauthenticated API `404`
+alone is not treated as authoritative. If the current host has no `gh` or
+token, that checker can still verify the local tag, draft, and workflow source,
+but workflow run status and release page publication will remain
+`unknown_auth_required` / `unknown_requires_authenticated_check`.
 
 If another real third-party local agent is available on the target machine, run
 P2 real host validation with the matrix output, then regenerate the live lane

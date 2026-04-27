@@ -109,6 +109,12 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         timeout_seconds=args.timeout_seconds,
         limit=args.workflow_run_limit,
     )
+    gh_release = check_github_release_gh(
+        repository=args.repository,
+        tag=args.tag,
+        gh_state=gh_state,
+        timeout_seconds=args.timeout_seconds,
+    )
     api_check = check_github_release_api(
         repository=args.repository,
         tag=args.tag,
@@ -117,6 +123,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     )
     summary = build_summary(
         api_check=api_check,
+        gh_release=gh_release,
         gh_state=gh_state,
         token_state=token_state,
         local_tag=local_tag,
@@ -144,6 +151,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "release_draft": release_draft,
             "release_publication_workflow": release_workflow,
             "github_actions_workflow_runs": workflow_runs,
+            "github_release_gh": gh_release,
             "github_api_release": redact_api_check(api_check),
             "local_publication_capability": {
                 "gh": gh_state,
@@ -173,6 +181,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
 def build_summary(
     *,
     api_check: dict[str, Any],
+    gh_release: dict[str, Any],
     gh_state: dict[str, Any],
     token_state: dict[str, Any],
     local_tag: dict[str, Any],
@@ -184,8 +193,12 @@ def build_summary(
 ) -> dict[str, Any]:
     status_code = api_check.get("status_code")
     token_present = token_state["present"]
-    if status_code == 200:
+    if status_code == 200 or gh_release.get("published") is True:
         release_page_status = "published"
+    elif gh_release.get("status") == "not_found":
+        release_page_status = "not_published"
+    elif gh_release.get("status") == "draft":
+        release_page_status = "draft_not_published"
     elif status_code == 404 and token_present:
         release_page_status = "not_published"
     elif status_code == 404:
@@ -228,6 +241,8 @@ def build_summary(
         "can_check_workflow_runs_from_this_host": workflow_runs.get("authenticated") is True,
         "can_attempt_automated_publication_from_this_host": can_publish,
         "gh_installed": gh_state.get("installed") is True,
+        "gh_release_check_authenticated": gh_release.get("authenticated") is True,
+        "gh_release_check_status": gh_release.get("status"),
         "github_token_present": token_present,
         "api_status_code": status_code,
         "api_check_authenticated": api_check.get("authenticated") is True,
@@ -448,6 +463,66 @@ def check_github_actions_workflow_runs(
     }
 
 
+def check_github_release_gh(
+    *,
+    repository: str,
+    tag: str,
+    gh_state: dict[str, Any],
+    timeout_seconds: int,
+) -> dict[str, Any]:
+    if not (gh_state.get("installed") and gh_state.get("authenticated")):
+        return {
+            "request_completed": False,
+            "authenticated": False,
+            "status": "auth_required",
+            "found": None,
+            "published": None,
+            "payload": None,
+            "error": "authenticated_gh_required",
+        }
+
+    gh_check = run_command(
+        [
+            "gh",
+            "release",
+            "view",
+            tag,
+            "--repo",
+            repository,
+            "--json",
+            "tagName,name,isDraft,isPrerelease,publishedAt,targetCommitish,url",
+        ],
+        timeout_seconds=timeout_seconds,
+    )
+    payload = parse_json_or_none(gh_check["stdout"]) if gh_check["returncode"] == 0 else None
+    found = gh_check["returncode"] == 0 and isinstance(payload, dict)
+    is_draft = payload.get("isDraft") if found else None
+    missing = is_gh_release_not_found(gh_check["stdout"], gh_check["stderr"])
+    published = bool(found and is_draft is False)
+    status = "published" if published else ("draft" if is_draft is True else ("not_found" if missing else "unknown_error"))
+    return {
+        "request_completed": True,
+        "authenticated": True,
+        "status": status,
+        "found": found,
+        "published": published,
+        "is_draft": is_draft,
+        "is_prerelease": payload.get("isPrerelease") if found else None,
+        "tag_name": payload.get("tagName") if found else None,
+        "name": payload.get("name") if found else None,
+        "url": payload.get("url") if found else None,
+        "published_at": payload.get("publishedAt") if found else None,
+        "target_commitish": payload.get("targetCommitish") if found else None,
+        "payload": payload,
+        "error": None if found else (gh_check["stderr"] or gh_check["stdout"] or "gh_release_view_failed"),
+    }
+
+
+def is_gh_release_not_found(stdout: str, stderr: str) -> bool:
+    text = f"{stdout}\n{stderr}".lower()
+    return "not found" in text or "http 404" in text or "release not found" in text
+
+
 def detect_token_state() -> dict[str, Any]:
     values = {name: os.environ.get(name) for name in ("GITHUB_TOKEN", "GH_TOKEN") if os.environ.get(name)}
     token = values.get("GITHUB_TOKEN") or values.get("GH_TOKEN")
@@ -649,6 +724,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         row("Repo automation available", str(summary["repo_automation_available"]).lower()),
         row("Release workflow run status", summary["release_workflow_run_status"]),
         row("Can check workflow runs from this host", str(summary["can_check_workflow_runs_from_this_host"]).lower()),
+        row("gh release check authenticated", str(summary["gh_release_check_authenticated"]).lower()),
+        row("gh release check status", summary["gh_release_check_status"]),
         row("GitHub API status", summary["api_status_code"]),
         row("API check authenticated", str(summary["api_check_authenticated"]).lower()),
         row("gh installed", str(summary["gh_installed"]).lower()),

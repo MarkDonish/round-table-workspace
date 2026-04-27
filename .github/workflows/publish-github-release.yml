@@ -75,7 +75,7 @@ jobs:
         run: |
           cat /tmp/github-release-body.json
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
-            --json tagName,name,isDraft,isPrerelease,isLatest,url || true
+            --json tagName,name,isDraft,isPrerelease,publishedAt,targetCommitish,url || true
 
       - name: Publish or update release
         if: env.DRY_RUN != 'true'
@@ -98,4 +98,4 @@ jobs:
               --latest
           fi
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
-            --json tagName,name,isDraft,isPrerelease,isLatest,url
+            --json tagName,name,isDraft,isPrerelease,publishedAt,targetCommitish,url

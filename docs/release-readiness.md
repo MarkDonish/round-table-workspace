@@ -185,8 +185,11 @@ Actions publication and manual fallback publication on the same checked-in
 release body. When the current host has authenticated `gh` or `GITHUB_TOKEN` /
 `GH_TOKEN`, the checker also inspects recent release workflow runs so a failed
 Actions publication can be separated from an unconfirmed private-repo release
-page. A missing GitHub Release page is not a P0 blocker for the Codex-local
-launch scope.
+page. When authenticated `gh` is available, the checker also confirms the
+release page through `gh release view`, which is the preferred confirmation path
+for private repositories where unauthenticated API requests can return `404`.
+A missing GitHub Release page is not a P0 blocker for the Codex-local launch
+scope.
 
 If a real provider is available, run this separately:
 
