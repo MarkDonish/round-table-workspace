@@ -159,7 +159,7 @@ Interpret the wrapper by level:
 
 If preflight reports `claude_code_not_logged_in`, do not mark Claude Code live validation as passed. If smoke passes but full integration times out or fails, keep the lane as partial and inspect the persisted trace before claiming support.
 
-Current Mac evidence: on 2026-04-26, the default Claude Code wrapper passed full `/room -> /debate` live validation with `claimable_as_default_claude_code_host_live=true`. See `reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-26.md`. Rerun the wrapper on each new machine/account before claiming local support there.
+Current Mac evidence: on 2026-04-27, the default Claude Code wrapper passed full `/room -> /debate` live validation with `claimable_as_default_claude_code_host_live=true`. See `reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md`. Rerun the wrapper on each new machine/account before claiming local support there.
 
 ## Generic stdin Agent Recipe
 

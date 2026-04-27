@@ -14,7 +14,7 @@ from typing import Any
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-release-readiness"
-CLAUDE_CODE_LIVE_EVIDENCE_REPORT = REPO_ROOT / "reports" / "CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-26.md"
+CLAUDE_CODE_LIVE_EVIDENCE_PATTERN = "CLAUDE_CODE_HOST_LIVE_VALIDATION_*.md"
 
 REQUIRED_SOURCE_TRUTH: list[tuple[str, str]] = [
     ("file", "AGENTS.md"),
@@ -313,9 +313,10 @@ def check_runtime_files() -> dict[str, Any]:
 
 def collect_checked_in_host_live_evidence() -> list[dict[str, str]]:
     evidence: list[dict[str, str]] = []
-    if not CLAUDE_CODE_LIVE_EVIDENCE_REPORT.exists():
+    report = latest_claude_code_live_evidence_report()
+    if report is None:
         return evidence
-    text = CLAUDE_CODE_LIVE_EVIDENCE_REPORT.read_text(encoding="utf-8")
+    text = report.read_text(encoding="utf-8")
     if (
         "Claimable as default Claude Code host live: `true`" in text
         and "Support claim: `real_claude_code_host_live_validated`" in text
@@ -325,10 +326,16 @@ def collect_checked_in_host_live_evidence() -> list[dict[str, str]]:
             {
                 "host_id": "claude_code",
                 "scope": "default_claude_code_host_live_on_validated_mac_account",
-                "report": str(CLAUDE_CODE_LIVE_EVIDENCE_REPORT.relative_to(REPO_ROOT)),
+                "report": str(report.relative_to(REPO_ROOT)),
             }
         )
     return evidence
+
+
+def latest_claude_code_live_evidence_report() -> Path | None:
+    reports_dir = REPO_ROOT / "reports"
+    reports = sorted(reports_dir.glob(CLAUDE_CODE_LIVE_EVIDENCE_PATTERN), reverse=True)
+    return reports[0] if reports else None
 
 
 def check_git_state() -> dict[str, Any]:

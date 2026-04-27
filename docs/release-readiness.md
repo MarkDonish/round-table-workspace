@@ -21,8 +21,10 @@ The repository can be treated as ready for the current supported scope when the 
 This does not mean every possible host or provider is live-validated.
 
 Current host-live evidence: the default Claude Code CLI wrapper passed full
-`/room -> /debate` live validation on this Mac on 2026-04-26. That result is
-claimable for the tested Mac account and default wrapper command only; new
+`/room -> /debate` live validation on this Mac on 2026-04-27. The release gate
+uses the latest checked-in `reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_*.md`
+report that contains the required claimable markers. That result is claimable
+for the tested Mac account and default wrapper command only; new
 machines/accounts must rerun `claude_code_live_validation.py`.
 
 ## Current Release

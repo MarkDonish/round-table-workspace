@@ -15,7 +15,6 @@ import release_readiness_check
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-release-candidate"
-CLAUDE_CODE_LIVE_EVIDENCE_REPORT = REPO_ROOT / "reports" / "CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-26.md"
 
 
 def main() -> int:
@@ -150,23 +149,7 @@ def build_support_scope(
 
 
 def collect_checked_in_host_live_evidence() -> list[dict[str, str]]:
-    evidence: list[dict[str, str]] = []
-    if not CLAUDE_CODE_LIVE_EVIDENCE_REPORT.exists():
-        return evidence
-    text = CLAUDE_CODE_LIVE_EVIDENCE_REPORT.read_text(encoding="utf-8")
-    if (
-        "Claimable as default Claude Code host live: `true`" in text
-        and "Support claim: `real_claude_code_host_live_validated`" in text
-        and "claude_code_live_validation.py" in text
-    ):
-        evidence.append(
-            {
-                "host_id": "claude_code",
-                "scope": "default_claude_code_host_live_on_validated_mac_account",
-                "report": str(CLAUDE_CODE_LIVE_EVIDENCE_REPORT.relative_to(REPO_ROOT)),
-            }
-        )
-    return evidence
+    return release_readiness_check.collect_checked_in_host_live_evidence()
 
 
 def build_quality_gates(release_report: dict[str, Any]) -> list[dict[str, Any]]:

@@ -67,7 +67,7 @@ If the wrapper reports `claude_code_not_logged_in`, the adapter remains prepared
 
 ## Current Live Evidence
 
-On 2026-04-26, the default Claude Code CLI wrapper passed on this Mac:
+On 2026-04-27, the default Claude Code CLI wrapper passed on this Mac:
 
 - `validation_level=preflight_only`
 - `validation_level=smoke_only`
@@ -75,7 +75,7 @@ On 2026-04-26, the default Claude Code CLI wrapper passed on this Mac:
 - `claimable_as_default_claude_code_host_live=true`
 - `pass_criteria.full_chain_passed=true`
 
-Evidence summary: `reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-26.md`.
+Evidence summary: `reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md`.
 
 This is a real host-live result for the tested Mac account and default wrapper command. It does not prove every Claude Code user, account, or machine is live-ready without rerunning the wrapper locally.
 

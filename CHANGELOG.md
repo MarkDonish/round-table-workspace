@@ -16,6 +16,11 @@ live validation evidence.
   release page is published, whether the local tag and release draft exist, and
   whether the current host has authenticated `gh` or token-based publication
   capability.
+- Release readiness and release candidate tooling now discover the latest
+  checked-in Claude Code host-live evidence report instead of hard-coding a
+  single dated report.
+- Refreshed checked-in Claude Code host-live evidence for the validated Mac
+  account on 2026-04-27.
 
 ## v0.1.1 - 2026-04-26
 
