@@ -86,16 +86,20 @@ Latest checked-in Claude Code host-live evidence:
 | P1 | Keep checked-in Claude Code evidence discovery fresh | Completed | Release/readiness tools now need to follow the latest valid report, not a hard-coded dated report | `release_readiness_check.py`, `release_candidate_report.py`, and `live_lane_evidence_report.py` point to `reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md` |
 | P1 | Keep current source-of-truth docs aligned after each runtime change | Ongoing | Future agents start from `docs/`, not old session reports | `README.md`, `docs/NEXT-STEPS.md`, release docs, and relevant adapter docs agree |
 | P2 | Use repo-local development checkpoints when host memory is read-only | Available | Host-level memory may be readable but not writable; cross-session continuity should not depend on chat history only | `development_checkpoint.py` writes Markdown/JSON under `reports/checkpoints/generated/` and docs keep reports as historical |
-| P2 | Run real Chat Completions-compatible provider live validation | Not configured | Provider lane is optional fallback, but still part of full multi-provider readiness | `.env.room` and `.env.debate` are locally ready and `chat_completions_live_validation.py` passes |
-| P2 | Validate additional real local agent hosts | OpenCode installed and wrapper added, but this Mac's OpenCode live matrix currently fails on OpenCode's local SQLite/WAL checkpoint path | Gemini/Aider/Goose/Cursor Agent CLIs are not installed here; OpenCode is installed but not claimable until the host matrix passes | OpenCode reaches `matrix_status=live_passed`, or the host is kept explicitly non-claimable with saved failure evidence; unavailable hosts are documented with `--skip-host HOST_ID=REASON` |
+| P2 | Run real Chat Completions-compatible provider live validation | Externally blocked on real provider config | Provider lane is optional fallback, but still part of full multi-provider readiness; this Mac's `.env.room` and `.env.debate` currently have no real provider URLs | A real local `.env.room` and `.env.debate` are supplied intentionally, `chat_completions_readiness.py` reports `ready_for_live_run=true`, and `chat_completions_live_validation.py` passes |
+| P2 | Validate additional real local agent hosts | OpenCode direct smoke passes, but this Mac's full OpenCode live matrix still fails inside OpenCode's local SQLite/WAL/upstream execution path | Gemini/Aider/Goose/Cursor Agent CLIs are not installed here; OpenCode is installed but not claimable until the host matrix passes | OpenCode reaches `matrix_status=live_passed`, or the host remains explicitly non-claimable with saved failure evidence; unavailable hosts are documented with `--skip-host HOST_ID=REASON` |
 | P3 | Reduce historical-material ambiguity | Ongoing | Old reports and artifacts are useful but can mislead if treated as current source | `source_boundary_audit.py` remains green and docs clearly point to active sources |
 
 ## Recommended Next Task
 
-First keep `v0.1.2` release publication evidence current if the release body is
-edited again. The checked-in GitHub Actions release publisher has already run
-successfully for tag `v0.1.2`; rerun it only after changing the release draft
-or workflow. Verify publication with:
+There are no known P0/P1 release blockers for the Codex local mainline. The
+remaining active work is P2 evidence expansion and must not delay launch unless
+the launch claim is widened beyond the current scope.
+
+Keep `v0.1.2` release publication evidence current if the release body is edited
+again. The checked-in GitHub Actions release publisher has already run
+successfully for tag `v0.1.2`; rerun it only after changing the release draft or
+workflow. Verify publication with:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
@@ -115,9 +119,11 @@ but workflow run status and release page publication will remain
 If another real third-party local agent is available on the target machine, run
 P2 real host validation with the matrix output, then regenerate the live lane
 evidence report before claiming support. On this Mac, OpenCode is installed and
-has a checked-in wrapper, but the latest forced OpenCode live attempt is not
-claimable because OpenCode's local state store failed during
-`PRAGMA wal_checkpoint(PASSIVE)` after retry:
+has a checked-in wrapper. After backing up the OpenCode state DB, confirming
+`PRAGMA integrity_check;` returned `ok`, running
+`PRAGMA wal_checkpoint(TRUNCATE);`, and passing a direct `opencode run` smoke,
+the latest forced OpenCode live matrix still failed inside the wrapped OpenCode
+process. It is not claimable:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
@@ -129,8 +135,9 @@ python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
   --state-root /tmp/round-table-live-lane-evidence
 ```
 
-See `reports/OPENCODE_HOST_LIVE_ATTEMPT_2026-04-28.md` for the historical
-attempt record. Treat OpenCode as P2 non-claimable until the matrix returns
+See `reports/OPENCODE_HOST_LIVE_ATTEMPT_2026-04-28.md` and
+`reports/P2_PROVIDER_OPENCODE_LIVE_LANES_2026-04-28.md` for the historical
+attempt records. Treat OpenCode as P2 non-claimable until the matrix returns
 `matrix_status=live_passed`; this does not block the Codex local mainline.
 
 If a host is intentionally unavailable on the current machine, record that as
@@ -145,7 +152,9 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
 If no additional real host is available or entitled, keep that lane
 blocked/pending and continue with source-of-truth alignment. Run P2 provider
 live validation only when `.env.room` and `.env.debate` are intentionally
-configured.
+configured with real provider URLs/models/tokens. The current Mac provider
+readiness result is not ready for live run because both
+`ROOM_CHAT_COMPLETIONS_URL` and `DEBATE_CHAT_COMPLETIONS_URL` are missing.
 
 After tagging a release, audit the fresh consumer path:
 

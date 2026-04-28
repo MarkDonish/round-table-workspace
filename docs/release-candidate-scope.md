@@ -86,8 +86,11 @@ The current non-blocking gaps are expected unless the local machine has more aut
 - Claude Code CLI may be installed but auth-blocked on machines other than the validated Mac.
 - Gemini CLI, Aider, Goose, and Cursor Agent may be absent from `PATH`.
 - OpenCode may be installed but still not host-live claimable until its matrix
-  row reports `live_passed`; the latest Mac attempt failed inside OpenCode's
-  local SQLite/WAL checkpoint path.
-- `.env.room` and `.env.debate` may be present but not provider-live ready.
+  row reports `live_passed`; the latest Mac follow-up confirmed DB integrity
+  and a direct `opencode run` smoke, but the full matrix still failed inside
+  OpenCode's local SQLite/WAL/upstream execution path.
+- `.env.room` and `.env.debate` may be present but not provider-live ready; on
+  this Mac, provider readiness is currently blocked by missing
+  `ROOM_CHAT_COMPLETIONS_URL` and `DEBATE_CHAT_COMPLETIONS_URL`.
 
 These gaps do not block the Codex local mainline release scope, but they do block broader host/provider support claims.

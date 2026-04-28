@@ -123,6 +123,38 @@ An isolated `XDG_DATA_HOME` smoke was attempted as a diagnostic because OpenCode
 - OpenCode is installed and has a checked-in wrapper, but OpenCode host-live support is not claimable until the host matrix returns `matrix_status=live_passed`.
 - Provider live remains optional fallback infrastructure and is not required for local `/room` or `/debate`.
 
+## Follow-up After WAL Checkpoint
+
+The local OpenCode state DB was backed up to
+`/tmp/round-table-opencode-db-backup-20260428/`, `PRAGMA integrity_check;`
+returned `ok`, and `PRAGMA wal_checkpoint(TRUNCATE);` returned `0|0|0`.
+
+A direct minimal OpenCode smoke using `opencode run --model opencode/gpt-5-nano`
+then returned `OPENCODE_OK`, so the local CLI can answer a simple prompt.
+
+The full checked-in host matrix was retried with:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --run-installed \
+  --force-host opencode \
+  --skip-host 'gemini_cli=not installed on this Mac; not claimed' \
+  --skip-host 'aider=not installed on this Mac; not claimed' \
+  --skip-host 'goose=not installed on this Mac; not claimed' \
+  --skip-host 'cursor_agent=not installed on this Mac; not claimed' \
+  --state-root /tmp/round-table-opencode-host-validation-after-wal-fix \
+  --agent-timeout-seconds 1800
+```
+
+It still returned `matrix_status=live_failed` for `opencode`. The adapter report
+again failed inside the wrapped OpenCode process with a local
+`PRAGMA wal_checkpoint(P...)` error after retry, and the newest OpenCode log
+from the same period also showed `too_many_requests`.
+
+This follow-up narrows the result: OpenCode has a working direct smoke path on
+this Mac, but the full repository host-live matrix remains non-claimable.
+Treat this as OpenCode-lane blocked, not as a Codex mainline release blocker.
+
 ## Next Action
 
 Keep OpenCode as P2. Revisit after the local OpenCode state store is stable or after OpenCode can run the full matrix from a clean, non-hanging state. Do not widen launch claims based on fixture, wrapper, inventory, or direct smoke evidence alone.
