@@ -1,349 +1,210 @@
-# Mark 多 Agent 决策框架
+# Round Table Workspace
 
-这是一个兼容现有名人 skill 的决策系统仓库，也是当前 round-table 工作区的长期真源。
+Local-first multi-agent decision workflows for Codex, Claude Code, and other
+local CLI agents.
 
-## 给第一次进入仓库的用户
+Round Table Workspace is a local-first multi-agent decision framework. It turns
+two decision workflows, `/room` and `/debate`, into checked-in docs, prompts,
+skills, runtime scripts, validation tools, and release boundaries.
 
-这个仓库不是一个网页会议室，也不是让用户去填写某个会议 URL。
+The repository is designed for people who want structured AI-assisted thinking
+without turning the workflow into a hosted meeting product. The "room" is not a
+web conference room and the provider URL is not a meeting URL. The primary path
+runs locally through an agent host such as Codex.
 
-它是一个 **local-first 的多 Agent 决策工作区**：用户在本地 Codex、
-Claude Code 或其他本地 CLI agent 里触发 `/room` 或 `/debate`，仓库里的
-docs、prompts、skills 和 runtime scripts 负责完成选人、讨论、记录、
-handoff、审查和验证。
+## What It Does
 
-最短理解方式：
+Round Table Workspace helps a local agent host:
 
-| 你要做什么 | 用哪个入口 | 结果是什么 |
+- explore ambiguous questions through a stateful multi-agent discussion
+- escalate mature questions into a formal review workflow
+- preserve summaries, handoff packets, review results, and validation evidence
+- keep source files, generated artifacts, and historical reports clearly
+  separated
+- verify which host and provider claims are actually supported before release
+
+The project is intentionally conservative about claims. A fixture pass, wrapper
+presence, or config preflight is not described as real host-live or
+provider-live support unless the matching validation evidence exists.
+
+## Core Workflows
+
+| Workflow | Use It When | Output |
 |---|---|---|
-| 先探索一个问题，还没到最终判断 | `/room` | 多 Agent 状态化讨论、阶段总结、必要时生成 handoff packet |
-| 已经是重大判断，需要正式审查 | `/debate` | 圆桌审议、reviewer 检查、allow/reject/follow-up 结论 |
-| 想确认这个 clone 能不能跑 | `LAUNCH.md` / `agent_consumer_self_check.py` | 本地可用性自检报告 |
-| 想接入 Claude Code 或其他 agent | `.claude/skills/` / generic local agent adapter | 同一套协议接到不同本地宿主 |
+| `/room` | You are still exploring a topic and need a stateful discussion | selected panel, structured turns, summaries, optional handoff packet |
+| `/debate` | You need a higher-stakes decision reviewed by a round table | launch bundle, round-table record, reviewer result, allow/reject/follow-up outcome |
+| `/room -> /debate` | Exploration has produced enough context for formal review | persisted handoff from discussion into decision review |
+| self-check | You want to know whether a fresh clone is usable locally | JSON/Markdown evidence under a chosen state root |
 
-第一次进入仓库建议按这个顺序：
+Example interaction shape:
 
-1. 读 `README.md` 了解系统是什么。
-2. 读 `LAUNCH.md` 跑最短自检。
-3. 读 `docs/user-entry-guide.md` 理解整体运行逻辑。
-4. 需要开发或审计时再读 `AGENTS.md`、`docs/release-readiness.md`、`docs/NEXT-STEPS.md`。
+```text
+/room 我想讨论一个面向大学生的 AI 学习产品，从方向、切口、风险一步步推进
+/focus 先只盯最小可验证切口
+/summary
+/upgrade-to-debate
+```
 
-当前默认主线是本地执行，不需要 provider URL。Provider URL 只用于可选的
-Chat Completions-compatible fallback/live validation，不是会议场所，也不是
-本地 `/room` 或 `/debate` 的前置条件。
+```text
+/debate 这个创业方向值不值得做
+/debate --with Jobs,Taleb 这个方向值不值得做
+/debate --quick 我该不该先做这个 MVP
+```
 
----
+## Quick Start
 
-它现在有 3 层使用方式：
+Clone and enter the repository:
 
-1. 日常模式：按任务类型调用单个或少量 skill
-2. `/room` 模式：显式触发的状态化多 Agent 房间，用于探索、推进、总结、升级
-3. `/debate` 模式：显式触发的重大议题圆桌审议，用于形成审查后的统一决议
+```bash
+git clone https://github.com/MarkDonish/round-table-workspace.git
+cd round-table-workspace
+```
 
-`/room` 和 `/debate` 都不是默认模式。只有在用户明确进入对应上下文时才启用。
+Run the clone-friendly self-check:
 
----
+```bash
+python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
+  --state-root /tmp/round-table-agent-consumer-self-check
+```
 
-## 当前状态
+Use quick mode for a faster source/readiness preflight:
 
-项目不是 100% 完成，但核心边界已经非常清楚。
+```bash
+python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
+  --quick \
+  --state-root /tmp/round-table-agent-consumer-self-check-quick
+```
 
-### 已完成的核心能力
+A passing self-check means the checked-in local-first scope is usable on that
+machine. It does not mean every third-party CLI, paid account, or external
+provider has passed live validation.
 
-- `/debate` 的 skill 架构、角色边界、reviewer 协议、红旗规则、主 prompts 已经落地
-- `/debate` 已有 checked-in runtime bridge，可把 handoff packet 串到 launch bundle、roundtable record、review packet、review result、reject-followup-rereview chain
-- `/room` 的状态模型、selection / chat / summary / upgrade 协议已经落地
-- `/room -> /debate` 的 handoff schema 已经落地
-- `docs/agent-registry.md` 已提供 runtime-facing 的 agent registry
-- `prompts/room-chat.md` 已重建为可读版本
-- `docs/room-runtime-bridge.md` 已把缺失的 runtime bridge 责任边界锁成真源
-- `.codex/skills/room-skill/runtime/room_runtime.py` 已把 `/room` 的 host-side bridge 代码正式入仓
-- `.codex/skills/room-skill/runtime/local_codex_executor.py` 已提供 checked-in 的本地 child-agent 执行器，直接复用本机 Codex 作为 `/room` 和 `/debate` 的 prompt host
-- `.codex/skills/room-skill/runtime/local_codex_executor.py` 现在也已提供 checked-in 的 local host preflight，可先验证 `~/.codex` 宿主写入条件和 nested child-agent smoke
-- `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口，可一条命令跑 host preflight + room + debate + integration；已内建 `gpt54_family` 默认 preset，并会额外产出 `runtime-profile.json`
-- `.codex/skills/room-skill/runtime/local_codex_second_host_validation.py` 已提供 checked-in 的第二宿主复验入口，可用独立 `codex exec` 宿主重跑整套本地主线，并把外层宿主证据与 nested runtime profile 一起落盘
-- `.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py` 已提供 checked-in 的跨机器验证 lane，可先准备 manifest/runbook，再校验另一台机器回传的 regression report 与 runtime profile
-- `.codex/skills/room-skill/runtime/generic_agent_executor.py` 已提供 host-neutral 的本地 CLI agent adapter，可把同一套 prompt task 对接到 Codex、Claude Code 或其他能从 stdin 接任务并返回 JSON 的本地 agent
-- `.codex/skills/room-skill/runtime/generic_fixture_agent.py` 已提供 checked-in 的本地 fixture agent，用于验证 generic CLI / Claude Code adapter 路由而不依赖真实第三方 CLI
-- `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py` 已提供 generic local agent adapter 的一键验证入口，可用默认 fixture 或真实 agent command 跑 smoke + `/room -> /debate`
-- `.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py` 已提供第三方本地 agent JSON 清洗 wrapper，可把 Markdown fence、stdout 日志或 noisy file output 归一成单个 JSON 对象
-- `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py` 已提供 wrapper 离线验证入口，覆盖 markdown / stdout noise / output file 三类常见脏输出
-- `.codex/skills/room-skill/runtime/opencode_agent_wrapper.py` 已提供 OpenCode 本地 CLI 的非交互 wrapper，可把 round-table prompt 作为 `opencode run` message 传入，避免依赖不稳定的文件附件路径，并对 OpenCode 本地 SQLite/WAL transient 故障做窄范围重试
-- `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供真实本地 agent 宿主 inventory/preflight，可区分 CLI 缺失、auth 阻塞、可进入 live validation
-- `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py` 已提供真实本地 agent 宿主 validation matrix/report，可把 missing / blocked / pending / live passed / live failed 分级落盘
-- `.codex/skills/room-skill/runtime/live_lane_evidence_report.py` 已提供 host/provider live lane 证据总报告，可把 claimable、blocked、missing、pending、provider not configured 分开输出，不把 readiness 或 fixture 误报成 live pass
-- `.codex/skills/room-skill/runtime/agent_consumer_self_check.py` 已提供 clone-friendly 的消费者自检入口，可在不需要 provider URL、不需要第三方付费账号的前提下聚合 source-boundary、release readiness、Claude project skill、generic adapter fixture、JSON wrapper、host matrix 证据
-- `.codex/skills/room-skill/runtime/post_release_consumer_audit.py` 已提供发布后 fresh-checkout 审计入口，可从指定 release ref 克隆临时 checkout 并重跑消费者自检、Claude project skill 校验与 strict release readiness
-- `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI validation wrapper；它把 `preflight_only`、`smoke_only`、完整 `/room -> /debate` 分层落盘，只有 `claimable_as_default_claude_code_host_live=true` 才能声明默认 Claude Code host-live 通过
-- `.codex/skills/room-skill/runtime/release_candidate_report.py` 已提供 release candidate 总报告入口，可把 release gate、host matrix、provider readiness 汇总成 claim-safe JSON/Markdown
-- `.claude/skills/room/SKILL.md` 和 `.claude/skills/debate/SKILL.md` 已提供 Claude Code 原生项目 skill 入口，指回当前真源而不是复制出第二套协议
-- `.claude/scripts/validate_project_skills.py` 已提供不依赖 Claude 账号的 Claude Code project skill 结构验证入口
-- `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口，可自动拉起本地 room/debate mock provider，并一条命令跑 provider preflight + room + debate + integration
-- `.codex/skills/room-skill/runtime/chat_completions_readiness.py` 已提供 checked-in 的 provider live readiness 入口，可在不请求真实 endpoint 的前提下区分 env missing / placeholder / ready
-- `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper，可先做 room/debate 双侧 preflight，再一键触发真实 `/room -> /debate` integration
-- `.codex/skills/room-skill/runtime/release_readiness_check.py` 已提供 checked-in 的 release readiness gate，可把 Codex 本地主线上线范围、P0 阻塞和非阻塞 live 缺口分开报告
-- `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 `/room -> /summary -> /upgrade-to-debate` 验证入口
-- `.codex/skills/room-skill/runtime/room_debate_e2e_validation.py` 已提供 checked-in 的 `/room -> /debate` 联调验证入口
-- `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 provider-backed 链路
-- `.codex/skills/debate-roundtable-skill/runtime/debate_packet_validator.py` 已提供 checked-in 的 `/debate` handoff packet 可执行预检
-- `.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py` 已提供 checked-in 的 `/debate` execution bridge，包括 reject -> followup -> re-review validation chain
-- `.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py` 已提供 checked-in 的 `/debate` prompt-host E2E 验证入口，并可直接消费真实 `/room` handoff packet
-- `.codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py` 已提供本地 Chat Completions-compatible mock provider，用于验证 `/debate` provider-backed 链路
-- `.codex/skills/debate-roundtable-skill/runtime/fixtures/canonical/` 已提供 checked-in 的 debate execution fixtures
-- `.codex/skills/room-skill/runtime/fixtures/canonical/` 已提供 checked-in 的首轮验证 fixture
-- `/room local_codex` 已在 Mac 上通过 checked-in E2E 验证
-- `/debate local_codex` 的 `allow` 与 `reject_followup` 两条链都已在 Mac 上通过 checked-in E2E 验证
-- `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证，真实消费 `/room` 持久化 handoff packet
-- `/room -> /debate generic_cli` 已通过 checked-in fixture agent 跑通完整 adapter integration
-- generic local agent adapter kit 已收口成 checked-in 文档和一键验证命令，其他本地 agent 可按同一 stdin / JSON contract 接入
-- local agent host inventory 已可输出本机真实宿主 readiness，不会把 auth blocked 或 CLI missing 误报成 live pass
-- live lane evidence report 已可一键审计当前 host/provider live 声明边界，明确 provider URL 不是会议场所，也不是 Codex local mainline 的前置条件
-- agent consumer self-check 已可给 Codex、Claude Code 和其他本地 agent 用户生成一份 clone 后可读的 PASS/FAIL 与 next commands 报告
-- provider fallback regression 已复跑通过；provider readiness 会把当前真实 `.env.room` / `.env.debate` 的缺失配置报告为 blocked，不误报为 live pass
-- release readiness gate 已入仓；上线判断不再只依赖口头汇报或历史 reports
-- release candidate scope 和总报告生成器已入仓；当前可声明范围与不可声明范围可以一键生成审查材料
-- GitHub Release 发布 workflow 和 release body 提取器已入仓；当前本机不具备本地发布权限时，可以通过仓库侧 Actions 使用同一份 checked-in 发布稿创建或更新 release page
-- `/room -> /debate claude_code` 已通过 checked-in fixture agent 跑通 executor route；默认 Claude Code CLI wrapper 也已在本机 Mac 上通过真实 full integration live validation
-- Claude Code project skill 包装层已通过 checked-in 结构验证；这证明 Claude Code 用户 clone 仓库后有标准 `.claude/skills/` 入口
-- 真实 Claude Code CLI validation 已在本机 Mac 上完成 `preflight_only`、`smoke_only`、完整 `/room -> /debate` 三层验证；full wrapper 返回 `claimable_as_default_claude_code_host_live=true`
-- 当前最稳定的 checked-in 本地主线配置已收敛到 `gpt54_family`：`gpt-5.4` 为主模型、`gpt-5.4-mini` 为同家族 fallback，并显式固定 child-task reasoning / timeout；现在还会按 prompt 分层执行，例如 selection 用更短 timeout，chat / roundtable / followup 留更长窗口，summary / upgrade / reviewer 会切到更轻的同家族 lane
-- 同一台 Mac 上，除了当前桌面线程，这条本地主线也已通过独立 shell-level `codex exec` 第二宿主复验；当前剩下的不是“第二入口能不能跑”，而是“跨机器是否仍然稳定”
-- 本仓库现在已经把“跨机器验证”本身固化成 checked-in 流程：source 机先生成 manifest/runbook，target 机跑本地主线并回传 evidence，source 机再做 schema/commit/config 校验；Windows 本地主线与增强验证证据已落到 `reports/WINDOWS_LOCAL_MAINLINE_VALIDATION.md` 和 `reports/WINDOWS_ENHANCED_VALIDATION.md`
+For the shortest maintained startup path, read `LAUNCH.md`.
 
-### 还没完成的核心能力
+## Current Support Scope
 
-- `local_codex` 主链已经在 Mac 上打通，checked-in child-task 执行器现在既可单独调参，也可直接复用 `gpt54_family` preset，避免直接继承宿主全局 `xhigh`；未单独证明的是“完全不加 child-task 调优，直接裸继承宿主默认配置”这一条非目标路径
-- `/room` 与 `/debate` 的 Chat Completions-compatible provider 路径仍然保留，但现在应视为 fallback / regression lane，而不是主线
-- 还没有完成真实外部 provider 的 `/room -> /summary -> /upgrade-to-debate -> /debate` live run
-- provider live readiness 已有 checked-in config-only preflight，但当前真实 `.env.room` / `.env.debate` 仍未 ready
-- 当前已完成的是 fixture-driven 验证、mock provider-backed 验证、以及本地 child-agent 主链验证；仍不应误报成所有宿主配置都已 100% 实战验证
-- generic CLI adapter 已证明 host abstraction 可以跑完整 `/room -> /debate` 链路；默认 Claude Code wrapper 已在本机 Mac 上 live-validated，其他第三方本地 agent 仍需要各自 live validation
-- generic local agent adapter kit 已提供通用接入合同和验证 wrapper；真实第三方 agent 的稳定性仍取决于各自 CLI 是否遵守 stdout / output-file JSON contract
-- Claude Code project skill 入口已入仓并可离线验证；真实 Claude Code live support 仍按机器/账号逐次验证，不从本机 Mac 结果外推到所有用户
-- GitHub Release 页面 publication 仍需要 GitHub Actions 成功运行或带认证的 GitHub 访问来确认；当前本机的 unauthenticated API 404 不能证明 release 未发布，也不能证明已发布
+The current release is `v0.1.3`.
 
-简化结论：
+The repository may currently be used for:
 
-- `/room`：协议完成、runtime implementation 已入仓，且本地 child-agent 主链已验证；外部 provider live run 仍未完成
-- `/debate`：checked-in bridge 完成，本地 child-agent 主链已验证；外部 live host 仍未完成
+- Codex local mainline `/room`
+- Codex local mainline `/debate`
+- Codex local mainline `/room -> /debate`
+- checked-in protocol docs, prompts, skill entrypoints, runtime bridges, and
+  validation harnesses
+- Claude Code project-skill discovery structure as an adapter layer
+- generic local agent adapter contracts with fixture-backed validation
+- clone-friendly self-checks and post-release consumer audits
+- host/provider live-lane evidence reporting
+- Chat Completions-compatible fallback and mock regression tooling
 
----
+The repository does not currently claim:
 
-## Source Of Truth
+- universal support for every local agent host
+- OpenCode host-live support
+- Gemini CLI, Aider, Goose, or Cursor Agent host-live support before their own
+  validation rows report `live_passed`
+- real Chat Completions-compatible provider-live support before valid
+  `.env.room` and `.env.debate` files exist and live validation passes
+- universal production stability across all possible machines and accounts
 
-这个仓库里真正应当长期维护的真源目录是：
+See `docs/release-candidate-scope.md` and `docs/releases/v0.1.3.md` for the
+claim-safe release boundary.
 
-- `README.md`
-- `LAUNCH.md`
-- `AGENTS.md`
-- `docs/`
-- `prompts/`
-- `examples/`
-- `.codex/skills/debate-roundtable-skill/`
-- `.codex/skills/room-skill/`
-- `.codex/skills/*/roundtable-profile.md`
-- `.claude/skills/`（仅作为 Claude Code project skill 适配层，不是第二套协议实现源）
-
-以下目录不是当前实现真源：
-
-- `reports/`
-- `artifacts/`
-
-其中：
-
-- `reports/` 保存开发历史、handoff、validation、session 报告
-- `artifacts/` 保存运行产物、fixture、导出文件
-
----
-
-## 仓库结构
+## Repository Map
 
 ```text
 round-table-workspace/
 ├─ README.md
 ├─ LAUNCH.md
 ├─ AGENTS.md
-├─ .gitignore
+├─ CHANGELOG.md
 ├─ docs/
-│  ├─ router.md
-│  ├─ debate-skill-architecture.md
-│  ├─ agent-role-map.md
-│  ├─ reviewer-protocol.md
-│  ├─ red-flags.md
-│  ├─ room-architecture.md
-│  ├─ room-selection-policy.md
-│  ├─ room-to-debate-handoff.md
-│  ├─ room-chat-contract.md
-│  ├─ room-runtime-bridge.md
-│  ├─ room-runtime-status.md
-│  ├─ user-entry-guide.md
-│  ├─ host-adapter-architecture.md
-│  ├─ generic-local-agent-adapter.md
-│  ├─ local-agent-host-recipes.md
-│  ├─ third-party-agent-wrapper-recipes.md
-│  ├─ provider-live-readiness.md
-│  ├─ release-readiness.md
-│  ├─ release-candidate-scope.md
-│  ├─ releases/v0.1.3.md
-│  ├─ claude-code-skill-adapter.md
-│  └─ superpowers/specs/
 ├─ prompts/
-│  ├─ debate-roundtable.md
-│  ├─ debate-reviewer.md
-│  ├─ debate-followup.md
-│  └─ room-*.md
 ├─ examples/
-│  ├─ debate-examples.md
-│  └─ room-examples.md
 ├─ .codex/skills/
-│  ├─ debate-roundtable-skill/SKILL.md
-│  ├─ room-skill/SKILL.md
-│  └─ */roundtable-profile.md
-├─ .claude/
-│  ├─ README.md
-│  ├─ skills/room/SKILL.md
-│  ├─ skills/debate/SKILL.md
-│  └─ scripts/validate_project_skills.py
+├─ .claude/skills/
 ├─ reports/
-│  ├─ checkpoints/
-│  ├─ sessions/
-│  └─ setup/
 └─ artifacts/
-   ├─ runtime/
-   ├─ fixtures/
-   └─ rendered/
 ```
 
----
+Active source of truth:
 
-## 如何使用
+- `AGENTS.md`
+- `LAUNCH.md`
+- `docs/`
+- `prompts/`
+- `examples/`
+- `.codex/skills/`
+- `.claude/skills/` as an adapter layer
 
-### 日常模式
+Historical or generated material:
 
-直接用原有 skill：
+- `reports/`
+- `artifacts/`
 
-- `用 steve-jobs-skill 判断这个功能该不该做`
-- `用 feynman-skill 讲明白 attention`
-- `用 taleb-skill 审查这个方案风险`
+When a report or artifact reveals a still-valid rule, the rule should be moved
+into active source files instead of leaving historical material as the authority.
 
-### `/room` 模式
+## Key Documents
 
-适合需要连续推进、保留状态、阶段总结、必要时升级成正式审议的场景。
+| Document | Purpose |
+|---|---|
+| `LAUNCH.md` | shortest safe startup path for a fresh clone |
+| `docs/user-entry-guide.md` | plain-language guide to the repository logic |
+| `docs/agent-consumer-quickstart.md` | commands for Codex, Claude Code, and generic local agents |
+| `docs/source-truth-map.md` | source vs historical/output boundary |
+| `docs/release-readiness.md` | release gate rules |
+| `docs/release-candidate-scope.md` | claim-safe support scope |
+| `docs/room-architecture.md` | `/room` protocol and behavior |
+| `docs/debate-skill-architecture.md` | `/debate` protocol and behavior |
+| `docs/room-to-debate-handoff.md` | handoff contract from exploration to review |
+| `docs/generic-local-agent-adapter.md` | generic local CLI agent contract |
+| `CHANGELOG.md` | release history |
 
-示例：
+## Host And Provider Boundaries
 
-- `/room 我想讨论一个面向大学生的 AI 学习产品，从方向、切口、风险一步步推进`
-- `/focus 先只盯“最小可验证切口”`
-- `/summary`
-- `/upgrade-to-debate`
+The default path is local-first. Provider URLs are optional and only belong to
+the Chat Completions-compatible fallback or live validation lane.
 
-### `/debate` 模式
+Before making support claims for a host or provider, generate evidence:
 
-适合重大判断、需要明确分工和审查放行的场景。
+```bash
+python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
+  --state-root /tmp/round-table-live-lane-evidence
+```
 
-示例：
+For the Codex local mainline:
 
-- `/debate 这个创业方向值不值得做`
-- `/debate 我是否应该给产品加这个功能`
-- `/debate --with Jobs,Taleb 这个方向值不值得做`
-- `/debate --without Trump 这个方案怎么定`
-- `/debate --quick 我该不该先做这个 MVP`
+```bash
+python3 .codex/skills/room-skill/runtime/local_codex_regression.py \
+  --state-root /tmp/round-table-local-codex-regression
+```
 
-系统会自动按任务类型路由到合适的 Agent 组合。
+For release-scope review:
 
----
+```bash
+python3 .codex/skills/room-skill/runtime/release_candidate_report.py \
+  --include-fixture-runs \
+  --strict-git-clean \
+  --state-root /tmp/round-table-release-candidate
+```
 
-## 关键入口
+## Development Notes
 
-### 通用入口
+Repository-local rules live in `AGENTS.md`. Future development should start by
+reading:
 
-- 最短启动入口：`LAUNCH.md`
-- 用户入口导览：`docs/user-entry-guide.md`
-- 项目规则：`AGENTS.md`
-- 真源边界图：`docs/source-truth-map.md`
-- 快速路由：`docs/router.md`
-- 开发同步协议：`docs/development-sync-protocol.md`
-- 发布 readiness：`docs/release-readiness.md`
-- 发布 readiness 检查：`python3 .codex/skills/room-skill/runtime/release_readiness_check.py`
-- release candidate scope：`docs/release-candidate-scope.md`
-- release candidate 总报告：`python3 .codex/skills/room-skill/runtime/release_candidate_report.py`
-- live lane evidence 总报告：`python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py`
-- agent continuity checkpoints：`docs/agent-continuity-checkpoints.md`
-- development checkpoint writer：`python3 .codex/skills/room-skill/runtime/development_checkpoint.py`
-- 历史材料边界审计：`docs/historical-materials-audit.md`
-- source boundary audit：`python3 .codex/skills/room-skill/runtime/source_boundary_audit.py`
-- changelog：`CHANGELOG.md`
-- 当前 release notes：`docs/releases/v0.1.3.md`
-- GitHub Release 发布稿：`docs/releases/v0.1.3-github-release.md`
-- GitHub Release 发布 workflow：`.github/workflows/publish-github-release.yml`
-- GitHub Release body 提取器：`python3 .codex/skills/room-skill/runtime/extract_github_release_body.py`
-- 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
-- generic local agent 适配：`docs/generic-local-agent-adapter.md`
-- agent consumer quickstart：`docs/agent-consumer-quickstart.md`
-- agent consumer self-check：`python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py`
-- post-release consumer audit：`python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py`
-- GitHub Release 发布状态检查：`python3 .codex/skills/room-skill/runtime/github_release_publication_check.py`
-- generic local agent adapter 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
-- third-party agent wrapper recipes：`docs/third-party-agent-wrapper-recipes.md`
-- generic agent JSON wrapper 验证：`python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`
-- local agent host recipes：`docs/local-agent-host-recipes.md`
-- local agent host inventory：`python3 .codex/skills/room-skill/runtime/agent_host_inventory.py`
-- local agent host validation matrix：`python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py`
-- live lane evidence report：`python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py`
-- provider live readiness：`docs/provider-live-readiness.md`
-- provider readiness check：`python3 .codex/skills/room-skill/runtime/chat_completions_readiness.py`
-- Claude Code skill 适配：`docs/claude-code-skill-adapter.md`
-- Claude Code project skill 结构验证：`python3 .claude/scripts/validate_project_skills.py`
+1. `AGENTS.md`
+2. `docs/source-truth-map.md`
+3. `docs/development-sync-protocol.md`
+4. `docs/release-readiness.md`
 
-### `/room`
+Default development rule:
 
-- skill：`.codex/skills/room-skill/SKILL.md`
-- Claude Code project skill：`.claude/skills/room/SKILL.md`
-- 架构：`docs/room-architecture.md`
-- selection：`docs/room-selection-policy.md`
-- handoff：`docs/room-to-debate-handoff.md`
-- chat contract：`docs/room-chat-contract.md`
-- bridge contract：`docs/room-runtime-bridge.md`
-- host adapters：`docs/host-adapter-architecture.md`
-- generic local agent adapter：`docs/generic-local-agent-adapter.md`
-- local agent host recipes：`docs/local-agent-host-recipes.md`
-- 当前边界：`docs/room-runtime-status.md`
-- runtime bridge：`.codex/skills/room-skill/runtime/README.md`
-- generic local agent adapter：`.codex/skills/room-skill/runtime/generic_agent_executor.py`
-- generic local agent adapter validation：`.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
-- generic agent JSON wrapper：`.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py`
-- generic agent JSON wrapper validation：`.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`
-- OpenCode local agent wrapper：`.codex/skills/room-skill/runtime/opencode_agent_wrapper.py`
-- local agent host inventory：`.codex/skills/room-skill/runtime/agent_host_inventory.py`
-- local agent host validation matrix：`.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py`
-- generic fixture agent：`.codex/skills/room-skill/runtime/generic_fixture_agent.py`
-- Claude Code live validation：`.codex/skills/room-skill/runtime/claude_code_live_validation.py`
-- local child-agent executor：`.codex/skills/room-skill/runtime/local_codex_executor.py`
-- local mainline regression：`.codex/skills/room-skill/runtime/local_codex_regression.py`
-- local second-host validation：`.codex/skills/room-skill/runtime/local_codex_second_host_validation.py`
-- local cross-machine validation：`.codex/skills/room-skill/runtime/local_codex_cross_machine_validation.py`
-- local host preflight：`python3 .codex/skills/room-skill/runtime/local_codex_executor.py --check-host-preflight --preset gpt54_family`
-- provider fallback regression：`.codex/skills/room-skill/runtime/chat_completions_regression.py`
-- provider live readiness：`.codex/skills/room-skill/runtime/chat_completions_readiness.py`
-- provider live validation：`.codex/skills/room-skill/runtime/chat_completions_live_validation.py`
-- release candidate 总报告：`.codex/skills/room-skill/runtime/release_candidate_report.py`
-- runtime validation：`.codex/skills/room-skill/runtime/room_e2e_validation.py`
-- mock provider：`.codex/skills/room-skill/runtime/mock_chat_completions_server.py`
-- live provider sample：`.env.room.example`
-- examples：`examples/room-examples.md`
-
-### `/debate`
-
-- skill：`.codex/skills/debate-roundtable-skill/SKILL.md`
-- Claude Code project skill：`.claude/skills/debate/SKILL.md`
-- bridge contract：`docs/debate-runtime-bridge.md`
-- runtime validation：`docs/debate-e2e-validation.md`
-- runtime bridge：`.codex/skills/debate-roundtable-skill/runtime/README.md`
-- runtime implementation：`.codex/skills/debate-roundtable-skill/runtime/debate_runtime.py`
-- runtime E2E runner：`.codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py`
-- mock provider：`.codex/skills/debate-roundtable-skill/runtime/mock_chat_completions_server.py`
-- live provider sample：`.env.debate.example`
-- 架构：`docs/debate-skill-architecture.md`
-- 角色边界：`docs/agent-role-map.md`
-- 审查协议：`docs/reviewer-protocol.md`
-- 红旗：`docs/red-flags.md`
-- examples：`examples/debate-examples.md`
+- develop locally
+- verify locally
+- commit verified changes
+- push to `origin/main`
+- report what changed, what was verified, and what remains outside the claim
+  boundary
