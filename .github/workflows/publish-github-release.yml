@@ -6,11 +6,11 @@ on:
       tag:
         description: "Release tag to publish or update."
         required: false
-        default: "v0.1.1"
+        default: "v0.1.2"
       release_draft:
         description: "Repo-relative release draft containing the GitHub Release body."
         required: false
-        default: "docs/releases/v0.1.1-github-release.md"
+        default: "docs/releases/v0.1.2-github-release.md"
       dry_run:
         description: "Extract and inspect the body without creating or editing the release."
         required: false
@@ -22,13 +22,13 @@ on:
     paths:
       - ".github/workflows/publish-github-release.yml"
       - ".codex/skills/room-skill/runtime/extract_github_release_body.py"
-      - "docs/releases/v0.1.1-github-release.md"
+      - "docs/releases/v0.1.2-github-release.md"
 
 permissions:
   contents: write
 
 concurrency:
-  group: publish-github-release-${{ github.event.inputs.tag || 'v0.1.1' }}
+  group: publish-github-release-${{ github.event.inputs.tag || 'v0.1.2' }}
   cancel-in-progress: false
 
 jobs:
@@ -48,8 +48,8 @@ jobs:
       - name: Normalize inputs
         shell: bash
         run: |
-          tag="${TAG_INPUT:-v0.1.1}"
-          release_draft="${RELEASE_DRAFT_INPUT:-docs/releases/v0.1.1-github-release.md}"
+          tag="${TAG_INPUT:-v0.1.2}"
+          release_draft="${RELEASE_DRAFT_INPUT:-docs/releases/v0.1.2-github-release.md}"
           dry_run="${DRY_RUN_INPUT:-false}"
           echo "TAG=${tag}" >> "$GITHUB_ENV"
           echo "RELEASE_DRAFT=${release_draft}" >> "$GITHUB_ENV"

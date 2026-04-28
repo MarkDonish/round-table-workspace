@@ -10,6 +10,10 @@ live validation evidence.
 
 ## Unreleased
 
+No release-scope changes yet.
+
+## v0.1.2 - 2026-04-28
+
 ### Added
 
 - GitHub Release publication status checker that reports whether the target
@@ -21,6 +25,35 @@ live validation evidence.
   single dated report.
 - Refreshed checked-in Claude Code host-live evidence for the validated Mac
   account on 2026-04-27.
+- OpenCode local CLI wrapper that feeds the round-table prompt through
+  `opencode run`, avoids unstable file attachment paths, and retries only
+  narrow transient SQLite/WAL failures from OpenCode's local state store.
+- Historical OpenCode host-live attempt report that records the current
+  non-claimable OpenCode state without blocking the Codex local mainline.
+
+### Changed
+
+- Hardened `/room -> /debate` upgrade output handling so
+  `handoff_packet.generated_at_turn` can only be normalized from placeholder
+  `0` or `None` when prompt input and sibling metadata agree on the same
+  positive turn.
+- Updated `/room` upgrade prompt instructions to clarify that schema `0` values
+  are placeholders and must not be copied as final positive-turn output.
+
+### Supported Scope
+
+- Everything in `v0.1.1`.
+- GitHub Release publication status checking and workflow defaults for
+  `v0.1.2`.
+- OpenCode adapter tooling as a checked-in local-agent wrapper recipe.
+
+### Not Claimed
+
+- OpenCode host-live support. The latest forced matrix attempt on this Mac
+  failed inside OpenCode's local SQLite/WAL checkpoint path and remains P2.
+- Real provider-live support before `.env.room` and `.env.debate` are valid and
+  `chat_completions_live_validation.py` passes.
+- Universal production stability across every possible local agent host.
 
 ## v0.1.1 - 2026-04-26
 

@@ -225,11 +225,13 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
             else "generic local agent adapter contract source"
         ),
         "third-party local agent JSON wrapper tooling and recipes",
+        "OpenCode local-agent wrapper tooling without host-live claim",
         "third-party local agent validation matrix/report tooling",
         "host/provider live-lane evidence report tooling",
         "third-party local agent host recipe consistency tooling",
         "clone-friendly agent consumer self-check tooling",
         "post-release fresh-checkout consumer audit tooling",
+        "GitHub Release publication status checker and workflow source",
         "clone-friendly launch quickstart",
         "provider fallback readiness tooling and mock regression source",
         "source-truth boundary audit tooling",

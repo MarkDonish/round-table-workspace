@@ -40,7 +40,7 @@ instead of only the current working tree:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
-  --ref v0.1.1 \
+  --ref v0.1.2 \
   --state-root /tmp/round-table-post-release-consumer-audit
 ```
 

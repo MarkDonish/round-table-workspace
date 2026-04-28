@@ -14,21 +14,23 @@ The repository may currently be claimed as ready for:
 - default Claude Code CLI host-live support on the Mac where `claude_code_live_validation.py` reports `claimable_as_default_claude_code_host_live=true`
 - generic local agent adapter contract with fixture-backed validation
 - third-party local agent JSON wrapper and host validation matrix tooling
+- OpenCode local-agent wrapper tooling without host-live claim
 - host/provider live-lane evidence report tooling
 - clone-friendly agent consumer self-check tooling
 - clone-friendly launch quickstart
+- GitHub Release publication status checker and workflow source
 - Chat Completions-compatible fallback/mock regression tooling
 
 This is not the same as claiming every local agent host or every provider is live-validated.
 
 ## Current Release Artifact
 
-The current release is `v0.1.1`.
+The current release is `v0.1.2`.
 
 Use:
 
 - `CHANGELOG.md` for the release history.
-- `docs/releases/v0.1.1.md` for the human-readable release note.
+- `docs/releases/v0.1.2.md` for the human-readable release note.
 - `release_candidate_report.py` output for machine-readable support-scope evidence.
 
 The tag must point to a commit that has passed the strict release gate.
@@ -82,7 +84,10 @@ python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
 The current non-blocking gaps are expected unless the local machine has more authenticated tools configured:
 
 - Claude Code CLI may be installed but auth-blocked on machines other than the validated Mac.
-- Gemini CLI, OpenCode, Aider, Goose, and Cursor Agent may be absent from `PATH`.
+- Gemini CLI, Aider, Goose, and Cursor Agent may be absent from `PATH`.
+- OpenCode may be installed but still not host-live claimable until its matrix
+  row reports `live_passed`; the latest Mac attempt failed inside OpenCode's
+  local SQLite/WAL checkpoint path.
 - `.env.room` and `.env.debate` may be present but not provider-live ready.
 
 These gaps do not block the Codex local mainline release scope, but they do block broader host/provider support claims.

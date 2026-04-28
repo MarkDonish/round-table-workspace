@@ -55,10 +55,11 @@ The current launchable scope is the Codex local mainline:
 This does not mean every real local agent host or provider has been
 live-validated.
 
-Latest tagged release target: `v0.1.1`.
+Latest tagged release target: `v0.1.2`.
 
-Current `main` also contains post-`v0.1.1` unreleased changes. Do not assume
-those changes are included in the `v0.1.1` tag unless a later tag is cut.
+Current `main` is intended to match the `v0.1.2` local-first launch scope once
+the tag is pushed. Do not assume any later post-`v0.1.2` changes are included in
+that tag unless a later tag is cut.
 
 Latest checked-in Claude Code host-live evidence:
 
@@ -72,10 +73,12 @@ Latest checked-in Claude Code host-live evidence:
 | Priority | Task | Status | Why Now | Completion Standard |
 |---|---|---|---|---|
 | P0 | Codex local mainline blocker | None known | The strict release gate currently reports no P0 blockers | Keep `release_readiness_check.py --include-fixture-runs --strict-git-clean` green |
-| P1 | Publish `v0.1.1` GitHub Release page | Completed; release page is published, workflow compatibility fix is pending remote rerun | The tag is pushed, authenticated `gh release view` confirms `v0.1.1` is published, and the previous Actions failure was caused by an unsupported `isLatest` JSON field | `github_release_publication_check.py --strict-published` passes from an authenticated host and the next `publish-github-release.yml` run succeeds after the compatibility fix is pushed |
+| P1 | Publish `v0.1.2` GitHub Release page | Ready after `v0.1.2` tag push | `v0.1.2` packages current post-`v0.1.1` release tooling and OpenCode evidence boundary without widening live-host claims | `github_release_publication_check.py --tag v0.1.2 --release-draft docs/releases/v0.1.2-github-release.md --strict-published` passes from an authenticated host |
+| P1 | Promote `v0.1.2` patch release | Completed when the `v0.1.2` tag is pushed | Current `main` has release-scope changes not present in `v0.1.1` | Release notes/changelog point to v0.1.2, strict release gate passes from clean Git tree, tag is pushed |
+| P1 | Publish `v0.1.1` GitHub Release page | Completed | The tag is pushed, authenticated `gh release view` confirmed `v0.1.1` is published, and the previous Actions failure was caused by an unsupported `isLatest` JSON field | Historical release page remains available |
 | P1 | Promote `v0.1.1` patch release | Completed | `v0.1.0` predates post-release consumer audit and live lane evidence report tooling | Release notes/changelog point to v0.1.1, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Add host/provider live lane evidence report | Completed | Launch communication needs one claim-safe entry that separates claimable, missing, blocked, pending, and provider-not-configured lanes | `live_lane_evidence_report.py` writes JSON/Markdown and docs point to it |
-| P1 | Add post-release consumer audit | Completed | Tagged releases need a fresh-checkout proof path, not just current-worktree validation | `post_release_consumer_audit.py --ref v0.1.1` passes and docs point to it |
+| P1 | Add post-release consumer audit | Completed | Tagged releases need a fresh-checkout proof path, not just current-worktree validation | `post_release_consumer_audit.py --ref v0.1.2` passes and docs point to it |
 | P1 | Promote `v0.1.0-rc4` to `v0.1.0` | Completed | rc4 was the final launch-prep candidate and did not require widening the support claim | Final release notes/changelog point to v0.1.0, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Cut `v0.1.0-rc4` release candidate | Completed | `v0.1.0-rc3` predates Claude Code host-live evidence and repo-local checkpoints | Release notes/changelog point to rc4, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Improve third-party local agent validation matrix usability | Completed | The matrix now exposes both rendered shell commands and canonical argv for each selectable host command | Matrix output exposes copy-safe argv/run command evidence and fixture validation still passes |
@@ -89,15 +92,18 @@ Latest checked-in Claude Code host-live evidence:
 
 ## Recommended Next Task
 
-First verify whether the checked-in GitHub Actions release publisher has run
-from a host with authenticated `gh` or `GITHUB_TOKEN` / `GH_TOKEN`. If it has
-not run, trigger `.github/workflows/publish-github-release.yml` for tag
-`v0.1.1` or rely on the path-filtered push trigger after changing the release
-draft/workflow. Use `docs/releases/v0.1.1-github-release.md` only as the manual
-fallback body, then verify publication with:
+First finish `v0.1.2` release publication. Verify whether the checked-in GitHub
+Actions release publisher has run from a host with authenticated `gh` or
+`GITHUB_TOKEN` / `GH_TOKEN`. If it has not run, trigger
+`.github/workflows/publish-github-release.yml` for tag `v0.1.2` or rely on the
+path-filtered push trigger after changing the release draft/workflow. Use
+`docs/releases/v0.1.2-github-release.md` only as the manual fallback body, then
+verify publication with:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
+  --tag v0.1.2 \
+  --release-draft docs/releases/v0.1.2-github-release.md \
   --strict-published \
   --state-root /tmp/round-table-github-release-publication
 ```
@@ -148,7 +154,7 @@ After tagging a release, audit the fresh consumer path:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
-  --ref v0.1.1 \
+  --ref v0.1.2 \
   --state-root /tmp/round-table-post-release-consumer-audit
 ```
 

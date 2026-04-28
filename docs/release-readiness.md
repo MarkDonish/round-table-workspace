@@ -11,11 +11,14 @@ The repository can be treated as ready for the current supported scope when the 
 - Claude Code project-skill discovery layer as an adapter, not a forked implementation
 - generic local agent adapter contract and fixture-backed validation path
 - third-party local agent JSON wrapper tooling and recipes
+- OpenCode local-agent wrapper tooling, without claiming OpenCode host-live
+  support
 - third-party local agent validation matrix/report tooling
 - host/provider live-lane evidence report tooling
 - third-party local agent host recipe consistency tooling
 - clone-friendly agent consumer self-check tooling
 - clone-friendly launch quickstart
+- GitHub Release publication status checker and workflow source
 - Chat Completions-compatible provider fallback tooling and mock regression path
 
 This does not mean every possible host or provider is live-validated.
@@ -31,9 +34,9 @@ machines/accounts must rerun `claude_code_live_validation.py`.
 
 The current reproducible release target is:
 
-- Tag: `v0.1.1`
+- Tag: `v0.1.2`
 - Changelog: `CHANGELOG.md`
-- Release notes: `docs/releases/v0.1.1.md`
+- Release notes: `docs/releases/v0.1.2.md`
 
 Create or update this tag only after the strict release gate and claim-safe
 release report pass from a clean Git tree.
@@ -160,7 +163,7 @@ consumer audit from a fresh cloned checkout of the release ref:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
-  --ref v0.1.1 \
+  --ref v0.1.2 \
   --state-root /tmp/round-table-post-release-consumer-audit
 ```
 
