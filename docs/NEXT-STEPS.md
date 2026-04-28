@@ -73,7 +73,8 @@ Latest checked-in Claude Code host-live evidence:
 | Priority | Task | Status | Why Now | Completion Standard |
 |---|---|---|---|---|
 | P0 | Codex local mainline blocker | None known | The strict release gate currently reports no P0 blockers | Keep `release_readiness_check.py --include-fixture-runs --strict-git-clean` green |
-| P1 | Promote `v0.1.3` patch release | In progress | Current `main` has final P2 launch-boundary evidence not present in `v0.1.2` | Release notes/changelog point to v0.1.3, strict release gate passes from clean Git tree, tag is pushed, release page is published |
+| P1 | Publish `v0.1.3` GitHub Release page | Completed | GitHub Actions run `25049260899` published the release page at `2026-04-28T11:06:45Z` | `gh release view v0.1.3 --repo MarkDonish/round-table-workspace` reports non-draft, non-prerelease, published |
+| P1 | Promote `v0.1.3` patch release | Completed | Current `main` has final P2 launch-boundary evidence not present in `v0.1.2` | Release notes/changelog point to v0.1.3, strict release gate passes from clean Git tree, tag is pushed, release page is published |
 | P1 | Publish `v0.1.2` GitHub Release page | Completed | GitHub Actions run `25040681309` published the release page at `2026-04-28T07:49:56Z` | `gh release view v0.1.2 --repo MarkDonish/round-table-workspace` reports non-draft, non-prerelease, published |
 | P1 | Promote `v0.1.2` patch release | Completed | Current `main` has release-scope changes not present in `v0.1.1` | Release notes/changelog point to v0.1.2, strict release gate passes from clean Git tree, tag is pushed, release page is published |
 | P1 | Publish `v0.1.1` GitHub Release page | Completed | The tag is pushed, authenticated `gh release view` confirmed `v0.1.1` is published, and the previous Actions failure was caused by an unsupported `isLatest` JSON field | Historical release page remains available |
