@@ -2,6 +2,37 @@
 
 这是一个兼容现有名人 skill 的决策系统仓库，也是当前 round-table 工作区的长期真源。
 
+## 给第一次进入仓库的用户
+
+这个仓库不是一个网页会议室，也不是让用户去填写某个会议 URL。
+
+它是一个 **local-first 的多 Agent 决策工作区**：用户在本地 Codex、
+Claude Code 或其他本地 CLI agent 里触发 `/room` 或 `/debate`，仓库里的
+docs、prompts、skills 和 runtime scripts 负责完成选人、讨论、记录、
+handoff、审查和验证。
+
+最短理解方式：
+
+| 你要做什么 | 用哪个入口 | 结果是什么 |
+|---|---|---|
+| 先探索一个问题，还没到最终判断 | `/room` | 多 Agent 状态化讨论、阶段总结、必要时生成 handoff packet |
+| 已经是重大判断，需要正式审查 | `/debate` | 圆桌审议、reviewer 检查、allow/reject/follow-up 结论 |
+| 想确认这个 clone 能不能跑 | `LAUNCH.md` / `agent_consumer_self_check.py` | 本地可用性自检报告 |
+| 想接入 Claude Code 或其他 agent | `.claude/skills/` / generic local agent adapter | 同一套协议接到不同本地宿主 |
+
+第一次进入仓库建议按这个顺序：
+
+1. 读 `README.md` 了解系统是什么。
+2. 读 `LAUNCH.md` 跑最短自检。
+3. 读 `docs/user-entry-guide.md` 理解整体运行逻辑。
+4. 需要开发或审计时再读 `AGENTS.md`、`docs/release-readiness.md`、`docs/NEXT-STEPS.md`。
+
+当前默认主线是本地执行，不需要 provider URL。Provider URL 只用于可选的
+Chat Completions-compatible fallback/live validation，不是会议场所，也不是
+本地 `/room` 或 `/debate` 的前置条件。
+
+---
+
 它现在有 3 层使用方式：
 
 1. 日常模式：按任务类型调用单个或少量 skill
@@ -144,6 +175,7 @@ round-table-workspace/
 │  ├─ room-chat-contract.md
 │  ├─ room-runtime-bridge.md
 │  ├─ room-runtime-status.md
+│  ├─ user-entry-guide.md
 │  ├─ host-adapter-architecture.md
 │  ├─ generic-local-agent-adapter.md
 │  ├─ local-agent-host-recipes.md
@@ -225,6 +257,7 @@ round-table-workspace/
 ### 通用入口
 
 - 最短启动入口：`LAUNCH.md`
+- 用户入口导览：`docs/user-entry-guide.md`
 - 项目规则：`AGENTS.md`
 - 真源边界图：`docs/source-truth-map.md`
 - 快速路由：`docs/router.md`

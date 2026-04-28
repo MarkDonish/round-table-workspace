@@ -3,6 +3,9 @@
 This is the shortest safe entrypoint for a freshly cloned copy of the
 round-table workspace.
 
+For a plain-language explanation of the repository logic, read
+`docs/user-entry-guide.md`.
+
 The default launch path is local-first. You do not need a provider URL to use
 or validate the Codex local mainline.
 
