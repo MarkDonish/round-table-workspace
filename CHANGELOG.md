@@ -12,6 +12,35 @@ live validation evidence.
 
 No release-scope changes yet.
 
+## v0.1.3 - 2026-04-28
+
+### Added
+
+- Final P2 provider/OpenCode live-lane closure report that records the real
+  local attempts before launch.
+
+### Changed
+
+- Clarified that current `main` has no known P0/P1 Codex local mainline
+  blockers after the P2 closure pass.
+- Updated release support scope to separate launchable local-first support from
+  non-claimable provider-live and OpenCode host-live lanes.
+- Refreshed GitHub Release publication defaults for `v0.1.3`.
+
+### Supported Scope
+
+- Everything in `v0.1.2`.
+- More precise launch-boundary documentation for provider/OpenCode P2 gaps.
+
+### Not Claimed
+
+- OpenCode host-live support. A direct OpenCode smoke passed on this Mac, but
+  the full host-live matrix still failed inside OpenCode's local
+  SQLite/WAL/upstream execution path.
+- Real provider-live support before `.env.room` and `.env.debate` contain real
+  provider URLs/models/tokens and `chat_completions_live_validation.py` passes.
+- Universal production stability across every possible local agent host.
+
 ## v0.1.2 - 2026-04-28
 
 ### Added

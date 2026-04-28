@@ -13,7 +13,7 @@ from typing import Any
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
-DEFAULT_RELEASE_DRAFT = "docs/releases/v0.1.2-github-release.md"
+DEFAULT_RELEASE_DRAFT = "docs/releases/v0.1.3-github-release.md"
 DEFAULT_OUTPUT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-github-release-body.md"
 
 
@@ -149,7 +149,7 @@ def validate_release_body(release_body: str) -> str | None:
         return "release_body_missing_h1"
     if "Current launch decision:" not in release_body:
         return "release_body_missing_launch_decision"
-    if "docs/releases/v0.1.2.md" not in release_body:
+    if not re.search(r"docs/releases/v[0-9]+\.[0-9]+\.[0-9]+(?:[-.][A-Za-z0-9]+)?\.md", release_body):
         return "release_body_missing_canonical_release_notes"
     return None
 

@@ -151,7 +151,7 @@ round-table-workspace/
 │  ├─ provider-live-readiness.md
 │  ├─ release-readiness.md
 │  ├─ release-candidate-scope.md
-│  ├─ releases/v0.1.2.md
+│  ├─ releases/v0.1.3.md
 │  ├─ claude-code-skill-adapter.md
 │  └─ superpowers/specs/
 ├─ prompts/
@@ -239,8 +239,8 @@ round-table-workspace/
 - 历史材料边界审计：`docs/historical-materials-audit.md`
 - source boundary audit：`python3 .codex/skills/room-skill/runtime/source_boundary_audit.py`
 - changelog：`CHANGELOG.md`
-- 当前 release notes：`docs/releases/v0.1.2.md`
-- GitHub Release 发布稿：`docs/releases/v0.1.2-github-release.md`
+- 当前 release notes：`docs/releases/v0.1.3.md`
+- GitHub Release 发布稿：`docs/releases/v0.1.3-github-release.md`
 - GitHub Release 发布 workflow：`.github/workflows/publish-github-release.yml`
 - GitHub Release body 提取器：`python3 .codex/skills/room-skill/runtime/extract_github_release_body.py`
 - 本地 Superpowers 集成：`docs/superpowers/local-development-integration.md`
