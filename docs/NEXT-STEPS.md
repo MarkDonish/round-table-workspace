@@ -73,8 +73,8 @@ Latest checked-in Claude Code host-live evidence:
 | Priority | Task | Status | Why Now | Completion Standard |
 |---|---|---|---|---|
 | P0 | Codex local mainline blocker | None known | The strict release gate currently reports no P0 blockers | Keep `release_readiness_check.py --include-fixture-runs --strict-git-clean` green |
-| P1 | Publish `v0.1.2` GitHub Release page | Ready after `v0.1.2` tag push | `v0.1.2` packages current post-`v0.1.1` release tooling and OpenCode evidence boundary without widening live-host claims | `github_release_publication_check.py --tag v0.1.2 --release-draft docs/releases/v0.1.2-github-release.md --strict-published` passes from an authenticated host |
-| P1 | Promote `v0.1.2` patch release | Completed when the `v0.1.2` tag is pushed | Current `main` has release-scope changes not present in `v0.1.1` | Release notes/changelog point to v0.1.2, strict release gate passes from clean Git tree, tag is pushed |
+| P1 | Publish `v0.1.2` GitHub Release page | Completed | GitHub Actions run `25040681309` published the release page at `2026-04-28T07:49:56Z` | `gh release view v0.1.2 --repo MarkDonish/round-table-workspace` reports non-draft, non-prerelease, published |
+| P1 | Promote `v0.1.2` patch release | Completed | Current `main` has release-scope changes not present in `v0.1.1` | Release notes/changelog point to v0.1.2, strict release gate passes from clean Git tree, tag is pushed, release page is published |
 | P1 | Publish `v0.1.1` GitHub Release page | Completed | The tag is pushed, authenticated `gh release view` confirmed `v0.1.1` is published, and the previous Actions failure was caused by an unsupported `isLatest` JSON field | Historical release page remains available |
 | P1 | Promote `v0.1.1` patch release | Completed | `v0.1.0` predates post-release consumer audit and live lane evidence report tooling | Release notes/changelog point to v0.1.1, strict release gate passes from clean Git tree, tag is pushed |
 | P1 | Add host/provider live lane evidence report | Completed | Launch communication needs one claim-safe entry that separates claimable, missing, blocked, pending, and provider-not-configured lanes | `live_lane_evidence_report.py` writes JSON/Markdown and docs point to it |
@@ -92,13 +92,10 @@ Latest checked-in Claude Code host-live evidence:
 
 ## Recommended Next Task
 
-First finish `v0.1.2` release publication. Verify whether the checked-in GitHub
-Actions release publisher has run from a host with authenticated `gh` or
-`GITHUB_TOKEN` / `GH_TOKEN`. If it has not run, trigger
-`.github/workflows/publish-github-release.yml` for tag `v0.1.2` or rely on the
-path-filtered push trigger after changing the release draft/workflow. Use
-`docs/releases/v0.1.2-github-release.md` only as the manual fallback body, then
-verify publication with:
+First keep `v0.1.2` release publication evidence current if the release body is
+edited again. The checked-in GitHub Actions release publisher has already run
+successfully for tag `v0.1.2`; rerun it only after changing the release draft
+or workflow. Verify publication with:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
