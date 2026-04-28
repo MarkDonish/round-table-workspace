@@ -1487,7 +1487,7 @@ def normalize_prompt_output(*, prompt_path: Path, prompt_input: dict[str, Any], 
     if prompt_path.name == "room-selection.md":
         return normalize_room_selection_output(prompt_input=prompt_input, payload=payload)
     if prompt_path.name == "room-upgrade.md":
-        return normalize_room_upgrade_output(payload=payload)
+        return normalize_room_upgrade_output(prompt_input=prompt_input, payload=payload)
     return payload
 
 
@@ -1514,7 +1514,7 @@ def normalize_room_selection_output(*, prompt_input: dict[str, Any], payload: di
     return normalized
 
 
-def normalize_room_upgrade_output(*, payload: dict[str, Any]) -> dict[str, Any]:
+def normalize_room_upgrade_output(*, prompt_input: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(payload, dict):
         return payload
 
@@ -1522,21 +1522,49 @@ def normalize_room_upgrade_output(*, payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(handoff_packet, dict):
         return payload
 
-    uncertainty_points = handoff_packet.get("field_10_uncertainty_points")
-    if not (isinstance(uncertainty_points, list) and uncertainty_points and all(isinstance(item, dict) for item in uncertainty_points)):
-        return payload
-
-    normalized_points: list[str] = []
-    for item in uncertainty_points:
-        text = item.get("uncertainty_text") or item.get("text")
-        if not text:
-            continue
-        speaker = item.get("agent_id") or item.get("agent")
-        normalized_points.append(f"{speaker}: {text}" if speaker else str(text))
-
-    normalized_handoff = dict(handoff_packet)
-    normalized_handoff["field_10_uncertainty_points"] = normalized_points
     normalized_payload = dict(payload)
+    normalized_handoff = dict(handoff_packet)
+    packaging_warning: str | None = None
+
+    expected_turn = parse_int(prompt_input.get("current_turn"), default=0)
+    packet_turn = normalized_handoff.get("generated_at_turn")
+    meta = payload.get("meta")
+    packaging_meta = payload.get("packaging_meta")
+    meta_turn = parse_int(meta.get("generated_at_turn") if isinstance(meta, dict) else None, default=0)
+    turns_scanned = parse_int(
+        packaging_meta.get("turns_scanned") if isinstance(packaging_meta, dict) else None,
+        default=0,
+    )
+    if (
+        expected_turn > 0
+        and packet_turn in {0, None}
+        and expected_turn in {meta_turn, turns_scanned}
+    ):
+        normalized_handoff["generated_at_turn"] = expected_turn
+        packaging_warning = "host_normalized_placeholder_generated_at_turn"
+
+    uncertainty_points = handoff_packet.get("field_10_uncertainty_points")
+    if isinstance(uncertainty_points, list) and uncertainty_points and all(
+        isinstance(item, dict) for item in uncertainty_points
+    ):
+        normalized_points: list[str] = []
+        for item in uncertainty_points:
+            text = item.get("uncertainty_text") or item.get("text")
+            if not text:
+                continue
+            speaker = item.get("agent_id") or item.get("agent")
+            normalized_points.append(f"{speaker}: {text}" if speaker else str(text))
+        normalized_handoff["field_10_uncertainty_points"] = normalized_points
+
+    if packaging_warning:
+        normalized_packaging_meta = dict(packaging_meta) if isinstance(packaging_meta, dict) else {}
+        warnings = normalized_packaging_meta.get("warnings")
+        normalized_warnings = list(warnings) if isinstance(warnings, list) else []
+        if packaging_warning not in normalized_warnings:
+            normalized_warnings.append(packaging_warning)
+        normalized_packaging_meta["warnings"] = normalized_warnings
+        normalized_payload["packaging_meta"] = normalized_packaging_meta
+
     normalized_payload["handoff_packet"] = normalized_handoff
     return normalized_payload
 

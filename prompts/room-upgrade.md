@@ -283,6 +283,12 @@ inside both:
 
 Return exactly this shape:
 
+Important placeholder rule:
+
+- The `0` values in the schema below are placeholders, not valid final values.
+- `handoff_packet.generated_at_turn`, `packaging_meta.turns_scanned`, and `meta.generated_at_turn` must equal input `current_turn`.
+- Do not leave either `generated_at_turn` value as `0` when `current_turn` is positive.
+
 ```json
 {
   "mode": "room_upgrade",

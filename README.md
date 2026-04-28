@@ -36,6 +36,7 @@
 - `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py` 已提供 generic local agent adapter 的一键验证入口，可用默认 fixture 或真实 agent command 跑 smoke + `/room -> /debate`
 - `.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py` 已提供第三方本地 agent JSON 清洗 wrapper，可把 Markdown fence、stdout 日志或 noisy file output 归一成单个 JSON 对象
 - `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py` 已提供 wrapper 离线验证入口，覆盖 markdown / stdout noise / output file 三类常见脏输出
+- `.codex/skills/room-skill/runtime/opencode_agent_wrapper.py` 已提供 OpenCode 本地 CLI 的非交互 wrapper，可把 round-table prompt 作为 `opencode run` message 传入，避免依赖不稳定的文件附件路径，并对 OpenCode 本地 SQLite/WAL transient 故障做窄范围重试
 - `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供真实本地 agent 宿主 inventory/preflight，可区分 CLI 缺失、auth 阻塞、可进入 live validation
 - `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py` 已提供真实本地 agent 宿主 validation matrix/report，可把 missing / blocked / pending / live passed / live failed 分级落盘
 - `.codex/skills/room-skill/runtime/live_lane_evidence_report.py` 已提供 host/provider live lane 证据总报告，可把 claimable、blocked、missing、pending、provider not configured 分开输出，不把 readiness 或 fixture 误报成 live pass
@@ -278,6 +279,7 @@ round-table-workspace/
 - generic local agent adapter validation：`.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py`
 - generic agent JSON wrapper：`.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py`
 - generic agent JSON wrapper validation：`.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py`
+- OpenCode local agent wrapper：`.codex/skills/room-skill/runtime/opencode_agent_wrapper.py`
 - local agent host inventory：`.codex/skills/room-skill/runtime/agent_host_inventory.py`
 - local agent host validation matrix：`.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py`
 - generic fixture agent：`.codex/skills/room-skill/runtime/generic_fixture_agent.py`

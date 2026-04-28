@@ -32,7 +32,7 @@ This table mirrors the checked-in candidates from
 |---|---|---|---|---|---|
 | `claude_code` | Claude Code | `claude` | `claude auth status` plus `claude_code_live_validation.py --preflight-only` | Use `claude_code_live_validation.py --smoke-only` for local CLI execution, then the full wrapper for `/room -> /debate` | Claim default Claude Code support only when the full wrapper reports `claimable_as_default_claude_code_host_live=true`, or matrix reports `matrix_status=live_passed` for the real Claude command |
 | `gemini_cli` | Gemini CLI | `gemini` | `agent_host_inventory.py` must find `gemini` on `PATH` | Provide a non-interactive stdin/file command through `generic_agent_json_wrapper.py` | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
-| `opencode` | OpenCode | `opencode` | `agent_host_inventory.py` must find `opencode` on `PATH` | Provide a non-interactive stdin/file command through `generic_agent_json_wrapper.py` | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
+| `opencode` | OpenCode | `opencode` | `agent_host_inventory.py` must find `opencode` on `PATH` | Use checked-in `opencode_agent_wrapper.py` through `generic_agent_json_wrapper.py` | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
 | `aider` | Aider | `aider` | `agent_host_inventory.py` must find `aider` on `PATH` and the command must not require an interactive TTY | Prefer a small local non-interactive wrapper, then validate that wrapper | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
 | `goose` | Goose | `goose` | `agent_host_inventory.py` must find `goose` on `PATH` | Provide a non-interactive stdin/file command through `generic_agent_json_wrapper.py` | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
 | `cursor_agent` | Cursor Agent | `cursor-agent` | `agent_host_inventory.py` must find `cursor-agent` on `PATH` | Provide a non-interactive stdin/file command through `generic_agent_json_wrapper.py` | Claim only after `generic_agent_adapter_validation.py` returns full pass criteria |
@@ -143,6 +143,37 @@ python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
 Only `matrix_status: "live_passed"` may be used as real host-live support evidence.
 
 Fixture validation is not host-live evidence.
+
+## OpenCode Recipe
+
+OpenCode has a checked-in non-interactive wrapper because `opencode run`
+accepts the prompt as a message argument. The wrapper intentionally avoids file
+attachments for the main prompt path and retries only transient local
+SQLite/WAL failures from OpenCode's own state store.
+
+If the local OpenCode state store is suspected to be corrupt or locked, rerun a
+small smoke with `opencode_agent_wrapper.py --isolated-data-home` as a
+diagnostic. Do not treat an isolated smoke as full host-live evidence; the
+matrix still has to return `matrix_status=live_passed`.
+
+Inventory exposes this command automatically when `opencode` is on `PATH`:
+
+```bash
+python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py \
+  --agent-command 'python3 .codex/skills/room-skill/runtime/opencode_agent_wrapper.py --model opencode/gpt-5-nano'
+```
+
+Run OpenCode live validation through the matrix:
+
+```bash
+python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
+  --run-installed \
+  --force-host opencode \
+  --state-root /tmp/round-table-opencode-host-validation
+```
+
+Only claim OpenCode host-live support when the `opencode` row returns
+`matrix_status=live_passed`.
 
 ## Claude Code Recipe
 

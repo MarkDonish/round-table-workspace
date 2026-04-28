@@ -56,6 +56,12 @@ For the checked-in generic agent JSON wrapper:
 python3 .codex/skills/room-skill/runtime/generic_agent_json_wrapper.py --help
 ```
 
+For the checked-in OpenCode non-interactive wrapper:
+
+```bash
+python3 .codex/skills/room-skill/runtime/opencode_agent_wrapper.py --help
+```
+
 For the checked-in generic agent JSON wrapper validation:
 
 ```bash
@@ -554,6 +560,8 @@ The bridge then validates those JSON outputs and performs the state writeback th
 `generic_agent_json_wrapper.py` is the checked-in normalizer for third-party local agents that add Markdown fences, progress logs, or explanatory text around JSON. It runs the real agent command, extracts the first parseable JSON object from stdout or file output, and writes a clean JSON object back to `ROUND_TABLE_OUTPUT_JSON`.
 
 `generic_agent_json_wrapper_validation.py` validates that wrapper against `wrapper_fixture_agent.py` in three noisy modes: Markdown fenced JSON, stdout logs around JSON, and noisy output-file JSON. Passing this proves the wrapper layer, not a real third-party host.
+
+`opencode_agent_wrapper.py` is the checked-in OpenCode local CLI adapter. It passes the round-table prompt as the `opencode run` message instead of using file attachments, retries only transient local OpenCode SQLite/WAL failures, and can optionally run with `--isolated-data-home` for diagnostics. JSON extraction stays in `generic_agent_json_wrapper.py`.
 
 `agent_host_inventory.py` is the checked-in readiness inventory for real local agent hosts. It detects common CLI candidates, records lightweight version/auth evidence where available, and explicitly separates `missing_cli`, `blocked_auth`, and `ready_for_live_validation` from actual `/room -> /debate` live validation.
 

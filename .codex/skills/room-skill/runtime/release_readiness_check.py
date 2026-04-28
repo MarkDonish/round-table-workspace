@@ -38,6 +38,7 @@ REQUIRED_RUNTIME_FILES: list[str] = [
     ".codex/skills/room-skill/runtime/generic_agent_adapter_validation.py",
     ".codex/skills/room-skill/runtime/generic_agent_json_wrapper.py",
     ".codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py",
+    ".codex/skills/room-skill/runtime/opencode_agent_wrapper.py",
     ".codex/skills/room-skill/runtime/agent_host_inventory.py",
     ".codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py",
     ".codex/skills/room-skill/runtime/live_lane_evidence_report.py",

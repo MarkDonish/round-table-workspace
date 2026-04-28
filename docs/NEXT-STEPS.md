@@ -1,7 +1,7 @@
 # NEXT STEPS
 
 > Purpose: active source-of-truth task queue for the next local agent or developer continuing this repository.
-> Last updated: 2026-04-27
+> Last updated: 2026-04-28
 
 This file is not a historical report. It must reflect the current checked-in
 state from `README.md`, `docs/release-readiness.md`,
@@ -84,7 +84,7 @@ Latest checked-in Claude Code host-live evidence:
 | P1 | Keep current source-of-truth docs aligned after each runtime change | Ongoing | Future agents start from `docs/`, not old session reports | `README.md`, `docs/NEXT-STEPS.md`, release docs, and relevant adapter docs agree |
 | P2 | Use repo-local development checkpoints when host memory is read-only | Available | Host-level memory may be readable but not writable; cross-session continuity should not depend on chat history only | `development_checkpoint.py` writes Markdown/JSON under `reports/checkpoints/generated/` and docs keep reports as historical |
 | P2 | Run real Chat Completions-compatible provider live validation | Not configured | Provider lane is optional fallback, but still part of full multi-provider readiness | `.env.room` and `.env.debate` are locally ready and `chat_completions_live_validation.py` passes |
-| P2 | Validate additional real local agent hosts | Explicit skip evidence available | Gemini/OpenCode/Aider/Goose/Cursor Agent CLIs are not installed here, and missing should be separated from explicitly not claimed | Each installed host reaches `matrix_status=live_passed`, or each unavailable host is explicitly documented with `--skip-host HOST_ID=REASON` |
+| P2 | Validate additional real local agent hosts | OpenCode installed and wrapper added, but this Mac's OpenCode live matrix currently fails on OpenCode's local SQLite/WAL checkpoint path | Gemini/Aider/Goose/Cursor Agent CLIs are not installed here; OpenCode is installed but not claimable until the host matrix passes | OpenCode reaches `matrix_status=live_passed`, or the host is kept explicitly non-claimable with saved failure evidence; unavailable hosts are documented with `--skip-host HOST_ID=REASON` |
 | P3 | Reduce historical-material ambiguity | Ongoing | Old reports and artifacts are useful but can mislead if treated as current source | `source_boundary_audit.py` remains green and docs clearly point to active sources |
 
 ## Recommended Next Task
@@ -111,16 +111,24 @@ but workflow run status and release page publication will remain
 
 If another real third-party local agent is available on the target machine, run
 P2 real host validation with the matrix output, then regenerate the live lane
-evidence report before claiming support:
+evidence report before claiming support. On this Mac, OpenCode is installed and
+has a checked-in wrapper, but the latest forced OpenCode live attempt is not
+claimable because OpenCode's local state store failed during
+`PRAGMA wal_checkpoint(PASSIVE)` after retry:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
-  --run-live-ready \
+  --run-installed \
+  --force-host opencode \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
 
 python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
   --state-root /tmp/round-table-live-lane-evidence
 ```
+
+See `reports/OPENCODE_HOST_LIVE_ATTEMPT_2026-04-28.md` for the historical
+attempt record. Treat OpenCode as P2 non-claimable until the matrix returns
+`matrix_status=live_passed`; this does not block the Codex local mainline.
 
 If a host is intentionally unavailable on the current machine, record that as
 an explicit non-claim instead of leaving it as ambiguous missing work:

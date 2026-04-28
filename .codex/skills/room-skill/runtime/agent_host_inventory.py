@@ -36,6 +36,10 @@ CANDIDATES: list[dict[str, Any]] = [
         "display_name": "OpenCode",
         "executable": "opencode",
         "version_args": ["--version"],
+        "adapter_command": (
+            "python3 .codex/skills/room-skill/runtime/opencode_agent_wrapper.py "
+            "--model opencode/gpt-5-nano"
+        ),
     },
     {
         "id": "aider",
