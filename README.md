@@ -88,6 +88,8 @@ Example interaction shape:
 /debate --quick 我该不该先做这个 MVP
 ```
 
+For longer illustrative walkthroughs, see `examples/transcripts/`.
+
 ## Current Support Scope
 
 The current release is `v0.1.3`.
@@ -167,6 +169,7 @@ into active source files instead of leaving historical material as the authority
 | `docs/debate-skill-architecture.md` | `/debate` protocol and behavior |
 | `docs/room-to-debate-handoff.md` | handoff contract from exploration to review |
 | `docs/generic-local-agent-adapter.md` | generic local CLI agent contract |
+| `examples/transcripts/` | illustrative `/room`, `/debate`, and handoff walkthroughs |
 | `CHANGELOG.md` | release history |
 
 ## Host And Provider Boundaries
