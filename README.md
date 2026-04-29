@@ -3,14 +3,51 @@
 Local-first multi-agent decision workflows for Codex, Claude Code, and other
 local CLI agents.
 
-Round Table Workspace is a local-first multi-agent decision framework. It turns
-two decision workflows, `/room` and `/debate`, into checked-in docs, prompts,
-skills, runtime scripts, validation tools, and release boundaries.
+Round Table Workspace turns `/room` and `/debate` into checked-in docs,
+prompts, skills, runtime scripts, validation tools, and release boundaries. It
+is local-first: the "room" is not a web conference room, and provider URLs are
+optional fallback infrastructure rather than the default path.
 
-The repository is designed for people who want structured AI-assisted thinking
-without turning the workflow into a hosted meeting product. The "room" is not a
-web conference room and the provider URL is not a meeting URL. The primary path
-runs locally through an agent host such as Codex.
+## Quick Start In 5 Minutes
+
+Clone and enter the repository:
+
+```bash
+git clone https://github.com/MarkDonish/round-table-workspace.git
+cd round-table-workspace
+```
+
+Check whether this clone is usable locally:
+
+```bash
+./rtw doctor
+```
+
+For a faster source/readiness preflight:
+
+```bash
+./rtw doctor --quick
+```
+
+Try the command surfaces:
+
+```bash
+./rtw room "我想讨论一个面向大学生的 AI 学习产品，从方向、切口、风险一步步推进"
+./rtw debate "这个创业方向值不值得做"
+```
+
+Current support: the checked-in Codex local mainline for `/room`, `/debate`,
+and `/room -> /debate`; Claude Code project-skill discovery; generic local
+agent adapter contracts with fixture validation; clone-friendly self-checks;
+and host/provider evidence reporting.
+
+Current limits: `./rtw room` and `./rtw debate` are claim-safe stubs until the
+full host runtime is wired into the unified CLI; provider-live support requires
+real `.env.room` and `.env.debate` files plus live validation; fixture passes,
+wrapper presence, and config preflights are not host-live or provider-live
+claims.
+
+For the shortest maintained startup path, read `LAUNCH.md`.
 
 ## What It Does
 
@@ -50,45 +87,6 @@ Example interaction shape:
 /debate --with Jobs,Taleb 这个方向值不值得做
 /debate --quick 我该不该先做这个 MVP
 ```
-
-## Quick Start
-
-Clone and enter the repository:
-
-```bash
-git clone https://github.com/MarkDonish/round-table-workspace.git
-cd round-table-workspace
-```
-
-Run the clone-friendly doctor:
-
-```bash
-./rtw doctor
-```
-
-Use quick mode for a faster source/readiness preflight:
-
-```bash
-./rtw doctor --quick
-```
-
-Try the new command surfaces:
-
-```bash
-./rtw room "我想讨论一个面向大学生的 AI 学习产品，从方向、切口、风险一步步推进"
-./rtw debate "这个创业方向值不值得做"
-```
-
-The `doctor`, `validate --quick`, and `evidence` commands wrap checked-in
-runtime validation. The natural-language `room` and `debate` CLI commands are
-currently claim-safe stubs until the full host runtime is wired to the unified
-entrypoint.
-
-A passing doctor means the checked-in local-first scope is usable on that
-machine. It does not mean every third-party CLI, paid account, or external
-provider has passed live validation.
-
-For the shortest maintained startup path, read `LAUNCH.md`.
 
 ## Current Support Scope
 
