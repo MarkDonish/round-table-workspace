@@ -13,6 +13,7 @@ readiness are not host-live or provider-live support.
 |---|---|---|
 | `v0.2.0-alpha` | Establish a cleaner product entry, protocol schema base, reusable core package, and milestone plan. | `docs/milestones/v0.2.0.md` |
 | `v0.2.0` | Full development scope implemented on `main`; ready for final tag/release review after verification. | `docs/protocol-spec.md`, `schemas/`, `roundtable_core/`, `scripts/release_check.py` |
+| `v0.2.1` | Close the CLI -> runtime -> portable schema -> evidence -> eval -> release-check loop for fixture-backed local paths. | `roundtable/cli.py`, `roundtable_core/protocol/`, `agents/registry.json`, `scripts/run_negative_fixtures.py` |
 | after `v0.2.0` | Broaden host adapters and interactive experience only after the core contracts are stable. | `docs/host-adapter-architecture.md`, `docs/generic-local-agent-adapter.md` |
 
 ## v0.2.0 Themes
@@ -55,6 +56,19 @@ Key completion sources:
 - RTW-014, RTW-015, RTW-016: `skills_src/`, `scripts/generate_skills.py`, `scripts/check_skill_drift.py`
 - RTW-018, RTW-019, RTW-020, RTW-021, RTW-022, RTW-024: `evals/`, `scripts/`, self-check outputs, and `reports/claim-boundary-dashboard.md`
 - RTW-025, RTW-026: `./rtw interactive`, `./rtw demo startup-idea`
+
+## Current v0.2.1 Runtime-Closure Progress
+
+| Task | Status | Source |
+|---|---|---|
+| RTW-NEXT-003 unified handoff protocol | done | `roundtable_core/protocol/handoff.py` |
+| RTW-NEXT-004 runtime artifact projection | done | `roundtable_core/protocol/projections.py` |
+| RTW-NEXT-005 JSON Schema validator upgrade/subset | done | `roundtable_core/validation/json_schema.py`, `docs/schema-validation-subset.md` |
+| RTW-NEXT-006 machine-readable agent registry | done | `agents/registry.json`, `scripts/check_agent_registry_sync.py` |
+| RTW-NEXT-020 negative fixtures | done | `tests/fixtures/negative/`, `scripts/run_negative_fixtures.py` |
+| RTW-NEXT-001 fixture-backed `./rtw room` | done | `roundtable/cli.py` |
+| RTW-NEXT-002 fixture-backed `./rtw debate` | done | `roundtable/cli.py` |
+| RTW-NEXT-014 runtime-generated golden demo | done | `roundtable/cli.py` |
 
 ## Out Of Scope For Roadmap Claims
 

@@ -154,10 +154,22 @@ idle
 The handoff exists to compress exploratory room state into a bounded review
 input. `/debate` consumes `handoff_packet`, not `conversation_log`.
 
-`schemas/room-to-debate-handoff.schema.json` is the portable v0.2.0 handoff
+`schemas/room-to-debate-handoff.schema.json` is the canonical portable handoff
 contract, with `examples/fixtures/room-to-debate-handoff.valid.json` as the
 minimum valid fixture. Debate sessions may embed the packet in
 `handoff_packet`, or use `null` for direct debates.
+
+The legacy runtime packet with `schema_version: "v0.1"` remains a compatibility
+artifact for the current checked-in `/room` and `/debate` bridges. It is not the
+external contract. Conversion lives in `roundtable_core/protocol/handoff.py`:
+
+- `runtime_packet_to_portable_handoff(...)`
+- `portable_handoff_to_runtime_packet(...)`
+
+Room runtime upgrade now writes both the legacy packet and a
+`portable-handoff-packet` projection. Debate preflight accepts portable packets
+by converting them through the compatibility layer before using the legacy
+validator.
 
 Required high-level packet shape:
 

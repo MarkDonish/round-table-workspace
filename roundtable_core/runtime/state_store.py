@@ -83,6 +83,7 @@ def build_run_evidence(
     claim_boundary: dict[str, Any],
     host: str | None = None,
     provider_lane: str | None = None,
+    artifact_paths: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     metadata = build_evidence_metadata(
         workflow=run.workflow,
@@ -97,6 +98,7 @@ def build_run_evidence(
             "host": host or "local",
             "provider_lane": provider_lane or "not_required",
             "input_hash": stable_hash(input_data),
+            "artifact_paths": artifact_paths or {},
         }
     )
     return metadata

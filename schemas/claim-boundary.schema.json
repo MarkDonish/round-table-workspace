@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://round-table-workspace.local/schemas/claim-boundary.schema.json",
+  "title": "Round Table Claim Boundary",
+  "description": "Claim-safe support boundary for fixture, host-live, and provider-live evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "local_first",
+    "host_live",
+    "provider_live",
+    "notes"
+  ],
+  "properties": {
+    "local_first": {
+      "type": "boolean",
+      "const": true
+    },
+    "host_live": {
+      "type": "string",
+      "enum": [
+        "not_claimed",
+        "fixture_only",
+        "pending_live_validation",
+        "live_passed"
+      ]
+    },
+    "provider_live": {
+      "type": "string",
+      "enum": [
+        "not_claimed",
+        "pending_live_validation",
+        "live_passed"
+      ]
+    },
+    "notes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "evidence_records": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "host_live": {
+            "const": "live_passed"
+          }
+        }
+      },
+      "then": {
+        "required": ["evidence_records"],
+        "properties": {
+          "evidence_records": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "provider_live": {
+            "const": "live_passed"
+          }
+        }
+      },
+      "then": {
+        "required": ["evidence_records"],
+        "properties": {
+          "evidence_records": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}

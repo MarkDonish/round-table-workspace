@@ -53,11 +53,13 @@ and `/room -> /debate`; Claude Code project-skill discovery; generic local
 agent adapter contracts with fixture validation; clone-friendly self-checks;
 and host/provider evidence reporting.
 
-Current limits: `./rtw room` and `./rtw debate` are claim-safe stubs until the
-full host runtime is wired into the unified CLI; provider-live support requires
-real `.env.room` and `.env.debate` files plus live validation; fixture passes,
-wrapper presence, and config preflights are not host-live or provider-live
-claims.
+Current limits: `./rtw room` and `./rtw debate` now run checked-in
+fixture-backed local runtime paths and project their artifacts into portable
+schemas. They are still not host-live or provider-live executions. Use
+`--stub` on either command to show the old boundary-only stub. Provider-live
+support requires real `.env.room` and `.env.debate` files plus live validation;
+fixture passes, wrapper presence, and config preflights are not host-live or
+provider-live claims.
 
 For the shortest maintained startup path, read `LAUNCH.md`.
 
@@ -148,6 +150,7 @@ round-table-workspace/
 ├─ CHANGELOG.md
 ├─ docs/
 ├─ schemas/
+├─ agents/
 ├─ roundtable_core/
 ├─ scripts/
 ├─ skills_src/
@@ -166,6 +169,7 @@ Active source of truth:
 - `LAUNCH.md`
 - `docs/`
 - `schemas/`
+- `agents/`
 - `roundtable_core/`
 - `scripts/`
 - `skills_src/`
@@ -198,7 +202,9 @@ into active source files instead of leaving historical material as the authority
 | `docs/milestones/v0.2.0.md` | v0.2.0 milestone scope and issue split |
 | `docs/protocol-spec.md` | unified `/room`, `/debate`, and handoff protocol overview |
 | `docs/decision-quality-rubric.md` | machine-checkable decision quality rubric |
+| `docs/schema-validation-subset.md` | Draft 2020-12 fallback validator boundary |
 | `docs/skill-generation.md` | generated skill summary and drift-check maintenance |
+| `agents/registry.json` | machine-readable agent registry consumed by runtime bridges |
 | `schemas/room-session.schema.json` | portable `/room` session state schema |
 | `schemas/debate-session.schema.json` | portable `/debate` session state schema |
 | `schemas/debate-result.schema.json` | portable `/debate` result schema |

@@ -21,6 +21,7 @@ Primary source directories:
 - `AGENTS.md`
 - `docs/`
 - `schemas/`
+- `agents/`
 - `roundtable_core/`
 - `scripts/`
 - `skills_src/`

@@ -4,6 +4,7 @@ import io
 import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
@@ -93,8 +94,8 @@ class RoundtableCliTest(unittest.TestCase):
         self.assertIn(".codex/skills/room-skill/runtime/live_lane_evidence_report.py", command)
         self.assertEqual(command[command.index("--state-root") + 1], "/tmp/evidence")
 
-    def test_room_is_claim_safe_stub_until_natural_language_runtime_is_wired(self) -> None:
-        code, output = self.invoke(["room", "讨论一个大学生 AI 学习产品"])
+    def test_room_stub_remains_available(self) -> None:
+        code, output = self.invoke(["room", "--stub", "讨论一个大学生 AI 学习产品"])
 
         self.assertEqual(code, 0)
         payload = json.loads(output)
@@ -103,8 +104,8 @@ class RoundtableCliTest(unittest.TestCase):
         self.assertIn("not host-live", payload["claim_boundary"][0])
         self.assertIn("room_runtime.py validate-canonical", " ".join(payload["next_commands"]))
 
-    def test_debate_is_claim_safe_stub_until_natural_language_runtime_is_wired(self) -> None:
-        code, output = self.invoke(["debate", "这个 MVP 值不值得做"])
+    def test_debate_stub_remains_available(self) -> None:
+        code, output = self.invoke(["debate", "--stub", "这个 MVP 值不值得做"])
 
         self.assertEqual(code, 0)
         payload = json.loads(output)
@@ -112,6 +113,27 @@ class RoundtableCliTest(unittest.TestCase):
         self.assertEqual(payload["status"], "safe_stub")
         self.assertIn("not provider-live", payload["claim_boundary"][0])
         self.assertIn("debate_runtime.py validate-canonical", " ".join(payload["next_commands"]))
+
+    def test_room_runs_fixture_backed_runtime(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            code, output = self.invoke(["room", "讨论一个大学生 AI 学习产品", "--state-root", temp_dir])
+            self.assertEqual(code, 0)
+            payload = json.loads(output)
+            self.assertEqual(payload["status"], "fixture_backed")
+            self.assertTrue(payload["schema_validation"]["ok"])
+            self.assertTrue(Path(payload["outputs"]["room_session"]).exists())
+            self.assertTrue(Path(payload["outputs"]["portable_handoff_packet"]).exists())
+
+    def test_debate_runs_fixture_backed_runtime(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            code, output = self.invoke(["debate", "这个 MVP 值不值得做", "--state-root", temp_dir])
+            self.assertEqual(code, 0)
+            payload = json.loads(output)
+            self.assertEqual(payload["status"], "fixture_backed")
+            self.assertTrue(payload["schema_validation"]["debate_session"]["ok"])
+            self.assertTrue(payload["schema_validation"]["debate_result"]["ok"])
+            self.assertTrue(Path(payload["outputs"]["debate_session"]).exists())
+            self.assertTrue(Path(payload["outputs"]["debate_result"]).exists())
 
     def test_repo_root_points_to_checkout(self) -> None:
         from roundtable import cli

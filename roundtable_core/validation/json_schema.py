@@ -7,6 +7,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+try:  # pragma: no cover - optional dependency path depends on local install.
+    from jsonschema import Draft202012Validator
+except Exception:  # pragma: no cover - the repo keeps a no-dependency fallback.
+    Draft202012Validator = None
+
 
 @dataclass(frozen=True)
 class SchemaValidationResult:
@@ -14,6 +19,8 @@ class SchemaValidationResult:
     schema_path: str
     instance_path: str
     errors: list[str]
+    validator_name: str = "rtw-subset"
+    supported_draft: str = "draft-2020-12-subset"
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -21,6 +28,8 @@ class SchemaValidationResult:
             "schema_path": self.schema_path,
             "instance_path": self.instance_path,
             "errors": self.errors,
+            "validator_name": self.validator_name,
+            "supported_draft": self.supported_draft,
         }
 
     def to_json(self) -> str:
@@ -30,19 +39,31 @@ class SchemaValidationResult:
 def validate_file(*, schema_path: Path, instance_path: Path) -> SchemaValidationResult:
     schema = json.loads(Path(schema_path).read_text(encoding="utf-8"))
     instance = json.loads(Path(instance_path).read_text(encoding="utf-8"))
-    errors = validate_instance(instance=instance, schema=schema)
+    errors, validator_name, supported_draft = validate_instance_details(instance=instance, schema=schema)
     return SchemaValidationResult(
         ok=not errors,
         schema_path=str(schema_path),
         instance_path=str(instance_path),
         errors=errors,
+        validator_name=validator_name,
+        supported_draft=supported_draft,
     )
 
 
 def validate_instance(*, instance: Any, schema: dict[str, Any]) -> list[str]:
+    errors, _, _ = validate_instance_details(instance=instance, schema=schema)
+    return errors
+
+
+def validate_instance_details(*, instance: Any, schema: dict[str, Any]) -> tuple[list[str], str, str]:
+    if Draft202012Validator is not None:
+        validator = Draft202012Validator(schema)
+        errors = sorted(validator.iter_errors(instance), key=lambda item: list(item.path))
+        return [format_jsonschema_error(error) for error in errors], "jsonschema.Draft202012Validator", "draft-2020-12"
+
     errors: list[str] = []
     _validate(instance=instance, schema=schema, root_schema=schema, path="$", errors=errors)
-    return errors
+    return errors, "rtw-subset", "draft-2020-12-subset"
 
 
 def _validate(
@@ -57,6 +78,41 @@ def _validate(
         target = resolve_ref(root_schema, str(schema["$ref"]))
         _validate(instance=instance, schema=target, root_schema=root_schema, path=path, errors=errors)
         return
+
+    for child_schema in schema.get("allOf", []):
+        if isinstance(child_schema, dict):
+            _validate(instance=instance, schema=child_schema, root_schema=root_schema, path=path, errors=errors)
+
+    any_of = schema.get("anyOf")
+    if isinstance(any_of, list):
+        child_results = validate_schema_candidates(instance, any_of, root_schema, path)
+        if not any(not result for result in child_results):
+            errors.append(f"{path}: expected to match at least one anyOf schema")
+
+    one_of = schema.get("oneOf")
+    if isinstance(one_of, list):
+        child_results = validate_schema_candidates(instance, one_of, root_schema, path)
+        pass_count = sum(1 for result in child_results if not result)
+        if pass_count != 1:
+            errors.append(f"{path}: expected to match exactly one oneOf schema, matched {pass_count}")
+
+    not_schema = schema.get("not")
+    if isinstance(not_schema, dict):
+        candidate_errors: list[str] = []
+        _validate(instance=instance, schema=not_schema, root_schema=root_schema, path=path, errors=candidate_errors)
+        if not candidate_errors:
+            errors.append(f"{path}: instance must not match forbidden schema")
+
+    if_schema = schema.get("if")
+    if isinstance(if_schema, dict):
+        condition_errors: list[str] = []
+        _validate(instance=instance, schema=if_schema, root_schema=root_schema, path=path, errors=condition_errors)
+        then_schema = schema.get("then")
+        else_schema = schema.get("else")
+        if not condition_errors and isinstance(then_schema, dict):
+            _validate(instance=instance, schema=then_schema, root_schema=root_schema, path=path, errors=errors)
+        if condition_errors and isinstance(else_schema, dict):
+            _validate(instance=instance, schema=else_schema, root_schema=root_schema, path=path, errors=errors)
 
     if "const" in schema and instance != schema["const"]:
         errors.append(f"{path}: expected const {schema['const']!r}, got {instance!r}")
@@ -105,6 +161,23 @@ def validate_object(
                     errors=errors,
                 )
 
+    min_properties = schema.get("minProperties")
+    if isinstance(min_properties, int) and len(instance) < min_properties:
+        errors.append(f"{path}: expected at least {min_properties} properties, got {len(instance)}")
+
+    max_properties = schema.get("maxProperties")
+    if isinstance(max_properties, int) and len(instance) > max_properties:
+        errors.append(f"{path}: expected at most {max_properties} properties, got {len(instance)}")
+
+    dependent_required = schema.get("dependentRequired", {})
+    if isinstance(dependent_required, dict):
+        for key, dependents in dependent_required.items():
+            if key not in instance or not isinstance(dependents, list):
+                continue
+            for dependent in dependents:
+                if dependent not in instance:
+                    errors.append(f"{path}: property {key!r} requires property {dependent!r}")
+
     additional = schema.get("additionalProperties", True)
     if additional is False and isinstance(properties, dict):
         allowed = set(properties)
@@ -149,6 +222,15 @@ def validate_array(
                 path=f"{path}[{index}]",
                 errors=errors,
             )
+
+    if schema.get("uniqueItems") is True:
+        seen: set[str] = set()
+        for item in instance:
+            fingerprint = json.dumps(item, ensure_ascii=False, sort_keys=True)
+            if fingerprint in seen:
+                errors.append(f"{path}: expected unique array items")
+                break
+            seen.add(fingerprint)
 
 
 def validate_string(*, instance: str, schema: dict[str, Any], path: str, errors: list[str]) -> None:
@@ -236,3 +318,30 @@ def is_iso_datetime(value: str) -> bool:
     except ValueError:
         return False
     return True
+
+
+def validate_schema_candidates(
+    instance: Any,
+    schemas: list[Any],
+    root_schema: dict[str, Any],
+    path: str,
+) -> list[list[str]]:
+    results: list[list[str]] = []
+    for child_schema in schemas:
+        candidate_errors: list[str] = []
+        if isinstance(child_schema, dict):
+            _validate(instance=instance, schema=child_schema, root_schema=root_schema, path=path, errors=candidate_errors)
+        else:
+            candidate_errors.append(f"{path}: schema candidate is not an object")
+        results.append(candidate_errors)
+    return results
+
+
+def format_jsonschema_error(error: Any) -> str:
+    location = "$"
+    for part in error.path:
+        if isinstance(part, int):
+            location += f"[{part}]"
+        else:
+            location += f".{part}"
+    return f"{location}: {error.message}"

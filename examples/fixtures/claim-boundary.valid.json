@@ -1,0 +1,8 @@
+{
+  "local_first": true,
+  "host_live": "not_claimed",
+  "provider_live": "not_claimed",
+  "notes": [
+    "Fixture and local validation evidence is not host-live or provider-live support."
+  ]
+}

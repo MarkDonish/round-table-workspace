@@ -10,7 +10,24 @@ live validation evidence.
 
 ## Unreleased
 
-No release-scope changes yet.
+### Added
+
+- `./rtw room` and `./rtw debate` now run fixture-backed local runtime paths,
+  write standard `runs/<run_id>/` artifacts, and validate portable schema
+  projections.
+- Canonical handoff conversion helpers in `roundtable_core/protocol/handoff.py`
+  and runtime artifact projection helpers in
+  `roundtable_core/protocol/projections.py`.
+- Machine-readable `agents/registry.json` plus registry sync checks so runtime
+  no longer parses `docs/agent-registry.md` tables.
+- Negative fixture runner for schema and claim-boundary rejection checks.
+
+### Changed
+
+- `./rtw demo startup-idea` now generates output through the fixture-backed room
+  and debate runtime paths instead of copying only static demo files.
+- JSON Schema validation fallback now supports the conditional and composition
+  keywords used by current schemas and reports its validator boundary.
 
 ## v0.2.0-alpha - 2026-04-29
 

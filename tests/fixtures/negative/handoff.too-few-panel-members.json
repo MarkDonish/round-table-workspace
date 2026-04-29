@@ -1,0 +1,36 @@
+{
+  "schema_version": "0.1.0",
+  "source_room_session_id": "room-negative-handoff",
+  "decision_question": "Should this handoff be accepted with too few panel members?",
+  "context_summary": "This fixture intentionally has only two recommended panel members.",
+  "key_assumptions": ["Validator must enforce handoff panel cardinality."],
+  "known_evidence": [],
+  "open_questions": ["Will minItems catch this?"],
+  "risk_flags": [
+    {
+      "risk": "Too few debate panel members.",
+      "why_it_matters": "The debate protocol requires 3-5 members."
+    }
+  ],
+  "recommended_panel": [
+    {
+      "agent_id": "steve-jobs",
+      "display_name": "Jobs lens",
+      "cognitive_lens": ["product focus"],
+      "responsibility": "Product focus."
+    },
+    {
+      "agent_id": "munger",
+      "display_name": "Munger lens",
+      "cognitive_lens": ["inversion"],
+      "responsibility": "Downside review."
+    }
+  ],
+  "handoff_created_at": "2026-04-29T00:00:00Z",
+  "claim_boundary": {
+    "local_first": true,
+    "host_live": "not_claimed",
+    "provider_live": "not_claimed",
+    "notes": ["Negative fixture should fail because recommended_panel has fewer than three members."]
+  }
+}

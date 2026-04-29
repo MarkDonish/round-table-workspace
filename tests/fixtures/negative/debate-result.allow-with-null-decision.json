@@ -1,0 +1,139 @@
+{
+  "schema_version": "0.1.0",
+  "result_id": "debate-result-negative-null-decision",
+  "session_id": "debate-negative-null-decision",
+  "workflow": "debate",
+  "launch_bundle": {
+    "schema_version": "v0.1",
+    "mode": "debate_launch",
+    "source_kind": "room_handoff",
+    "debate_id": "debate-negative-null-decision",
+    "topic": "Validate conditional final decision rule.",
+    "primary_type": "product",
+    "participants": [
+      {
+        "agent_id": "steve-jobs",
+        "short_name": "Jobs",
+        "responsibility": "Product focus."
+      },
+      {
+        "agent_id": "munger",
+        "short_name": "Munger",
+        "responsibility": "Downside review."
+      },
+      {
+        "agent_id": "taleb",
+        "short_name": "Taleb",
+        "responsibility": "Fragility review."
+      }
+    ],
+    "speaker_order": ["steve-jobs", "munger", "taleb"]
+  },
+  "selected_panel": [
+    {
+      "agent_id": "steve-jobs",
+      "short_name": "Jobs",
+      "responsibility": "Product focus."
+    },
+    {
+      "agent_id": "munger",
+      "short_name": "Munger",
+      "responsibility": "Downside review."
+    },
+    {
+      "agent_id": "taleb",
+      "short_name": "Taleb",
+      "responsibility": "Fragility review."
+    }
+  ],
+  "agent_arguments": [
+    {
+      "agent_id": "steve-jobs",
+      "role_duty": "Product focus.",
+      "core_conclusion": "The wedge must be narrow.",
+      "evidence": ["A narrow wedge is easier to validate."],
+      "biggest_problem": "The wedge is still broad.",
+      "opposed_misjudgment": "Do not confuse features with value.",
+      "concrete_recommendation": "Test one concrete workflow.",
+      "confidence": "medium",
+      "uncertainties": []
+    },
+    {
+      "agent_id": "munger",
+      "role_duty": "Downside review.",
+      "core_conclusion": "The kill rule must be explicit.",
+      "evidence": ["Weak signals can mislead early teams."],
+      "biggest_problem": "No stop rule.",
+      "opposed_misjudgment": "Do not treat interest as retention.",
+      "concrete_recommendation": "Write the stop rule first.",
+      "confidence": "high",
+      "uncertainties": []
+    },
+    {
+      "agent_id": "taleb",
+      "role_duty": "Fragility review.",
+      "core_conclusion": "Keep the downside bounded.",
+      "evidence": ["Bad advice can harm trust."],
+      "biggest_problem": "Trust damage is under-modeled.",
+      "opposed_misjudgment": "Do not treat low build cost as low user risk.",
+      "concrete_recommendation": "Start with reversible tasks.",
+      "confidence": "high",
+      "uncertainties": []
+    }
+  ],
+  "moderator_summary": {
+    "topic_restatement": "Validate conditional final decision rule.",
+    "participants_and_roles": [
+      {
+        "agent_id": "steve-jobs",
+        "short_name": "Jobs",
+        "responsibility": "Product focus."
+      },
+      {
+        "agent_id": "munger",
+        "short_name": "Munger",
+        "responsibility": "Downside review."
+      },
+      {
+        "agent_id": "taleb",
+        "short_name": "Taleb",
+        "responsibility": "Fragility review."
+      }
+    ],
+    "consensus_points": ["The next step must be bounded."],
+    "core_conflicts": [],
+    "hidden_assumptions": [],
+    "preliminary_recommendation": "Run a bounded validation.",
+    "review_focus": ["Check the final decision contract."]
+  },
+  "reviewer_result": {
+    "review_applicable": true,
+    "overall_score": 8,
+    "best_agent": "munger",
+    "weak_agents": [],
+    "evidence_gaps": [],
+    "logic_gaps": [],
+    "overlooked_issues": [],
+    "severe_red_flags": [],
+    "allow_final_decision": true,
+    "required_followups": [],
+    "rationale": "Reviewer allows a final decision."
+  },
+  "final_outcome": "allow",
+  "final_decision": null,
+  "open_questions": [],
+  "evidence": {
+    "facts": [],
+    "inferences": [],
+    "uncertainties": [],
+    "recommendations": ["Run a bounded validation."]
+  },
+  "claim_boundary": {
+    "local_first": true,
+    "host_live": "not_claimed",
+    "provider_live": "not_claimed",
+    "notes": ["Negative fixture should fail because allow requires final_decision object."]
+  },
+  "created_at": "2026-04-29T00:00:00Z",
+  "updated_at": "2026-04-29T00:00:00Z"
+}

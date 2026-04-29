@@ -7,15 +7,20 @@
 
 ## Role
 
-This document is the normalized runtime-facing registry for the current roundtable agent pool.
+`agents/registry.json` is the machine-readable runtime registry for the current
+roundtable agent pool. This document is the human-readable registry view and
+must stay synchronized with that JSON source.
 
 It does not replace detailed persona files. Instead:
 
 - `.codex/skills/*/roundtable-profile.md` remains the detailed per-agent profile source
 - `prompts/room-selection.md` remains the executable selection contract
-- this document provides a stable registry view that is safe for orchestrator-level logic
+- this document provides a stable registry view that is safe for human review
 
-If there is a conflict on selection-critical fields such as `task_types`, `stage_fit`, `structural_role`, or `default_excluded`, this document and `prompts/room-selection.md` should be kept in sync together.
+If there is a conflict on selection-critical fields such as `task_types`,
+`stage_fit`, `structural_role`, or `default_excluded`, `agents/registry.json`
+wins for runtime behavior. Update this document and `prompts/room-selection.md`
+to match.
 
 ---
 

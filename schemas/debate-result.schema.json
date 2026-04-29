@@ -137,6 +137,44 @@
       "format": "date-time"
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "required": ["final_outcome"],
+        "properties": {
+          "final_outcome": {
+            "const": "allow"
+          }
+        }
+      },
+      "then": {
+        "required": ["final_decision"],
+        "properties": {
+          "final_decision": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["final_outcome"],
+        "properties": {
+          "final_outcome": {
+            "enum": ["reject", "follow_up_required"]
+          }
+        }
+      },
+      "then": {
+        "required": ["final_decision"],
+        "properties": {
+          "final_decision": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "launch_bundle": {
       "type": "object",

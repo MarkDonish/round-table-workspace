@@ -9,7 +9,13 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-REGISTRY_PATH = REPO_ROOT / "docs" / "agent-registry.md"
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.agents.registry import load_agent_registry
+from roundtable_core.protocol.handoff import runtime_packet_to_portable_handoff, portable_handoff_to_runtime_packet
+
+REGISTRY_PATH = REPO_ROOT / "agents" / "registry.json"
 
 VALID_TASK_TYPES = {"startup", "product", "learning", "content", "risk", "planning", "strategy", "writing"}
 VALID_REASON_CODES = {
@@ -65,6 +71,8 @@ def validate_handoff_packet(payload: dict[str, Any]) -> dict[str, Any]:
     packet = payload.get("handoff_packet") if isinstance(payload, dict) and "handoff_packet" in payload else payload
     if not isinstance(packet, dict):
         raise DebatePacketValidationError("Packet payload must be an object or {handoff_packet: {...}} wrapper.")
+    if packet.get("schema_version") == "0.1.0":
+        packet = portable_handoff_to_runtime_packet(packet)
 
     registry = load_registry()
 
@@ -142,6 +150,7 @@ def validate_handoff_packet(payload: dict[str, Any]) -> dict[str, Any]:
             "triggered_by": upgrade_reason["triggered_by"],
             "confidence": upgrade_reason["confidence"],
         },
+        "portable_handoff": runtime_packet_to_portable_handoff(packet),
     }
 
 
@@ -253,36 +262,10 @@ def summarize_balance(agent_ids: list[str], registry: dict[str, dict[str, Any]])
 
 
 def load_registry() -> dict[str, dict[str, Any]]:
-    text = REGISTRY_PATH.read_text(encoding="utf-8")
-    lines = text.splitlines()
-    start = None
-    for index, line in enumerate(lines):
-        if line.strip().startswith("| agent_id | short_name | structural_role |"):
-            start = index + 2
-            break
-    if start is None:
-        raise DebatePacketValidationError("Could not locate the registry table in docs/agent-registry.md.")
-
-    registry: dict[str, dict[str, Any]] = {}
-    for line in lines[start:]:
-        stripped = line.strip()
-        if not stripped.startswith("|"):
-            break
-        cells = [clean_table_cell(part) for part in stripped.strip("|").split("|")]
-        if len(cells) != 9:
-            continue
-        agent_id = cells[0]
-        registry[agent_id] = {
-            "agent_id": agent_id,
-            "short_name": cells[1],
-            "structural_role": cells[2],
-            "expression": cells[3],
-            "strength": cells[4],
-            "default_excluded": cells[5] == "yes",
-        }
-    if not registry:
-        raise DebatePacketValidationError("Agent registry is empty after parsing docs/agent-registry.md.")
-    return registry
+    try:
+        return load_agent_registry(REGISTRY_PATH)
+    except Exception as exc:
+        raise DebatePacketValidationError(f"Could not load machine-readable agent registry: {exc}") from exc
 
 
 def load_json(path: Path) -> dict[str, Any]:

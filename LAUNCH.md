@@ -44,6 +44,17 @@ Try the fixture/mock golden demo:
 ./rtw demo startup-idea
 ```
 
+Run the fixture-backed CLI runtime paths:
+
+```bash
+./rtw room "我想讨论一个面向大学生的 AI 学习产品"
+./rtw debate "这个创业方向值不值得做"
+```
+
+These commands write standard `runs/<run_id>/` output and portable schema
+projections. They do not claim host-live or provider-live execution. Add
+`--stub` to either command when you only want the boundary-only stub response.
+
 Run the v0.2.0 aggregate release checks:
 
 ```bash

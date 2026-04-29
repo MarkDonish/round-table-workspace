@@ -14,6 +14,7 @@ repository to another local agent host.
 | `README.md` | Project overview and entry index | Current state, capability summary, entrypoint discovery | Replacing detailed protocol docs |
 | `docs/` | Active protocol and release source | Architecture, release scope, host adapters, provider readiness, sync protocol | Historical session archaeology unless under `docs/archive/` |
 | `schemas/` | Active protocol schemas | Machine-checkable session, result, and handoff shapes | Runtime output storage or historical reports |
+| `agents/` | Active machine-readable agent registry | Runtime selection metadata and cognitive-lens records consumed by `/room` and `/debate` bridges | Human-only prose or historical registry archaeology |
 | `roundtable_core/` | Active reusable runtime source | Host-neutral protocol, runtime, path, evidence, and validation helpers | Host-specific prompt execution or generated artifacts |
 | `scripts/` | Active automation source | Release checks, consistency checks, skill drift checks, dashboards, and regression fixture runners | Host-live evidence by itself |
 | `skills_src/` | Active skill-generation source | Normalized generated skill summary sections and shared rules | Replacing full manual skill bodies before migration is complete |

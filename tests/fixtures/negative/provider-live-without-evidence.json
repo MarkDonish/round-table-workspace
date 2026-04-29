@@ -1,0 +1,6 @@
+{
+  "local_first": true,
+  "host_live": "not_claimed",
+  "provider_live": "live_passed",
+  "notes": ["Negative fixture should fail because provider_live live_passed requires evidence_records."]
+}

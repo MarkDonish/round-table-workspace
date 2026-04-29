@@ -43,6 +43,17 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ],
         timeout=args.timeout_seconds + 10,
     )
+    checks["agent_registry_sync"] = run_json(
+        [
+            sys.executable,
+            "scripts/check_agent_registry_sync.py",
+            "--output-json",
+            str(state_root / "agent-registry-sync.json"),
+            "--output-markdown",
+            str(state_root / "agent-registry-sync.md"),
+        ],
+        timeout=args.timeout_seconds + 10,
+    )
     checks["skill_drift"] = run_json(
         [
             sys.executable,
@@ -55,12 +66,22 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         timeout=args.timeout_seconds + 10,
     )
     checks["schema_validation"] = run_schema_validations(args.timeout_seconds)
+    checks["runtime_projection_validation"] = run_runtime_projection_validations(state_root, args.timeout_seconds)
     checks["regression_fixtures"] = run_json(
         [
             sys.executable,
             "scripts/run_regression_fixtures.py",
             "--output-json",
             str(state_root / "regression-fixtures.json"),
+        ],
+        timeout=args.timeout_seconds + 10,
+    )
+    checks["negative_fixtures"] = run_json(
+        [
+            sys.executable,
+            "scripts/run_negative_fixtures.py",
+            "--output-json",
+            str(state_root / "negative-fixtures.json"),
         ],
         timeout=args.timeout_seconds + 10,
     )
@@ -135,9 +156,38 @@ def run_schema_validations(timeout: int) -> dict[str, Any]:
         ["./rtw", "validate", "--schema", "schemas/debate-session.schema.json", "--fixture", "examples/fixtures/debate-session.valid.json"],
         ["./rtw", "validate", "--schema", "schemas/debate-result.schema.json", "--fixture", "examples/fixtures/debate-result.valid.json"],
         ["./rtw", "validate", "--schema", "schemas/room-to-debate-handoff.schema.json", "--fixture", "examples/fixtures/room-to-debate-handoff.valid.json"],
+        ["./rtw", "validate", "--schema", "schemas/claim-boundary.schema.json", "--fixture", "examples/fixtures/claim-boundary.valid.json"],
     ]
     results = [run_json(command, timeout=timeout) for command in commands]
     return {"ok": all(item.get("ok") for item in results), "results": results}
+
+
+def run_runtime_projection_validations(state_root: Path, timeout: int) -> dict[str, Any]:
+    room = run_json(
+        [
+            "./rtw",
+            "room",
+            "我想讨论一个面向大学生的 AI 学习产品",
+            "--state-root",
+            str(state_root / "projection-room"),
+        ],
+        timeout=timeout + 30,
+    )
+    debate = run_json(
+        [
+            "./rtw",
+            "debate",
+            "这个创业方向值不值得做",
+            "--state-root",
+            str(state_root / "projection-debate"),
+        ],
+        timeout=timeout + 30,
+    )
+    return {
+        "ok": room.get("ok") and debate.get("ok"),
+        "room": room,
+        "debate": debate,
+    }
 
 
 def run_git_clean() -> dict[str, Any]:

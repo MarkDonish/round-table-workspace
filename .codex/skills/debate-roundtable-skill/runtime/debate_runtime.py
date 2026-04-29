@@ -14,6 +14,11 @@ import debate_packet_validator as packet_validator
 
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.protocol.handoff import portable_handoff_to_runtime_packet
+
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "debates"
 ROOM_UPGRADE_FIXTURE = (
     REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "fixtures" / "canonical" / "upgrade.json"
@@ -1856,6 +1861,8 @@ def validate_packet_payload(payload: dict[str, Any]) -> dict[str, Any]:
 def unwrap_packet(payload: dict[str, Any]) -> dict[str, Any]:
     packet = payload.get("handoff_packet") if "handoff_packet" in payload else payload
     require(isinstance(packet, dict), "handoff packet payload must be an object.")
+    if packet.get("schema_version") == "0.1.0":
+        packet = portable_handoff_to_runtime_packet(packet)
     return packet
 
 

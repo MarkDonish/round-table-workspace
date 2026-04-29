@@ -13,8 +13,14 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.agents.registry import load_agent_registry
+from roundtable_core.protocol.handoff import runtime_packet_to_portable_handoff
+
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "rooms"
-REGISTRY_PATH = REPO_ROOT / "docs" / "agent-registry.md"
+REGISTRY_PATH = REPO_ROOT / "agents" / "registry.json"
 DEBATE_SKILL_PATH = REPO_ROOT / ".codex" / "skills" / "debate-roundtable-skill" / "SKILL.md"
 DEBATE_PACKET_VALIDATOR_PATH = (
     REPO_ROOT / ".codex" / "skills" / "debate-roundtable-skill" / "runtime" / "debate_packet_validator.py"
@@ -367,6 +373,8 @@ def command_validate_canonical(args: argparse.Namespace) -> dict[str, Any]:
             "turn_002": str(room_dir / "turns" / "turn-002.turn.json"),
             "summary": str(room_dir / "summary" / "summary-turn-002.json"),
             "handoff_packet": str(room_dir / "handoff" / "packet-turn-002.json"),
+            "legacy_handoff_packet": str(room_dir / "handoff" / "legacy-handoff-packet-turn-002.json"),
+            "portable_handoff_packet": str(room_dir / "handoff" / "portable-handoff-packet-turn-002.json"),
             "debate_acceptance": str(room_dir / "handoff" / "debate-acceptance.json"),
         },
         "steps": {
@@ -380,6 +388,9 @@ def command_validate_canonical(args: argparse.Namespace) -> dict[str, Any]:
             "at_least_two_turns": state["turn_count"] >= 2,
             "summary_persisted": bool((room_dir / "summary" / "summary-turn-002.json").exists()),
             "handoff_packet_persisted": bool((room_dir / "handoff" / "packet-turn-002.json").exists()),
+            "portable_handoff_packet_persisted": bool(
+                (room_dir / "handoff" / "portable-handoff-packet-turn-002.json").exists()
+            ),
             "debate_preflight_accepts_packet": upgrade_result["debate_acceptance"]["accepted"],
         },
     }
@@ -526,13 +537,19 @@ def apply_upgrade(
     room_dir = get_room_dir(state_root, updated_state["room_id"])
     ensure_directory(room_dir / "handoff")
     packet_path = room_dir / "handoff" / f"packet-turn-{updated_state['turn_count']:03d}.json"
+    legacy_packet_path = room_dir / "handoff" / f"legacy-handoff-packet-turn-{updated_state['turn_count']:03d}.json"
+    portable_packet_path = room_dir / "handoff" / f"portable-handoff-packet-turn-{updated_state['turn_count']:03d}.json"
     acceptance_path = room_dir / "handoff" / "debate-acceptance.json"
     write_json(packet_path, upgrade_output)
+    write_json(legacy_packet_path, packet)
+    write_json(portable_packet_path, runtime_packet_to_portable_handoff(packet))
     write_json(acceptance_path, acceptance)
     save_state(state_root, updated_state)
 
     result = {
         "packet_path": str(packet_path),
+        "legacy_packet_path": str(legacy_packet_path),
+        "portable_packet_path": str(portable_packet_path),
         "state_path": str(room_dir / "state.json"),
         "debate_acceptance": acceptance,
         "mode": updated_state["mode"],
@@ -1205,39 +1222,10 @@ def detect_upgrade_signal(state: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def load_registry() -> dict[str, dict[str, Any]]:
-    text = REGISTRY_PATH.read_text(encoding="utf-8")
-    lines = text.splitlines()
-    start = None
-    for index, line in enumerate(lines):
-        if line.strip().startswith("| agent_id | short_name | structural_role |"):
-            start = index + 2
-            break
-    if start is None:
-        raise RoomRuntimeError("Could not locate the registry table in docs/agent-registry.md.")
-
-    registry: dict[str, dict[str, Any]] = {}
-    for line in lines[start:]:
-        stripped = line.strip()
-        if not stripped.startswith("|"):
-            break
-        cells = [clean_table_cell(part) for part in stripped.strip("|").split("|")]
-        if len(cells) != 9:
-            continue
-        agent_id = cells[0]
-        registry[agent_id] = {
-            "agent_id": agent_id,
-            "short_name": cells[1],
-            "structural_role": cells[2],
-            "expression": cells[3],
-            "strength": cells[4],
-            "default_excluded": cells[5] == "yes",
-            "task_types": split_csv_field(cells[6]),
-            "stage_fit": split_csv_field(cells[7]),
-            "sub_problem_tags": split_csv_field(cells[8]),
-        }
-    if not registry:
-        raise RoomRuntimeError("Agent registry is empty after parsing docs/agent-registry.md.")
-    return registry
+    try:
+        return load_agent_registry(REGISTRY_PATH)
+    except Exception as exc:
+        raise RoomRuntimeError(f"Could not load machine-readable agent registry: {exc}") from exc
 
 
 def canonicalize_registry_agent(raw_agent_id: Any, registry: dict[str, dict[str, Any]]) -> str:

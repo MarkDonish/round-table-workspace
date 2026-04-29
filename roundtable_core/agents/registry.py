@@ -1,6 +1,13 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_REGISTRY_PATH = REPO_ROOT / "agents" / "registry.json"
 
 
 @dataclass(frozen=True)
@@ -25,51 +32,67 @@ class AgentLens:
         }
 
 
-AGENT_LENSES: dict[str, AgentLens] = {
-    "steve-jobs": AgentLens(
-        agent_id="steve-jobs",
-        display_name="Jobs lens",
-        short_name="Jobs",
-        cognitive_lens=("product focus", "taste", "user experience compression"),
-        useful_when=("product wedge", "positioning", "experience clarity"),
-        avoid=("voice imitation", "invented personal opinions", "biographical claims"),
-        style_rule="Use the product judgment lens; do not imitate Steve Jobs' voice.",
-    ),
-    "taleb": AgentLens(
-        agent_id="taleb",
-        display_name="Taleb lens",
-        short_name="Taleb",
-        cognitive_lens=("tail risk", "fragility", "skin in the game"),
-        useful_when=("downside risk", "fragile assumptions", "asymmetric payoff"),
-        avoid=("voice imitation", "insult style", "unverified claims about Taleb"),
-        style_rule="Use the risk lens; do not imitate Nassim Taleb's voice.",
-    ),
-    "munger": AgentLens(
-        agent_id="munger",
-        display_name="Munger lens",
-        short_name="Munger",
-        cognitive_lens=("incentives", "inversion", "downside control"),
-        useful_when=("kill rules", "decision filters", "risk review"),
-        avoid=("voice imitation", "quotes presented as fact without source"),
-        style_rule="Use the mental-model lens; do not imitate Charlie Munger's voice.",
-    ),
-    "karpathy": AgentLens(
-        agent_id="karpathy",
-        display_name="Karpathy lens",
-        short_name="Karpathy",
-        cognitive_lens=("technical feasibility", "learning loops", "system simplicity"),
-        useful_when=("AI product loop", "implementation thin slice", "education workflow"),
-        avoid=("voice imitation", "claiming private views"),
-        style_rule="Use the technical-learning lens; do not imitate Andrej Karpathy's voice.",
-    ),
-}
+def load_agent_registry(path: Path | None = None) -> dict[str, dict[str, Any]]:
+    registry_path = path or DEFAULT_REGISTRY_PATH
+    payload = json.loads(registry_path.read_text(encoding="utf-8"))
+    agents = payload.get("agents")
+    if not isinstance(agents, list):
+        raise ValueError(f"Agent registry must contain an agents array: {registry_path}")
+
+    registry: dict[str, dict[str, Any]] = {}
+    for item in agents:
+        if not isinstance(item, dict):
+            raise ValueError("Agent registry entries must be objects.")
+        agent_id = item.get("agent_id")
+        if not isinstance(agent_id, str) or not agent_id.strip():
+            raise ValueError("Agent registry entry missing non-empty agent_id.")
+        if agent_id in registry:
+            raise ValueError(f"Duplicate agent_id in registry: {agent_id}")
+        registry[agent_id] = item
+    if not registry:
+        raise ValueError(f"Agent registry is empty: {registry_path}")
+    return registry
+
+
+def _lens_from_entry(entry: dict[str, Any]) -> AgentLens:
+    return AgentLens(
+        agent_id=str(entry["agent_id"]),
+        display_name=str(entry["display_name"]),
+        short_name=str(entry["short_name"]),
+        cognitive_lens=tuple(str(item) for item in entry.get("cognitive_lens", [])),
+        useful_when=tuple(str(item) for item in entry.get("useful_when", [])),
+        avoid=tuple(str(item) for item in entry.get("avoid", [])),
+        style_rule=str(entry["style_rule"]),
+    )
+
+
+def load_agent_lenses(path: Path | None = None) -> dict[str, AgentLens]:
+    return {agent_id: _lens_from_entry(entry) for agent_id, entry in load_agent_registry(path).items()}
+
+
+AGENT_LENSES: dict[str, AgentLens] = load_agent_lenses()
 
 ALIASES = {
     "jobs": "steve-jobs",
     "steve jobs": "steve-jobs",
+    "musk": "elon-musk",
+    "elon musk": "elon-musk",
+    "pg": "paul-graham",
+    "paul graham": "paul-graham",
+    "zhang yiming": "zhang-yiming",
+    "zhang xuefeng": "zhangxuefeng",
+    "mrbeast": "mrbeast",
+    "mr beast": "mrbeast",
+    "ilya": "ilya-sutskever",
+    "ilya sutskever": "ilya-sutskever",
+    "sun": "justin-sun",
+    "justin sun": "justin-sun",
     "taleb": "taleb",
     "munger": "munger",
     "karpathy": "karpathy",
+    "feynman": "feynman",
+    "naval": "naval",
+    "trump": "trump",
 }
 
 
