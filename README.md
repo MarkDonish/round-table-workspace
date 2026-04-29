@@ -169,6 +169,8 @@ into active source files instead of leaving historical material as the authority
 | `docs/release-candidate-scope.md` | claim-safe support scope |
 | `docs/protocol-spec.md` | unified `/room`, `/debate`, and handoff protocol overview |
 | `schemas/room-session.schema.json` | portable `/room` session state schema |
+| `schemas/debate-session.schema.json` | portable `/debate` session state schema |
+| `schemas/debate-result.schema.json` | portable `/debate` result schema |
 | `docs/room-architecture.md` | `/room` protocol and behavior |
 | `docs/debate-skill-architecture.md` | `/debate` protocol and behavior |
 | `docs/room-to-debate-handoff.md` | handoff contract from exploration to review |

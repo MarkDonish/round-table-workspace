@@ -199,7 +199,10 @@ Handoff invariants:
 These fields define the current protocol surface. RTW-006 introduced
 `schemas/room-session.schema.json` as the portable `/room` session wrapper, with
 `tests/fixtures/room-session.valid.json` as the minimum valid fixture. RTW-007
-will add the matching `/debate` schemas.
+introduced `schemas/debate-session.schema.json` and
+`schemas/debate-result.schema.json`, with
+`examples/fixtures/debate-session.valid.json` and
+`examples/fixtures/debate-result.valid.json` as minimum valid fixtures.
 
 ### Room Session Fields
 
@@ -268,6 +271,35 @@ Validation command:
 | `final_outcome` | yes | debate runtime | `allow`, `reject`, or `follow_up_required`. |
 | `final_decision` | conditional | debate runtime | Present only when review allows final decision. |
 | `claim_boundary` | yes | runtime/reporting | Support scope and evidence status. |
+
+### Debate Schema Mapping
+
+`schemas/debate-session.schema.json` captures a portable completed `/debate`
+session, while `schemas/debate-result.schema.json` captures the final result
+envelope that can be stored or passed to another local-first host.
+
+| Schema Field | Runtime Mapping | Meaning |
+|---|---|---|
+| `schema_version` | schema only | Debate schema version, currently `0.1.0`. |
+| `session_id` | `debate_id` | Stable debate identifier. |
+| `workflow` | constant | Must be `debate`. |
+| `input_source` | `source_kind` | Direct debate or room handoff. |
+| `launch_bundle` | `launch/launch-bundle.json` | Routing, selection, and prompt-host inputs. |
+| `selected_panel` | `launch_bundle.participants` | Final 3-5 debate participants. |
+| `agent_arguments` | `roundtable-record.agent_outputs` | Visible participant outputs. |
+| `moderator_summary` | `roundtable-record.moderator_summary` | Consensus, conflicts, assumptions, and preliminary recommendation. |
+| `reviewer_result` | `review-result.json` | Reviewer score, gaps, red flags, and follow-up requirements. |
+| `final_outcome` | runtime decision | `allow`, `reject`, or `follow_up_required`. |
+| `open_questions` | result envelope | Remaining unresolved questions after review. |
+| `evidence` | `evidence_buckets` | Facts, inferences, uncertainties, and recommendations. |
+| `claim_boundary` | release boundary | Local-first, host-live, and provider-live claim status. |
+
+Validation commands:
+
+```bash
+./rtw validate --schema schemas/debate-session.schema.json --fixture examples/fixtures/debate-session.valid.json
+./rtw validate --schema schemas/debate-result.schema.json --fixture examples/fixtures/debate-result.valid.json
+```
 
 ## Output Contracts
 
@@ -345,6 +377,8 @@ Useful validation paths today:
 ```bash
 ./rtw doctor --quick
 ./rtw validate --schema schemas/room-session.schema.json --fixture tests/fixtures/room-session.valid.json
+./rtw validate --schema schemas/debate-session.schema.json --fixture examples/fixtures/debate-session.valid.json
+./rtw validate --schema schemas/debate-result.schema.json --fixture examples/fixtures/debate-result.valid.json
 ./rtw evidence
 python3 .codex/skills/room-skill/runtime/room_runtime.py validate-canonical --state-root /tmp/round-table-room-canonical
 python3 .codex/skills/debate-roundtable-skill/runtime/debate_runtime.py validate-canonical --state-root /tmp/round-table-debate-canonical

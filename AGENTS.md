@@ -110,6 +110,8 @@ On `/debate`, use:
   - `docs/reviewer-protocol.md`
   - `docs/red-flags.md`
   - `docs/room-to-debate-handoff.md`
+  - `schemas/debate-session.schema.json`
+  - `schemas/debate-result.schema.json`
   - `prompts/debate-roundtable.md`
   - `prompts/debate-reviewer.md`
   - `prompts/debate-followup.md`
