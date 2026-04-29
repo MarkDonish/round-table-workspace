@@ -60,22 +60,31 @@ git clone https://github.com/MarkDonish/round-table-workspace.git
 cd round-table-workspace
 ```
 
-Run the clone-friendly self-check:
+Run the clone-friendly doctor:
 
 ```bash
-python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
-  --state-root /tmp/round-table-agent-consumer-self-check
+./rtw doctor
 ```
 
 Use quick mode for a faster source/readiness preflight:
 
 ```bash
-python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
-  --quick \
-  --state-root /tmp/round-table-agent-consumer-self-check-quick
+./rtw doctor --quick
 ```
 
-A passing self-check means the checked-in local-first scope is usable on that
+Try the new command surfaces:
+
+```bash
+./rtw room "我想讨论一个面向大学生的 AI 学习产品，从方向、切口、风险一步步推进"
+./rtw debate "这个创业方向值不值得做"
+```
+
+The `doctor`, `validate --quick`, and `evidence` commands wrap checked-in
+runtime validation. The natural-language `room` and `debate` CLI commands are
+currently claim-safe stubs until the full host runtime is wired to the unified
+entrypoint.
+
+A passing doctor means the checked-in local-first scope is usable on that
 machine. It does not mean every third-party CLI, paid account, or external
 provider has passed live validation.
 

@@ -22,11 +22,23 @@ git pull origin main
 Use the full self-check when validating a clone for real use:
 
 ```bash
+./rtw doctor
+```
+
+The legacy script path remains supported:
+
+```bash
 python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
   --state-root /tmp/round-table-agent-consumer-self-check
 ```
 
 Use the quick mode when you only need a fast source/readiness preflight:
+
+```bash
+./rtw doctor --quick
+```
+
+The equivalent legacy command is:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/agent_consumer_self_check.py \
@@ -76,8 +88,20 @@ python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
 Codex local mainline:
 
 ```bash
+./rtw validate
+```
+
+The legacy script path remains supported:
+
+```bash
 python3 .codex/skills/room-skill/runtime/local_codex_regression.py \
   --state-root /tmp/round-table-local-codex-regression
+```
+
+For a quick preflight instead of the full local Codex regression:
+
+```bash
+./rtw validate --quick
 ```
 
 Claude Code adapter without account/live entitlement:
@@ -100,6 +124,8 @@ rules before validating a real third-party command.
 python3 .codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py \
   --state-root /tmp/round-table-local-agent-host-validation-matrix
 
+./rtw evidence
+
 python3 .codex/skills/room-skill/runtime/live_lane_evidence_report.py \
   --state-root /tmp/round-table-live-lane-evidence
 
@@ -112,6 +138,14 @@ python3 .codex/skills/room-skill/runtime/generic_agent_adapter_validation.py \
 Use the live lane evidence report before making support claims. It summarizes
 which host/provider lanes are claimable, blocked, missing, pending, or not
 configured without requiring provider URLs.
+
+Natural-language command surfaces are available, but they are intentionally
+claim-safe stubs until the full host runtime is wired into the unified CLI:
+
+```bash
+./rtw room "我想讨论一个面向大学生的 AI 学习产品"
+./rtw debate "这个创业方向值不值得做"
+```
 
 ## 6. Keep The Source Boundary Clear
 
