@@ -14,11 +14,24 @@ from typing import Any
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-agent-consumer-self-check"
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime import (
+    RunRecord,
+    build_run_evidence,
+    create_run_dir,
+    write_evidence,
+    write_input,
+    write_output,
+    write_summary,
+)
 
 
 def main() -> int:
     args = build_parser().parse_args()
     report = build_report(args)
+    markdown = render_markdown(report)
 
     output_json = (
         Path(args.output_json).expanduser().resolve()
@@ -30,11 +43,34 @@ def main() -> int:
         if args.output_markdown
         else Path(report["artifacts"]["markdown"])
     )
-    write_json(output_json, report)
-    write_text(output_markdown, render_markdown(report))
     report["artifacts"]["json"] = str(output_json)
     report["artifacts"]["markdown"] = str(output_markdown)
     write_json(output_json, report)
+    write_text(output_markdown, markdown)
+    write_json(Path(report["artifacts"]["standard_json"]), report)
+    write_text(Path(report["artifacts"]["standard_markdown"]), markdown)
+    run_record = RunRecord(
+        state_root=Path(report["run"]["state_root"]),
+        run_dir=Path(report["run"]["run_dir"]),
+        run_id=report["run"]["run_id"],
+        workflow=report["run"]["workflow"],
+        created_at=report["run"]["created_at"],
+    )
+    write_output(Path(report["run"]["run_dir"]), report)
+    write_evidence(
+        Path(report["run"]["run_dir"]),
+        build_run_evidence(
+            run=run_record,
+            action="agent-consumer-self-check",
+            input_data=report["input"],
+            claim_boundary=report["claim_boundary"],
+            host="local",
+            provider_lane="not_required",
+        ),
+    )
+    write_summary(Path(report["run"]["run_dir"]), markdown)
+    write_json(output_json, report)
+    write_json(Path(report["artifacts"]["standard_json"]), report)
 
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report["ok"] else 1
@@ -71,6 +107,13 @@ def build_parser() -> argparse.ArgumentParser:
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     state_root = Path(args.state_root).expanduser().resolve()
     state_root.mkdir(parents=True, exist_ok=True)
+    run_input = {
+        "quick": args.quick,
+        "timeout_seconds": args.timeout_seconds,
+        "state_root": str(state_root),
+    }
+    run = create_run_dir(state_root, "self-check")
+    write_input(run.run_dir, run_input)
 
     source_audit = run_json_command(
         [
@@ -99,6 +142,28 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         readiness_command,
         timeout_seconds=max(360, args.timeout_seconds * 12),
     )
+    source_consistency = run_json_command(
+        [
+            sys.executable,
+            "scripts/check_source_truth_consistency.py",
+            "--output-json",
+            str(state_root / "source-truth-consistency.json"),
+            "--output-markdown",
+            str(state_root / "source-truth-consistency.md"),
+        ],
+        timeout_seconds=max(60, args.timeout_seconds),
+    )
+    skill_drift = run_json_command(
+        [
+            sys.executable,
+            "scripts/check_skill_drift.py",
+            "--output-json",
+            str(state_root / "skill-drift.json"),
+            "--output-markdown",
+            str(state_root / "skill-drift.md"),
+        ],
+        timeout_seconds=max(60, args.timeout_seconds),
+    )
 
     summary = build_summary(
         source_audit=source_audit,
@@ -108,20 +173,45 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     ok = (
         source_audit.get("ok") is True
         and release_readiness.get("ok") is True
+        and source_consistency.get("ok") is True
+        and skill_drift.get("ok") is True
         and not summary["p0_blockers"]
     )
+    warnings = list(summary.get("non_blocking_gap_ids", []))
+    claim_boundary = {
+        "local_first": True,
+        "host_live": "not_claimed",
+        "provider_live": "not_claimed",
+        "notes": [
+            "Self-check proves local-first repository readiness only.",
+            "It does not claim universal host-live or provider-live support.",
+        ],
+    }
 
     return {
         "ok": ok,
+        "overall_status": "pass" if ok else "fail",
         "action": "agent-consumer-self-check",
         "generated_at": utc_now_iso(),
+        "created_at": utc_now_iso(),
         "repo_root": str(REPO_ROOT),
         "state_root": str(state_root),
+        "run": run.to_dict(),
+        "input": run_input,
         "mode": "quick" if args.quick else "offline_full",
+        "claimable_support": [
+            "Codex local-first mainline readiness when all P0 checks pass",
+            "checked-in protocol, schema, skill, runtime, and validation source",
+        ],
+        "blocked_items": summary["p0_blockers"],
+        "warnings": warnings,
+        "claim_boundary": claim_boundary,
         "summary": summary,
         "checks": {
             "source_boundary_audit": summarize_source_audit(source_audit),
             "release_readiness": summarize_release_readiness(release_readiness),
+            "source_truth_consistency": summarize_generic_check(source_consistency),
+            "skill_drift": summarize_generic_check(skill_drift),
         },
         "consumer_interpretation": {
             "provider_url_required": False,
@@ -138,8 +228,13 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "artifacts": {
             "json": str(state_root / "agent-consumer-self-check.json"),
             "markdown": str(state_root / "agent-consumer-self-check.md"),
+            "standard_json": str(state_root / "self-check.json"),
+            "standard_markdown": str(state_root / "self-check.md"),
+            "run_dir": str(run.run_dir),
             "source_boundary_audit_json": str(state_root / "source-boundary-audit.json"),
             "release_readiness_json": str(state_root / "release-readiness.json"),
+            "source_truth_consistency_json": str(state_root / "source-truth-consistency.json"),
+            "skill_drift_json": str(state_root / "skill-drift.json"),
         },
     }
 
@@ -285,6 +380,18 @@ def summarize_release_readiness(result: dict[str, Any]) -> dict[str, Any]:
         else None,
         "p0_blockers": payload.get("p0_blockers") if isinstance(payload, dict) else None,
         "pass_criteria": payload.get("pass_criteria") if isinstance(payload, dict) else None,
+    }
+
+
+def summarize_generic_check(result: dict[str, Any]) -> dict[str, Any]:
+    payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
+    return {
+        "command": result.get("command"),
+        "returncode": result.get("returncode"),
+        "json_parse_ok": result.get("json_parse_ok"),
+        "ok": result.get("ok"),
+        "payload": payload,
+        "stderr": result.get("stderr"),
     }
 
 

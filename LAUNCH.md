@@ -38,6 +38,18 @@ Use the quick mode when you only need a fast source/readiness preflight:
 ./rtw doctor --quick
 ```
 
+Try the fixture/mock golden demo:
+
+```bash
+./rtw demo startup-idea
+```
+
+Run the v0.2.0 aggregate release checks:
+
+```bash
+./rtw release-check --include-fixtures
+```
+
 The equivalent legacy command is:
 
 ```bash

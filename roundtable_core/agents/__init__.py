@@ -1,3 +1,5 @@
 from __future__ import annotations
 
-__all__: list[str] = []
+from roundtable_core.agents.registry import AGENT_LENSES, AgentLens, resolve_agent_lens
+
+__all__ = ["AGENT_LENSES", "AgentLens", "resolve_agent_lens"]

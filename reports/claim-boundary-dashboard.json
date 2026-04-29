@@ -1,0 +1,95 @@
+{
+  "ok": true,
+  "action": "claim-boundary-dashboard",
+  "source": {
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/python3",
+      ".codex/skills/room-skill/runtime/live_lane_evidence_report.py",
+      "--state-root",
+      "/tmp/round-table-claim-boundary-dashboard-generate",
+      "--timeout-seconds",
+      "30"
+    ],
+    "returncode": 0,
+    "ok": true,
+    "summary": {
+      "claimable_host_live": [
+        "claude_code"
+      ],
+      "missing_host_cli": [
+        "gemini_cli",
+        "aider",
+        "goose",
+        "cursor_agent"
+      ],
+      "blocked_host_live": [],
+      "pending_host_live": [
+        "opencode"
+      ],
+      "skipped_host_live": [],
+      "failed_host_live": [],
+      "provider_live_ready": false,
+      "provider_live_claimed": false,
+      "provider_url_required_for_local_mainline": false
+    },
+    "stderr": ""
+  },
+  "matrix": [
+    {
+      "lane": "local_mainline",
+      "status": "supported",
+      "claim": "Codex local-first mainline when release readiness has no P0 blockers",
+      "evidence": "release_readiness_check.py / agent_consumer_self_check.py"
+    },
+    {
+      "lane": "host:claude_code",
+      "status": "live_passed",
+      "claim": "claimable_for_scope:default_claude_code_host_live_on_validated_mac_account",
+      "evidence": {
+        "host_id": "claude_code",
+        "scope": "default_claude_code_host_live_on_validated_mac_account",
+        "report": "reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md"
+      }
+    },
+    {
+      "lane": "host:gemini_cli",
+      "status": "not_configured",
+      "claim": "not_claimed",
+      "evidence": "Install `gemini` or skip this host on this machine."
+    },
+    {
+      "lane": "host:opencode",
+      "status": "pending_live_validation",
+      "claim": "not_claimed",
+      "evidence": "Run the recommended validation command, or rerun this matrix with --run-live-ready/--run-installed."
+    },
+    {
+      "lane": "host:aider",
+      "status": "not_configured",
+      "claim": "not_claimed",
+      "evidence": "Install `aider` or skip this host on this machine."
+    },
+    {
+      "lane": "host:goose",
+      "status": "not_configured",
+      "claim": "not_claimed",
+      "evidence": "Install `goose` or skip this host on this machine."
+    },
+    {
+      "lane": "host:cursor_agent",
+      "status": "not_configured",
+      "claim": "not_claimed",
+      "evidence": "Install `cursor-agent` or skip this host on this machine."
+    },
+    {
+      "lane": "provider:chat_completions",
+      "status": "blocked",
+      "claim": "not_claimed",
+      "evidence": "No provider URL is required for the Codex local mainline. Fix provider env readiness only if you intentionally want optional provider-live validation. Blockers: room: env_file_missing (Env file does not exist: <repo>/.env.room); debate: env_file_missing (Env file does not exist: <repo>/.env.debate)"
+    }
+  ],
+  "claim_boundary": [
+    "Fixture, mock-provider, wrapper, inventory, and config preflight evidence is not live support.",
+    "Only live_passed host/provider evidence may be claimed as live support."
+  ]
+}

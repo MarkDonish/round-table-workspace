@@ -66,6 +66,76 @@ Orchestrator upgrade signal:
 `/room` does not pass the raw conversation log into `/debate`. It packages the
 discussion into a controlled handoff packet:
 
+Schema-valid compact packet:
+
+```json
+{
+  "schema_version": "0.1.0",
+  "source_room_session_id": "room-example-session",
+  "decision_question": "Should we run a seven-day validation for an AI study product before building a broader MVP?",
+  "context_summary": "The room narrowed the idea to one repeated study bottleneck and recommended validating it with a small cohort before building a full product.",
+  "key_assumptions": [
+    "Students have a repeated study moment that happens often enough to test retention.",
+    "A semi-manual workflow can produce useful feedback before a full app exists."
+  ],
+  "known_evidence": [
+    {
+      "kind": "fact",
+      "text": "The room summary selected a narrow study bottleneck rather than a broad AI tutor.",
+      "source": "room summary fixture"
+    },
+    {
+      "kind": "uncertainty",
+      "text": "The first student segment and acquisition channel are still unknown.",
+      "source": "open questions"
+    }
+  ],
+  "open_questions": [
+    "Which student segment should be tested first?",
+    "Which acquisition channel can produce the first cohort?"
+  ],
+  "risk_flags": [
+    {
+      "risk": "False validation from polite feedback",
+      "why_it_matters": "The first test must separate curiosity from repeated use."
+    }
+  ],
+  "recommended_panel": [
+    {
+      "agent_id": "steve-jobs",
+      "display_name": "Jobs lens",
+      "cognitive_lens": ["product focus", "user experience compression"],
+      "responsibility": "Compress the product into one sharp repeated experience."
+    },
+    {
+      "agent_id": "munger",
+      "display_name": "Munger lens",
+      "cognitive_lens": ["incentives", "downside control"],
+      "responsibility": "Check validation discipline, downside, and kill rules."
+    },
+    {
+      "agent_id": "karpathy",
+      "display_name": "Karpathy lens",
+      "cognitive_lens": ["technical feasibility", "learning loops"],
+      "responsibility": "Check whether the thinnest technical loop can support real use."
+    }
+  ],
+  "handoff_created_at": "2026-04-29T00:30:00Z",
+  "claim_boundary": {
+    "local_first": true,
+    "host_live": "not_claimed",
+    "provider_live": "not_claimed",
+    "notes": [
+      "This fixture validates handoff schema shape only.",
+      "It is not host-live validation and not provider-live validation."
+    ]
+  }
+}
+```
+
+The older fielded runtime packet can still be interpreted through the protocol
+bridge, but the compact schema above is the portable v0.2.0 handoff contract:
+
 ```json
 {
   "handoff_packet": {

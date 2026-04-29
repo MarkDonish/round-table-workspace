@@ -36,6 +36,18 @@ Try the command surfaces:
 ./rtw debate "这个创业方向值不值得做"
 ```
 
+Try the fixture/mock golden demo without provider setup:
+
+```bash
+./rtw demo startup-idea
+```
+
+For a lightweight command loop:
+
+```bash
+./rtw interactive
+```
+
 Current support: the checked-in Codex local mainline for `/room`, `/debate`,
 and `/room -> /debate`; Claude Code project-skill discovery; generic local
 agent adapter contracts with fixture validation; clone-friendly self-checks;
@@ -90,6 +102,12 @@ Example interaction shape:
 
 For longer illustrative walkthroughs, see `examples/transcripts/`.
 
+For release aggregation during v0.2.0 development:
+
+```bash
+./rtw release-check --include-fixtures
+```
+
 ## Current Support Scope
 
 The current release is `v0.1.3`.
@@ -131,6 +149,9 @@ round-table-workspace/
 ├─ docs/
 ├─ schemas/
 ├─ roundtable_core/
+├─ scripts/
+├─ skills_src/
+├─ evals/
 ├─ prompts/
 ├─ examples/
 ├─ .codex/skills/
@@ -146,6 +167,9 @@ Active source of truth:
 - `docs/`
 - `schemas/`
 - `roundtable_core/`
+- `scripts/`
+- `skills_src/`
+- `evals/`
 - `prompts/`
 - `examples/`
 - `.codex/skills/`
@@ -164,6 +188,7 @@ into active source files instead of leaving historical material as the authority
 | Document | Purpose |
 |---|---|
 | `LAUNCH.md` | shortest safe startup path for a fresh clone |
+| `docs/index.md` | documentation map by user, protocol, runtime, validation, and historical areas |
 | `docs/user-entry-guide.md` | plain-language guide to the repository logic |
 | `docs/agent-consumer-quickstart.md` | commands for Codex, Claude Code, and generic local agents |
 | `docs/source-truth-map.md` | source vs historical/output boundary |
@@ -172,14 +197,18 @@ into active source files instead of leaving historical material as the authority
 | `docs/roadmap.md` | project roadmap and release horizons |
 | `docs/milestones/v0.2.0.md` | v0.2.0 milestone scope and issue split |
 | `docs/protocol-spec.md` | unified `/room`, `/debate`, and handoff protocol overview |
+| `docs/decision-quality-rubric.md` | machine-checkable decision quality rubric |
+| `docs/skill-generation.md` | generated skill summary and drift-check maintenance |
 | `schemas/room-session.schema.json` | portable `/room` session state schema |
 | `schemas/debate-session.schema.json` | portable `/debate` session state schema |
 | `schemas/debate-result.schema.json` | portable `/debate` result schema |
+| `schemas/room-to-debate-handoff.schema.json` | portable `/room -> /debate` handoff schema |
 | `docs/room-architecture.md` | `/room` protocol and behavior |
 | `docs/debate-skill-architecture.md` | `/debate` protocol and behavior |
 | `docs/room-to-debate-handoff.md` | handoff contract from exploration to review |
 | `docs/generic-local-agent-adapter.md` | generic local CLI agent contract |
 | `examples/transcripts/` | illustrative `/room`, `/debate`, and handoff walkthroughs |
+| `reports/claim-boundary-dashboard.md` | generated claim boundary matrix |
 | `CHANGELOG.md` | release history |
 
 ## Host And Provider Boundaries

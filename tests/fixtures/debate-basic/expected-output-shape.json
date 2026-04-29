@@ -1,0 +1,15 @@
+{
+  "schema": "schemas/debate-session.schema.json",
+  "fixture": "examples/fixtures/debate-session.valid.json",
+  "required_fields": [
+    "schema_version",
+    "session_id",
+    "workflow",
+    "handoff_packet",
+    "launch_bundle",
+    "selected_panel",
+    "reviewer_result",
+    "final_outcome",
+    "claim_boundary"
+  ]
+}

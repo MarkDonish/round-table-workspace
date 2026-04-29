@@ -1,0 +1,18 @@
+{
+  "schema_version": "0.1.0",
+  "shared_rules": [
+    "explicit-only",
+    "local-first",
+    "claim-safe",
+    "do-not-use-reports-as-source",
+    "do-not-claim-fixture-as-live",
+    "cognitive-lens-not-voice-imitation"
+  ],
+  "required_phrases": [
+    "explicit",
+    "local-first",
+    "not host-live",
+    "not provider-live",
+    "reports/"
+  ]
+}

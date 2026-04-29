@@ -24,7 +24,12 @@ If there is a conflict on selection-critical fields such as `task_types`, `stage
 Each registry entry should expose these portable fields:
 
 - `agent_id`: stable machine-readable id
+- `display_name`: lens-oriented user-facing label, such as `Taleb lens`
 - `short_name`: user-facing short label
+- `cognitive_lens`: the mental model or review angle being applied
+- `useful_when`: task situations where the lens is useful
+- `avoid`: imitation, unsupported biographical claims, or style risks to avoid
+- `style_rule`: plain rule that the system uses the lens without imitating voice
 - `structural_role`: `offensive | defensive | moderate`
 - `expression`: `grounded | abstract | dramatic`
 - `strength`: `dominant | moderate`
@@ -53,6 +58,20 @@ Each registry entry should expose these portable fields:
 | `mrbeast` | `MrBeast` | `offensive` | `grounded` | `dominant` | `no` | `content, product, writing` | `explore, simulate, decision` | `distribution, narrative_construction, user_experience, growth_strategy` |
 | `trump` | `Trump` | `offensive` | `grounded` | `dominant` | `yes` | `content, strategy` | `converge, decision` | `narrative_construction, distribution, team_dynamics` |
 | `justin-sun` | `Sun` | `offensive` | `dramatic` | `dominant` | `no` | `strategy, startup, content` | `explore, simulate, decision` | `market_sizing, competitive_structure, market_timing, narrative_construction, resource_allocation, monetization` |
+
+## Cognitive Lens Overlay
+
+The runtime treats people-like labels as shorthand for cognitive lenses, not as
+permission to imitate a living or historical person's private views or voice.
+Users may still write `--with Jobs,Taleb`, but the internal mapping is
+`Jobs lens` and `Taleb lens`.
+
+| agent_id | display_name | cognitive_lens | useful_when | avoid | style_rule |
+|---|---|---|---|---|---|
+| `steve-jobs` | `Jobs lens` | `product focus, taste, user experience compression` | `product wedge, positioning, experience clarity` | `voice imitation, invented personal opinions, biographical claims` | Use the product judgment lens; do not imitate Steve Jobs' voice. |
+| `taleb` | `Taleb lens` | `tail risk, fragility, skin in the game` | `downside risk, fragile assumptions, asymmetric payoff` | `voice imitation, insult style, unverified claims about Taleb` | Use the risk lens; do not imitate Nassim Taleb's voice. |
+| `munger` | `Munger lens` | `incentives, inversion, downside control` | `kill rules, decision filters, risk review` | `voice imitation, quotes presented as fact without source` | Use the mental-model lens; do not imitate Charlie Munger's voice. |
+| `karpathy` | `Karpathy lens` | `technical feasibility, learning loops, system simplicity` | `AI product loop, implementation thin slice, education workflow` | `voice imitation, claiming private views` | Use the technical-learning lens; do not imitate Andrej Karpathy's voice. |
 
 ---
 

@@ -128,52 +128,17 @@ description: |
 
 ## Checked-In Runtime Preflight
 
-仓库里有一个 checked-in 的 handoff packet 可执行预检入口：
+长状态清单已下沉到：
+
+- `.codex/skills/debate-roundtable-skill/references/current-implementation-boundary.md`
+
+常用 checked-in 入口：
 
 - `runtime/debate_packet_validator.py`
 - `runtime/debate_runtime.py`
 - `runtime/debate_e2e_validation.py`
-- `../room-skill/runtime/local_codex_executor.py`
-- `../room-skill/runtime/generic_agent_executor.py`
-- `../room-skill/runtime/generic_fixture_agent.py`
-- `../room-skill/runtime/agent_host_inventory.py`
-- `../room-skill/runtime/local_agent_host_validation_matrix.py`
-- `../room-skill/runtime/generic_agent_adapter_validation.py`
-- `../room-skill/runtime/generic_agent_json_wrapper.py`
-- `../room-skill/runtime/generic_agent_json_wrapper_validation.py`
-- `docs/local-agent-host-recipes.md`
-- `docs/generic-local-agent-adapter.md`
-- `docs/third-party-agent-wrapper-recipes.md`
-- `docs/provider-live-readiness.md`
-- `docs/release-readiness.md`
-- `docs/release-candidate-scope.md`
-- `../room-skill/runtime/claude_code_live_validation.py`
-- `../room-skill/runtime/chat_completions_readiness.py`
 - `../room-skill/runtime/release_readiness_check.py`
 - `../room-skill/runtime/release_candidate_report.py`
-- `.claude/skills/debate/SKILL.md`
-- `.claude/scripts/validate_project_skills.py`
-- `runtime/mock_chat_completions_server.py`
-- `runtime/README.md`
-
-它们分别用于：
-
-- 对 `/room -> /debate` packet 做结构校验与候选池平衡预检
-- 把 packet 变成 debate-side launch bundle、review packet、followup / rereview bridge artifacts
-- 运行 fixture / generic local CLI / local-child-agent / provider-aware 的 `/debate` prompt-host E2E 验证
-- 通过本地 Chat Completions-compatible mock provider 回放 canonical debate outputs
-- provider live readiness 已有 checked-in config-only preflight；真实 provider live run 仍需真实 `.env.room` / `.env.debate`
-- release readiness 已有 checked-in gate，可把 `/debate` 上线范围、P0 阻塞和外围 live 缺口分开报告
-- release candidate report 已有 checked-in 入口，可把 `/debate` 能声明和不能声明的范围输出成审查材料
-- 当前 `allow` 与 `reject_followup` 两条 `local_codex` `/debate` 链都已在 Mac 上通过 checked-in 验证
-- `generic_cli` 与 `claude_code` executor route 已通过 checked-in fixture agent 验证 adapter contract；真实 Claude Code / 其他第三方本地 agent live run 仍需单独证明
-- generic local agent adapter kit 已通过 checked-in fixture agent 验证，可作为其他本地 agent 接入 `/room -> /debate` 的 readiness check
-- generic agent JSON wrapper 已入仓，可先清洗第三方 agent 的 Markdown fence、stdout 日志或 noisy file output，再交给 runtime validators
-- local agent host inventory 已可在进入真实宿主 live run 前报告 CLI missing / auth blocked / ready 状态
-- local agent host validation matrix 已可把真实宿主 lane 分成 missing / blocked / pending / live passed / live failed，只有 live passed 能作为支持声明
-- Claude Code project skill wrapper 已通过结构验证；Claude Code 用户 clone 仓库后具备标准 `.claude/skills/debate` 发现入口
-- 真实 Claude Code live wrapper 已入仓；当前 Mac preflight 阻塞在 `claude_code_not_logged_in`
-- 本地主线参数已可通过 checked-in `gpt54_family` preset 直接复用，不必每次手工拼接 `GPT-5.4` family 参数
 
 注意边界：
 
@@ -313,3 +278,33 @@ Full 模式必须基于审查包审核：
 
 - Full 模式：只有在审查 Agent 明确写出“允许进入最终决议”时，才输出最终决议
 - Quick 模式：直接输出统一建议，但必须附风险提示
+
+<!-- rtw:generated-skill-summary:start -->
+
+## Generated Skill Summary
+
+- Skill id: `debate`
+- Source schema: `0.1.0`
+- Entry commands: `/debate <topic>`, `/debate --with Jobs,Taleb <topic>`, `/debate --quick <topic>`
+- Shared rules: `explicit-only`, `local-first`, `claim-safe`, `do-not-use-reports-as-source`, `do-not-claim-fixture-as-live`, `cognitive-lens-not-voice-imitation`
+- Claim boundary: fixture/checker passes are not host-live and not provider-live evidence.
+
+Canonical refs:
+- `AGENTS.md`
+- `docs/protocol-spec.md`
+- `docs/debate-skill-architecture.md`
+- `docs/reviewer-protocol.md`
+- `docs/decision-quality-rubric.md`
+- `docs/room-to-debate-handoff.md`
+- `schemas/debate-session.schema.json`
+- `schemas/debate-result.schema.json`
+- `schemas/room-to-debate-handoff.schema.json`
+- `prompts/debate-roundtable.md`
+- `prompts/debate-reviewer.md`
+- `prompts/debate-followup.md`
+
+Host-specific notes:
+- `codex`: Canonical checked-in debate runtime and skill entrypoint.
+- `claude`: Project-skill adapter that points back to canonical Codex/docs sources.
+
+<!-- rtw:generated-skill-summary:end -->

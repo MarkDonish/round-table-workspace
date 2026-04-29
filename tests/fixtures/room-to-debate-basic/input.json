@@ -1,0 +1,8 @@
+{
+  "workflow": "room-to-debate",
+  "source_room_session_id": "room-example-session",
+  "claim_boundary": {
+    "host_live": "not_claimed",
+    "provider_live": "not_claimed"
+  }
+}

@@ -84,6 +84,19 @@ Use `/debate` when the decision needs structured review:
 the main end-to-end workflow: explore first, then escalate only when the topic
 needs formal judgment.
 
+## Command Discovery
+
+`/room` and `/debate` stay explicit-only. A host may suggest them when a user
+asks a broad product, strategy, risk, or "should we do this" question, but the
+suggestion must not start the workflow.
+
+Examples:
+
+- "今天上海天气怎么样？" Answer directly; no command hint is needed.
+- "这个创业方向要不要做？" Suggest: "可以用 `/room ...` 先探索，或用
+  `/debate ...` 做正式判断。"
+- "`/room 我想讨论一个大学生 AI 学习产品`" Now the room workflow may start.
+
 ## How `/room` Works
 
 `/room` is a local, stateful discussion workflow.

@@ -1,0 +1,8 @@
+{
+  "workflow": "debate",
+  "question": "Should we validate this AI study product MVP?",
+  "claim_boundary": {
+    "host_live": "not_claimed",
+    "provider_live": "not_claimed"
+  }
+}

@@ -80,6 +80,11 @@ For `roster_patch`, operate on the existing roster from `current_state.roster`.
 These are the only legal candidates.
 Do not invent agents outside this pool.
 
+Candidate names are cognitive-lens labels, not voice-imitation instructions.
+For example, `Jobs` means `Jobs lens` for product focus and taste; `Taleb`
+means `Taleb lens` for tail risk and fragility. Do not select or describe an
+agent as if the real person is present or speaking.
+
 | agent_id | short_name | structural_role | expression | strength | default_excluded | task_types | stage_fit | sub_problem_tags |
 |---|---|---|---|---|---|---|---|---|
 | `steve-jobs` | `Jobs` | `offensive` | `grounded` | `dominant` | `no` | `product, startup, strategy` | `simulate, converge, decision` | `value_proposition, product_focus, user_experience, first_principles, narrative_construction` |

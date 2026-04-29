@@ -10,6 +10,7 @@
     "session_id",
     "workflow",
     "input_source",
+    "handoff_packet",
     "launch_bundle",
     "selected_panel",
     "agent_arguments",
@@ -51,6 +52,10 @@
         "string",
         "null"
       ]
+    },
+    "handoff_packet": {
+      "description": "Validated room-to-debate handoff packet when input_source is room_handoff; null for direct debates.",
+      "$ref": "#/$defs/handoff_packet"
     },
     "launch_bundle": {
       "$ref": "#/$defs/launch_bundle"
@@ -106,6 +111,84 @@
     }
   },
   "$defs": {
+    "handoff_packet": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "source_room_session_id",
+        "decision_question",
+        "context_summary",
+        "key_assumptions",
+        "known_evidence",
+        "open_questions",
+        "risk_flags",
+        "recommended_panel",
+        "handoff_created_at",
+        "claim_boundary"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "0.1.0"
+        },
+        "source_room_session_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "decision_question": {
+          "type": "string",
+          "minLength": 1
+        },
+        "context_summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key_assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "known_evidence": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "open_questions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "risk_flags": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "recommended_panel": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 5,
+          "items": {
+            "type": "object"
+          }
+        },
+        "handoff_created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "claim_boundary": {
+          "$ref": "#/$defs/claim_boundary"
+        }
+      }
+    },
     "launch_bundle": {
       "type": "object",
       "additionalProperties": true,

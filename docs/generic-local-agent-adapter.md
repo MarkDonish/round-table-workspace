@@ -13,6 +13,22 @@ Any local agent host should be able to run the round-table prompt tasks if it ca
 
 The runtime bridge stays in this repository. The local agent only produces prompt JSON.
 
+## v0.2.0 Host Adapter Interface
+
+The host-neutral Python interface lives in
+`roundtable_core/runtime/host_adapter.py`.
+
+Minimum adapter methods:
+
+- `validate_capabilities`
+- `prepare_session`
+- `execute_turn`
+- `collect_result`
+- `report_evidence`
+
+`FixtureHostAdapter` implements this contract for deterministic local tests.
+It proves adapter shape only; it is not host-live or provider-live support.
+
 ## Contract
 
 The checked-in adapter is:

@@ -87,3 +87,31 @@ python3 .codex/skills/room-skill/runtime/claude_code_live_validation.py \
 ```
 
 If the live wrapper reports `claude_code_not_logged_in`, do not mark the lane as passed. A `--smoke-only` pass proves local CLI execution only; claim the default Claude Code lane only when the full wrapper reports `claimable_as_default_claude_code_host_live=true`.
+
+<!-- rtw:generated-skill-summary:start -->
+
+## Generated Skill Summary
+
+- Skill id: `room`
+- Source schema: `0.1.0`
+- Entry commands: `/room <topic>`, `/focus <focus text>`, `/summary`, `/upgrade-to-debate`
+- Shared rules: `explicit-only`, `local-first`, `claim-safe`, `do-not-use-reports-as-source`, `do-not-claim-fixture-as-live`, `cognitive-lens-not-voice-imitation`
+- Claim boundary: fixture/checker passes are not host-live and not provider-live evidence.
+
+Canonical refs:
+- `AGENTS.md`
+- `docs/protocol-spec.md`
+- `docs/room-architecture.md`
+- `docs/room-to-debate-handoff.md`
+- `schemas/room-session.schema.json`
+- `schemas/room-to-debate-handoff.schema.json`
+- `prompts/room-selection.md`
+- `prompts/room-chat.md`
+- `prompts/room-summary.md`
+- `prompts/room-upgrade.md`
+
+Host-specific notes:
+- `codex`: Canonical checked-in runtime and skill entrypoint.
+- `claude`: Project-skill adapter that points back to canonical Codex/docs sources.
+
+<!-- rtw:generated-skill-summary:end -->

@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://round-table-workspace.local/schemas/room-to-debate-handoff.schema.json",
+  "title": "Round Table Room To Debate Handoff Packet",
+  "description": "Portable local-first packet that lets explicit-only /room hand a bounded decision question to /debate.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_room_session_id",
+    "decision_question",
+    "context_summary",
+    "key_assumptions",
+    "known_evidence",
+    "open_questions",
+    "risk_flags",
+    "recommended_panel",
+    "handoff_created_at",
+    "claim_boundary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "source_room_session_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^room[-_A-Za-z0-9]+$"
+    },
+    "decision_question": {
+      "type": "string",
+      "minLength": 1
+    },
+    "context_summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "key_assumptions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "known_evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence_item"
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "risk_flags": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/risk_flag"
+      }
+    },
+    "recommended_panel": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/$defs/panel_member"
+      }
+    },
+    "handoff_created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "claim_boundary": {
+      "$ref": "#/$defs/claim_boundary"
+    }
+  },
+  "$defs": {
+    "evidence_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "text",
+        "source"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "fact",
+            "inference",
+            "uncertainty",
+            "recommendation"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "risk_flag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "risk",
+        "why_it_matters"
+      ],
+      "properties": {
+        "risk": {
+          "type": "string",
+          "minLength": 1
+        },
+        "why_it_matters": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "panel_member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "agent_id",
+        "display_name",
+        "cognitive_lens",
+        "responsibility"
+      ],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cognitive_lens": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "responsibility": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "claim_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "local_first",
+        "host_live",
+        "provider_live",
+        "notes"
+      ],
+      "properties": {
+        "local_first": {
+          "type": "boolean"
+        },
+        "host_live": {
+          "type": "string",
+          "enum": [
+            "not_claimed",
+            "fixture_only",
+            "pending_live_validation",
+            "live_passed"
+          ]
+        },
+        "provider_live": {
+          "type": "string",
+          "enum": [
+            "not_claimed",
+            "fixture_only",
+            "pending_live_validation",
+            "live_passed"
+          ]
+        },
+        "notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

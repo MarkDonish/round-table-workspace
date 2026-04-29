@@ -1,0 +1,8 @@
+{
+  "workflow": "room",
+  "question": "Explore an AI study product for college students.",
+  "claim_boundary": {
+    "host_live": "not_claimed",
+    "provider_live": "not_claimed"
+  }
+}

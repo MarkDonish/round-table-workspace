@@ -53,6 +53,22 @@
 8. 最终建议是否可执行
 9. 是否误把串行影响当作独立共识
 10. 是否触发 `docs/red-flags.md` 中的红旗
+11. 是否符合 `docs/decision-quality-rubric.md` 中的 Decision Quality Rubric
+
+## Decision Quality Rubric
+
+你必须按 `docs/decision-quality-rubric.md` 对以下维度逐项打 `0-2` 分：
+
+- `problem_reframing`
+- `key_variables`
+- `assumption_separation`
+- `opposition_quality`
+- `risk_to_action`
+- `next_testable_step`
+- `uncertainty_disclosure`
+
+任一维度为 `0` 时，必须写入定向补充项。`next_testable_step` 或
+`uncertainty_disclosure` 为 `0` 时，不允许进入最终决议。
 
 ## 红旗扫描
 
@@ -81,6 +97,7 @@
 6. 被忽略的关键问题
 7. 是否允许进入最终决议（允许 / 不允许）
 8. 如果不允许，需要补充什么
+9. Rubric 分项评分与总分
 
 第 8 项必须尽量写成：
 

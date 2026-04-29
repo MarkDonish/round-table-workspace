@@ -19,6 +19,7 @@ Primary sources:
 - `docs/room-to-debate-handoff.md`
 - `docs/room-chat-contract.md`
 - `docs/reviewer-protocol.md`
+- `docs/decision-quality-rubric.md`
 - `docs/release-candidate-scope.md`
 
 Supporting runtime and prompt sources:
@@ -153,34 +154,26 @@ idle
 The handoff exists to compress exploratory room state into a bounded review
 input. `/debate` consumes `handoff_packet`, not `conversation_log`.
 
+`schemas/room-to-debate-handoff.schema.json` is the portable v0.2.0 handoff
+contract, with `examples/fixtures/room-to-debate-handoff.valid.json` as the
+minimum valid fixture. Debate sessions may embed the packet in
+`handoff_packet`, or use `null` for direct debates.
+
 Required high-level packet shape:
 
 ```json
 {
-  "handoff_packet": {
-    "schema_version": "v0.1",
-    "generated_at_turn": 0,
-    "source_room_id": "",
-    "field_01_original_topic": "",
-    "field_02_room_title": "",
-    "field_03_type": { "primary": "", "secondary": null },
-    "field_04_sub_problems": [],
-    "field_05_consensus_points": [],
-    "field_06_tension_points": [],
-    "field_07_open_questions": [],
-    "field_08_candidate_solutions": [],
-    "field_09_factual_claims": [],
-    "field_10_uncertainty_points": [],
-    "field_11_suggested_agents": [],
-    "field_12_suggested_agent_roles": {},
-    "field_13_upgrade_reason": {
-      "reason_code": "",
-      "reason_text": "",
-      "triggered_by": "",
-      "confidence": 0.0,
-      "warning_flags": []
-    }
-  }
+  "schema_version": "0.1.0",
+  "source_room_session_id": "room-example-session",
+  "decision_question": "",
+  "context_summary": "",
+  "key_assumptions": [],
+  "known_evidence": [],
+  "open_questions": [],
+  "risk_flags": [],
+  "recommended_panel": [],
+  "handoff_created_at": "",
+  "claim_boundary": {}
 }
 ```
 
@@ -202,7 +195,9 @@ These fields define the current protocol surface. RTW-006 introduced
 introduced `schemas/debate-session.schema.json` and
 `schemas/debate-result.schema.json`, with
 `examples/fixtures/debate-session.valid.json` and
-`examples/fixtures/debate-result.valid.json` as minimum valid fixtures.
+`examples/fixtures/debate-result.valid.json` as minimum valid fixtures. RTW-008
+introduced `schemas/room-to-debate-handoff.schema.json` and
+`examples/fixtures/room-to-debate-handoff.valid.json`.
 
 ### Room Session Fields
 
@@ -284,6 +279,7 @@ envelope that can be stored or passed to another local-first host.
 | `session_id` | `debate_id` | Stable debate identifier. |
 | `workflow` | constant | Must be `debate`. |
 | `input_source` | `source_kind` | Direct debate or room handoff. |
+| `handoff_packet` | handoff schema | Embedded room-to-debate packet when `input_source` is `room_handoff`; `null` for direct debates. |
 | `launch_bundle` | `launch/launch-bundle.json` | Routing, selection, and prompt-host inputs. |
 | `selected_panel` | `launch_bundle.participants` | Final 3-5 debate participants. |
 | `agent_arguments` | `roundtable-record.agent_outputs` | Visible participant outputs. |
@@ -299,6 +295,7 @@ Validation commands:
 ```bash
 ./rtw validate --schema schemas/debate-session.schema.json --fixture examples/fixtures/debate-session.valid.json
 ./rtw validate --schema schemas/debate-result.schema.json --fixture examples/fixtures/debate-result.valid.json
+./rtw validate --schema schemas/room-to-debate-handoff.schema.json --fixture examples/fixtures/room-to-debate-handoff.valid.json
 ```
 
 ## Output Contracts

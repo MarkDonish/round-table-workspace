@@ -171,3 +171,5 @@ Summary update:
 - Room turns are staged and speaker roles are assigned before generation.
 - `/summary` extracts consensus, open questions, tension, and a concrete next
   step from visible discussion content.
+- Agent names are cognitive lenses, such as `Jobs lens` for product focus and
+  `Munger lens` for downside control, not voice imitation.

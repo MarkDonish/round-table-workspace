@@ -117,6 +117,20 @@ python3 .codex/skills/room-skill/runtime/release_candidate_report.py \
 
 The support-scope rules for interpreting that report live in `docs/release-candidate-scope.md`.
 
+## v0.2.0 Aggregate Release Check
+
+The unified CLI now exposes a non-replacing aggregation layer:
+
+```bash
+./rtw release-check --include-fixtures
+./rtw release-check --include-fixtures --strict-git-clean
+```
+
+This command aggregates source-truth consistency, skill drift, schema
+validation, regression fixtures, live-lane evidence, and the claim boundary
+dashboard. It does not convert fixture/mock/config readiness into host-live or
+provider-live support.
+
 ## Recommended Release Validation
 
 Before tagging or announcing a release, run:

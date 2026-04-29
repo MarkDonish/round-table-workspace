@@ -22,6 +22,9 @@ Primary source directories:
 - `docs/`
 - `schemas/`
 - `roundtable_core/`
+- `scripts/`
+- `skills_src/`
+- `evals/`
 - `prompts/`
 - `examples/`
 - `.codex/skills/debate-roundtable-skill/`
@@ -61,6 +64,20 @@ Local Superpowers is a workflow helper, not a source-of-truth override.
 ## Room Roundtable
 
 `/room` is an explicit-only stateful roundtable mode. It is not the default mode.
+
+### Command Discovery Hint
+
+For complex strategy, product, risk, or decision questions, you may briefly
+suggest that the user can choose `/room` or `/debate`. This is only a hint, not
+a mode switch.
+
+Examples:
+
+- Ordinary factual question: answer directly; no `/room` or `/debate` hint.
+- Complex product/startup judgment: "这个问题适合用 `/room` 先探索，或用
+  `/debate` 做正式判断。你可以直接输入 `/room ...` 或 `/debate ...`。"
+- Only after the user explicitly starts with `/room` or `/debate` do you enter
+  that workflow.
 
 On `/room`, use:
 

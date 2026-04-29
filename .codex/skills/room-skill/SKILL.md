@@ -174,49 +174,9 @@ description: |
 
 ## 当前实现边界
 
-当前仓库内：
+当前长状态清单已下沉到：
 
-- `/room` 的协议层已完整进入真源
-- `.codex/skills/room-skill/WORKFLOW.md` 已提供 checked-in 的 runtime playbook
-- `.codex/skills/room-skill/runtime/room_runtime.py` 已提供 checked-in 的 host-side bridge
-- `.codex/skills/room-skill/runtime/local_codex_executor.py` 已提供 checked-in 的本地 child-agent 执行器
-- `.codex/skills/room-skill/runtime/generic_agent_executor.py` 已提供 checked-in 的 host-neutral 本地 CLI agent adapter，用于 Codex 之外的 Claude Code / 其他本地 agent 适配
-- `.codex/skills/room-skill/runtime/generic_fixture_agent.py` 已提供 checked-in 的 fixture agent，用于验证 generic CLI / Claude Code adapter 路由
-- `.codex/skills/room-skill/runtime/agent_host_inventory.py` 已提供 checked-in 的真实本地 agent 宿主 inventory/preflight
-- `.codex/skills/room-skill/runtime/local_agent_host_validation_matrix.py` 已提供 checked-in 的真实本地 agent 宿主 validation matrix/report
-- `.codex/skills/room-skill/runtime/generic_agent_adapter_validation.py` 已提供 checked-in 的 generic local agent adapter kit，可一键跑 smoke + `/room -> /debate`
-- `.codex/skills/room-skill/runtime/generic_agent_json_wrapper.py` 已提供 checked-in 的第三方 agent JSON 清洗 wrapper
-- `.codex/skills/room-skill/runtime/generic_agent_json_wrapper_validation.py` 已提供 checked-in 的 wrapper 离线验证入口
-- `docs/generic-local-agent-adapter.md` 已提供其他本地 agent 的接入合同和通过标准
-- `docs/local-agent-host-recipes.md` 已提供真实宿主接入 recipes，并明确 inventory 不等于 live validation
-- `docs/third-party-agent-wrapper-recipes.md` 已提供第三方本地 agent wrapper recipes
-- `.codex/skills/room-skill/runtime/claude_code_live_validation.py` 已提供 checked-in 的真实 Claude Code 本地 CLI live validation wrapper
-- `.claude/skills/room/SKILL.md` 已提供 Claude Code 原生 project skill 入口，并指回本文件作为 canonical source
-- `.claude/scripts/validate_project_skills.py` 已提供离线结构验证，确保 Claude Code skill wrapper 没有漂移
-- `.codex/skills/room-skill/runtime/local_codex_regression.py` 已提供 checked-in 的本地主线回归入口
-- `.codex/skills/room-skill/runtime/chat_completions_regression.py` 已提供 checked-in 的 provider fallback 回归入口
-- `.codex/skills/room-skill/runtime/chat_completions_readiness.py` 已提供 checked-in 的 provider live readiness 入口
-- `.codex/skills/room-skill/runtime/chat_completions_live_validation.py` 已提供 checked-in 的真实 provider live wrapper
-- `.codex/skills/room-skill/runtime/release_readiness_check.py` 已提供 checked-in 的 release readiness gate，用来区分 P0 上线阻塞和非阻塞 live 缺口
-- `.codex/skills/room-skill/runtime/release_candidate_report.py` 已提供 checked-in 的 release candidate 总报告入口，用来生成可声明/不可声明范围
-- `docs/release-candidate-scope.md` 已提供 release candidate 支持范围声明规则
-- checked-in runtime 现在已暴露 `gpt54_family` preset，可把当前验证通过的 `GPT-5.4` 主线参数冻结成最短命令
-- `.codex/skills/room-skill/runtime/local_codex_executor.py` 现在也已暴露 checked-in 的 local host preflight，可先验证 `~/.codex` 宿主写入条件和 nested child-agent smoke
-- `.codex/skills/room-skill/runtime/room_e2e_validation.py` 已提供 checked-in 的 E2E validation runner
-- `.codex/skills/room-skill/runtime/mock_chat_completions_server.py` 已提供本地 mock provider，用于验证 Chat Completions 路径
-- `/room local_codex` 已在 Mac 上通过 checked-in E2E 验证
-- `/room -> /debate local_codex` 已在 Mac 上通过一条完整联调验证
-- `/room -> /debate generic_cli` 和 `claude_code` executor route 已通过 checked-in fixture agent 验证 adapter contract；真实 Claude Code / 其他第三方本地 agent live run 仍需单独证明
-- generic local agent adapter kit 已通过 checked-in fixture agent 验证，其他 agent 可复用同一命令做 live readiness check
-- local agent host inventory 已可区分 CLI missing、auth blocked、ready for live validation，避免把本机 preflight 阻塞误报成通过
-- local agent host validation matrix 已可把 missing / blocked / pending / live passed / live failed 分级落盘，避免把未跑 live 的宿主误报成已支持
-- Claude Code project skill wrapper 已通过结构验证；Claude Code 用户 clone 仓库后具备标准 `.claude/skills/room` 发现入口
-- 当前 Mac 上真实 Claude Code preflight 已确认 CLI 可用，但 auth 未登录，live run 被 `claude_code_not_logged_in` 阻塞
-- checked-in child-agent 执行器现在可显式控制 child task 的 reasoning effort，不必继承宿主全局 `xhigh`
-- 当前最稳定的 Mac 本地主线配置已验证 `gpt-5.4` 主模型；`gpt-5.4-mini` 可作为同家族 fallback
-- canonical fixture 已可在 Mac 本地跑通 `/room -> /summary -> /upgrade-to-debate`
-- provider fallback regression 已复跑通过，且 readiness 会把当前未配置的真实 `.env.room` / `.env.debate` 报告为 blocked
-- 外部 provider 路径仍保留，但应视为 fallback；真实 provider live validation 仍未证明完成
+- `.codex/skills/room-skill/references/current-implementation-boundary.md`
 
 因此，当前状态应视为：
 
@@ -262,3 +222,31 @@ description: |
 - 不把 `/debate` 改造成 `/room`
 - 不把历史报告搬进 source 目录伪装成源码
 - 不在宿主执行缺失时假装项目已经 100% 完成
+
+<!-- rtw:generated-skill-summary:start -->
+
+## Generated Skill Summary
+
+- Skill id: `room`
+- Source schema: `0.1.0`
+- Entry commands: `/room <topic>`, `/focus <focus text>`, `/summary`, `/upgrade-to-debate`
+- Shared rules: `explicit-only`, `local-first`, `claim-safe`, `do-not-use-reports-as-source`, `do-not-claim-fixture-as-live`, `cognitive-lens-not-voice-imitation`
+- Claim boundary: fixture/checker passes are not host-live and not provider-live evidence.
+
+Canonical refs:
+- `AGENTS.md`
+- `docs/protocol-spec.md`
+- `docs/room-architecture.md`
+- `docs/room-to-debate-handoff.md`
+- `schemas/room-session.schema.json`
+- `schemas/room-to-debate-handoff.schema.json`
+- `prompts/room-selection.md`
+- `prompts/room-chat.md`
+- `prompts/room-summary.md`
+- `prompts/room-upgrade.md`
+
+Host-specific notes:
+- `codex`: Canonical checked-in runtime and skill entrypoint.
+- `claude`: Project-skill adapter that points back to canonical Codex/docs sources.
+
+<!-- rtw:generated-skill-summary:end -->

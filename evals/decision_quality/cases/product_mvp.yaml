@@ -1,0 +1,20 @@
+{
+  "id": "product_mvp",
+  "workflow": "debate",
+  "input": "Should the MVP include automated lesson generation on day one?",
+  "fixture_output": "Reframed decision: whether automation is necessary for the first validation, not whether it is valuable long term. Key variables: completion rate, manual review cost, error tolerance, repeat usage. Opposition: automation may hide quality problems and increase cost before demand is proven. Risk-to-action: keep one manual review step and stop if completion is below threshold. Next testable step: run one semi-manual workflow with ten users. Unknown: which review step must remain manual.",
+  "must_identify": [
+    "manual review cost",
+    "error tolerance",
+    "repeat usage"
+  ],
+  "must_not": [
+    "automation proves demand",
+    "host-live support"
+  ],
+  "expected_next_testable_step": "run one semi-manual workflow",
+  "uncertainty_requirements": [
+    "Unknown",
+    "manual"
+  ]
+}

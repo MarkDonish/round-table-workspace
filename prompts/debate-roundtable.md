@@ -42,6 +42,9 @@
 - `strategy`: Paul Graham + Munger + Taleb + Zhang Yiming
 - `writing`: Feynman + Naval + Zhang Xuefeng + Paul Graham
 
+这些名称是认知 lens，不是人格模仿。`--with Jobs,Taleb` 仍然可用，但内部含义是
+`Jobs lens` 和 `Taleb lens`：使用其代表性分析框架，不声称真实人物观点，不模仿个人口吻。
+
 ## 对冲机制
 
 - 进攻型 Agent 必须自动搭配一个风险控制 Agent
@@ -72,6 +75,7 @@
 - 主持人：圆桌调度器
 - 审查 Agent：讨论质量审查者
 - 选择理由
+- 每个 Agent 对应的 cognitive lens 和 style_rule
 
 ### Step 4. 给每个 Agent 分工
 

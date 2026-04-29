@@ -17,6 +17,7 @@
 7. 审查是否遗漏关键反方视角
 8. 审查最终建议是否可执行
 9. 审查主持人是否把串行影响误报为独立共识
+10. 按 `docs/decision-quality-rubric.md` 给出可复核的决策质量评分
 
 ---
 
@@ -111,7 +112,22 @@
 
 逐项扫描 `red-flags.md` 中定义的红旗。
 
-### Step 7. 放行决策
+### Step 7. Decision Quality Rubric 评分
+
+按 `docs/decision-quality-rubric.md` 对以下维度逐项打 `0-2` 分：
+
+- `problem_reframing`
+- `key_variables`
+- `assumption_separation`
+- `opposition_quality`
+- `risk_to_action`
+- `next_testable_step`
+- `uncertainty_disclosure`
+
+任一维度为 `0` 时必须写入定向补充项。`next_testable_step` 或
+`uncertainty_disclosure` 为 `0` 时，不允许进入最终决议。
+
+### Step 8. 放行决策
 
 根据评分和红旗情况做 `允许 / 不允许` 判断。
 
@@ -129,6 +145,7 @@
 6. 被忽略的关键问题
 7. 是否允许进入最终决议（允许 / 不允许）
 8. 如果不允许，需要补充什么
+9. Decision Quality Rubric 分项评分与总分
 
 如果不允许，第 8 项必须写成“Agent -> 要补什么”的定向清单。
 

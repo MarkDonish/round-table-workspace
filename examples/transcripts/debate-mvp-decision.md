@@ -158,3 +158,21 @@ Topic: 面向大学生的 AI 学习产品是否值得先做 MVP
   summarize, review, and final decision.
 - Reviewer approval is based only on visible discussion artifacts.
 - The final decision is single, actionable, and claim-safe.
+
+## Decision Quality Self-Check
+
+Using `docs/decision-quality-rubric.md`, this illustrative debate would score:
+
+```json
+{
+  "problem_reframing": 2,
+  "key_variables": 2,
+  "assumption_separation": 2,
+  "opposition_quality": 2,
+  "risk_to_action": 2,
+  "next_testable_step": 2,
+  "uncertainty_disclosure": 1,
+  "total": 13,
+  "claim_boundary": "illustrative transcript only, not host-live or provider-live evidence"
+}
+```

@@ -1,0 +1,31 @@
+{
+  "schema_version": "0.1.0",
+  "skill_id": "debate",
+  "canonical_codex_path": ".codex/skills/debate-roundtable-skill/SKILL.md",
+  "adapter_paths": [
+    ".claude/skills/debate/SKILL.md"
+  ],
+  "entry_commands": [
+    "/debate <topic>",
+    "/debate --with Jobs,Taleb <topic>",
+    "/debate --quick <topic>"
+  ],
+  "canonical_refs": [
+    "AGENTS.md",
+    "docs/protocol-spec.md",
+    "docs/debate-skill-architecture.md",
+    "docs/reviewer-protocol.md",
+    "docs/decision-quality-rubric.md",
+    "docs/room-to-debate-handoff.md",
+    "schemas/debate-session.schema.json",
+    "schemas/debate-result.schema.json",
+    "schemas/room-to-debate-handoff.schema.json",
+    "prompts/debate-roundtable.md",
+    "prompts/debate-reviewer.md",
+    "prompts/debate-followup.md"
+  ],
+  "host_specific": {
+    "codex": "Canonical checked-in debate runtime and skill entrypoint.",
+    "claude": "Project-skill adapter that points back to canonical Codex/docs sources."
+  }
+}

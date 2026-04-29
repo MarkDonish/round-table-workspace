@@ -1,0 +1,6 @@
+{
+  "local_first": true,
+  "host_live": "not_claimed",
+  "provider_live": "not_claimed",
+  "not_live_claim": true
+}

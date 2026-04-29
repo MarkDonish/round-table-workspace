@@ -12,7 +12,7 @@ readiness are not host-live or provider-live support.
 | Horizon | Goal | Primary Documents |
 |---|---|---|
 | `v0.2.0-alpha` | Establish a cleaner product entry, protocol schema base, reusable core package, and milestone plan. | `docs/milestones/v0.2.0.md` |
-| `v0.2.0` | Ship the v0.2 protocol/runtime foundation with schema validation, source consistency, and regression fixtures. | `docs/protocol-spec.md`, `schemas/`, `roundtable_core/` |
+| `v0.2.0` | Full development scope implemented on `main`; ready for final tag/release review after verification. | `docs/protocol-spec.md`, `schemas/`, `roundtable_core/`, `scripts/release_check.py` |
 | after `v0.2.0` | Broaden host adapters and interactive experience only after the core contracts are stable. | `docs/host-adapter-architecture.md`, `docs/generic-local-agent-adapter.md` |
 
 ## v0.2.0 Themes
@@ -39,6 +39,22 @@ readiness are not host-live or provider-live support.
 | RTW-007 debate schema | done | `schemas/debate-session.schema.json`, `schemas/debate-result.schema.json` |
 | RTW-010 `roundtable_core` initial abstraction | done | `roundtable_core/` |
 | RTW-027 v0.2.0 milestone docs | done | `docs/milestones/v0.2.0.md` |
+
+## Full v0.2.0 Progress
+
+All 27 task IDs from the v0.2.0 development canvas are implemented in source on
+`main`. The final release claim still depends on the release-check and
+claim-boundary rules; this does not imply universal host-live or provider-live
+support.
+
+Key completion sources:
+
+- RTW-004, RTW-023: `AGENTS.md`, `docs/user-entry-guide.md`, `docs/index.md`
+- RTW-008, RTW-009: `schemas/room-to-debate-handoff.schema.json`, `docs/decision-quality-rubric.md`
+- RTW-011, RTW-012, RTW-017: `roundtable_core/runtime/`, `roundtable_core/prompts/`
+- RTW-014, RTW-015, RTW-016: `skills_src/`, `scripts/generate_skills.py`, `scripts/check_skill_drift.py`
+- RTW-018, RTW-019, RTW-020, RTW-021, RTW-022, RTW-024: `evals/`, `scripts/`, self-check outputs, and `reports/claim-boundary-dashboard.md`
+- RTW-025, RTW-026: `./rtw interactive`, `./rtw demo startup-idea`
 
 ## Out Of Scope For Roadmap Claims
 

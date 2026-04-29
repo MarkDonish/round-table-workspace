@@ -1,0 +1,20 @@
+{
+  "id": "startup_direction",
+  "workflow": "room-to-debate",
+  "input": "Should we validate an AI study product for college students?",
+  "fixture_output": "The decision is whether to run a seven-day validation, not whether to build a full AI tutor. Key variables: student segment, repeated frequency, retention threshold, acquisition channel. Fact: no live student data yet. Assumption: students will repeat the workflow. Risk: exam-week curiosity may be false validation. Next testable step: interview five students, pick one bottleneck, define thresholds, and run a seven-day cohort. Unknowns: first segment and channel.",
+  "must_identify": [
+    "student segment",
+    "retention threshold",
+    "false validation"
+  ],
+  "must_not": [
+    "build full platform now",
+    "provider-live passed"
+  ],
+  "expected_next_testable_step": "run a seven-day cohort",
+  "uncertainty_requirements": [
+    "unknowns",
+    "no live student data"
+  ]
+}

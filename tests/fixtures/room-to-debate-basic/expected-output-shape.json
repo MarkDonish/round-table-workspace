@@ -1,0 +1,13 @@
+{
+  "schema": "schemas/room-to-debate-handoff.schema.json",
+  "fixture": "examples/fixtures/room-to-debate-handoff.valid.json",
+  "required_fields": [
+    "schema_version",
+    "source_room_session_id",
+    "decision_question",
+    "context_summary",
+    "recommended_panel",
+    "claim_boundary"
+  ],
+  "consumer_fixture": "examples/fixtures/debate-session.valid.json"
+}

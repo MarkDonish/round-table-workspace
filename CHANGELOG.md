@@ -15,11 +15,26 @@ live validation evidence.
 - Initial `roundtable_core/` package for host-neutral validation, state-root,
   evidence metadata, and claim boundary helpers.
 - `docs/roadmap.md` and `docs/milestones/v0.2.0.md` for v0.2.0 planning.
+- `schemas/room-to-debate-handoff.schema.json` and matching fixture for the
+  `/room -> /debate` handoff contract.
+- `docs/decision-quality-rubric.md`, fixture/mock decision-quality eval cases,
+  and regression fixture checks for room/debate/handoff flows.
+- Skill generation and drift-check tooling under `skills_src/` and `scripts/`.
+- Source-truth consistency, claim-boundary dashboard, and aggregate
+  `./rtw release-check` automation.
+- `./rtw interactive` and `./rtw demo startup-idea` fixture/mock experience
+  commands.
+- `docs/index.md` and `docs/skill-generation.md` for documentation governance.
 
 ### Changed
 
 - `./rtw validate --schema ...` now uses `roundtable_core.validation` while the
   legacy `roundtable.schema_validation` import path remains compatible.
+- `agent_consumer_self_check.py` now writes standardized JSON/Markdown aliases
+  and a `state-root/runs/<run_id>/` record with input, output, evidence, and
+  summary files.
+- Codex and Claude skill entrypoints now include generated summary sections and
+  long implementation-boundary content is moved into `references/`.
 
 ## v0.1.3 - 2026-04-28
 

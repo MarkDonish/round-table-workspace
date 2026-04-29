@@ -1,0 +1,14 @@
+{
+  "schema": "schemas/room-session.schema.json",
+  "fixture": "tests/fixtures/room-session.valid.json",
+  "required_fields": [
+    "schema_version",
+    "session_id",
+    "workflow",
+    "user_question",
+    "panel",
+    "turns",
+    "summaries",
+    "claim_boundary"
+  ]
+}
