@@ -58,6 +58,12 @@ def build_parser() -> argparse.ArgumentParser:
     validate.add_argument("--quick", action="store_true", help="Run quick self-check instead of local Codex regression.")
     validate.add_argument("--state-root", help="Directory for generated validation evidence.")
     validate.add_argument("--timeout-seconds", type=int, default=30)
+    validate.add_argument("--schema", help="Validate fixture JSON against a checked-in JSON Schema file.")
+    validate.add_argument(
+        "--fixture",
+        action="append",
+        help="Fixture JSON file to validate. Can be passed more than once.",
+    )
 
     evidence = subparsers.add_parser(
         "evidence",
@@ -105,6 +111,9 @@ def run_doctor(args: argparse.Namespace) -> int:
 
 
 def run_validate(args: argparse.Namespace) -> int:
+    if args.schema or args.fixture:
+        return run_schema_validation(args)
+
     if args.quick:
         command = [
             sys.executable,
@@ -125,6 +134,51 @@ def run_validate(args: argparse.Namespace) -> int:
     return run_command(command)
 
 
+def run_schema_validation(args: argparse.Namespace) -> int:
+    if args.quick:
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "error": "--quick cannot be combined with --schema validation.",
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 2
+
+    if not args.schema or not args.fixture:
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "error": "--schema and at least one --fixture are required together.",
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        return 2
+
+    from roundtable.schema_validation import validate_file
+
+    schema_path = resolve_repo_path(args.schema)
+    results = [
+        validate_file(schema_path=schema_path, instance_path=resolve_repo_path(fixture))
+        for fixture in args.fixture
+    ]
+    payload = {
+        "ok": all(result.ok for result in results),
+        "action": "schema-validation",
+        "schema": args.schema,
+        "fixtures": args.fixture,
+        "results": [result.to_dict() for result in results],
+    }
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return 0 if payload["ok"] else 1
+
+
 def run_evidence(args: argparse.Namespace) -> int:
     command = [
         sys.executable,
@@ -142,6 +196,13 @@ def run_evidence(args: argparse.Namespace) -> int:
 def run_command(command: list[str]) -> int:
     result = subprocess.run(command, cwd=REPO_ROOT)
     return result.returncode
+
+
+def resolve_repo_path(path_text: str) -> Path:
+    path = Path(path_text).expanduser()
+    if path.is_absolute():
+        return path
+    return REPO_ROOT / path
 
 
 def resolve_state_root(explicit_state_root: str | None, command: str) -> str:

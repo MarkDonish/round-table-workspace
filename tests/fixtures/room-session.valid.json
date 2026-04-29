@@ -1,0 +1,164 @@
+{
+  "schema_version": "0.1.0",
+  "session_id": "room-example-session",
+  "workflow": "room",
+  "user_question": "I want to explore an AI study product for university students before deciding whether to build it.",
+  "current_focus": "smallest verifiable wedge",
+  "panel": [
+    {
+      "agent_id": "steve-jobs",
+      "short_name": "Jobs",
+      "role_summary": "Product wedge and value proposition judge",
+      "structural_role": "offensive"
+    },
+    {
+      "agent_id": "munger",
+      "short_name": "Munger",
+      "role_summary": "Downside risk and validation discipline reviewer",
+      "structural_role": "defensive"
+    },
+    {
+      "agent_id": "karpathy",
+      "short_name": "Karpathy",
+      "role_summary": "Thin technical loop and feasibility explainer",
+      "structural_role": "moderate"
+    }
+  ],
+  "turns": [
+    {
+      "turn_id": 1,
+      "stage": "explore",
+      "active_focus": null,
+      "user_input": "Start by finding the smallest useful product wedge.",
+      "speakers": [
+        {
+          "agent_id": "steve-jobs",
+          "short_name": "Jobs",
+          "role": "primary",
+          "content": "Start with a specific repeated study moment, not a broad AI learning platform."
+        },
+        {
+          "agent_id": "munger",
+          "short_name": "Munger",
+          "role": "challenge",
+          "content": "The first test should prove retention under low-cost conditions before any broader roadmap."
+        }
+      ],
+      "cited_agents": [],
+      "warnings": [],
+      "meta": {
+        "generated_at_turn": 1,
+        "prompt_version": "room-chat v0.1.4-rebuilt",
+        "tokens_used_estimate": 640
+      }
+    }
+  ],
+  "summaries": [
+    {
+      "turn_id": 1,
+      "consensus_points": [
+        "The room should start from a narrow repeated study moment."
+      ],
+      "open_questions": [
+        "Which moment has enough frequency and pain to justify a separate product?"
+      ],
+      "tension_points": [
+        "A delightful product wedge can still fail if retention is not proven early."
+      ],
+      "recommended_next_step": "Interview five students about one recurring study bottleneck and define one retention test.",
+      "generated_at": "2026-04-29T00:05:00Z"
+    }
+  ],
+  "handoff_packet": null,
+  "claim_boundary": {
+    "local_first": true,
+    "host_live": "not_claimed",
+    "provider_live": "not_claimed",
+    "notes": [
+      "This fixture validates schema shape only.",
+      "It is not host-live validation and not provider-live validation."
+    ]
+  },
+  "created_at": "2026-04-29T00:00:00Z",
+  "updated_at": "2026-04-29T00:10:00Z",
+  "runtime_state": {
+    "room_id": "room-example-session",
+    "title": "AI study product wedge",
+    "mode": "standard",
+    "original_topic": "I want to explore an AI study product for university students before deciding whether to build it.",
+    "primary_type": "product",
+    "secondary_type": "startup",
+    "active_focus": "smallest verifiable wedge",
+    "agents": [
+      "steve-jobs",
+      "munger",
+      "karpathy"
+    ],
+    "agent_roles": {
+      "steve-jobs": {
+        "short_name": "Jobs",
+        "role_summary": "Product wedge and value proposition judge",
+        "structural_role": "offensive"
+      },
+      "munger": {
+        "short_name": "Munger",
+        "role_summary": "Downside risk and validation discipline reviewer",
+        "structural_role": "defensive"
+      },
+      "karpathy": {
+        "short_name": "Karpathy",
+        "role_summary": "Thin technical loop and feasibility explainer",
+        "structural_role": "moderate"
+      }
+    },
+    "consensus_points": [
+      "The room should start from a narrow repeated study moment."
+    ],
+    "open_questions": [
+      "Which moment has enough frequency and pain to justify a separate product?"
+    ],
+    "tension_points": [
+      "A delightful product wedge can still fail if retention is not proven early."
+    ],
+    "recommended_next_step": "Interview five students about one recurring study bottleneck and define one retention test.",
+    "silent_rounds": {
+      "steve-jobs": 0,
+      "munger": 0,
+      "karpathy": 1
+    },
+    "turn_count": 1,
+    "last_stage": "explore",
+    "recent_log": "turn 1: product wedge and validation discipline",
+    "conversation_log": [
+      {
+        "turn_id": 1,
+        "stage": "explore",
+        "active_focus": null,
+        "user_input": "Start by finding the smallest useful product wedge.",
+        "speakers": [
+          {
+            "agent_id": "steve-jobs",
+            "short_name": "Jobs",
+            "role": "primary",
+            "content": "Start with a specific repeated study moment, not a broad AI learning platform."
+          },
+          {
+            "agent_id": "munger",
+            "short_name": "Munger",
+            "role": "challenge",
+            "content": "The first test should prove retention under low-cost conditions before any broader roadmap."
+          }
+        ],
+        "cited_agents": [],
+        "warnings": [],
+        "meta": {
+          "generated_at_turn": 1,
+          "prompt_version": "room-chat v0.1.4-rebuilt",
+          "tokens_used_estimate": 640
+        }
+      }
+    ],
+    "upgrade_signal": null,
+    "last_summary_turn": 1
+  }
+}

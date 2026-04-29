@@ -13,6 +13,7 @@ repository to another local agent host.
 | `LAUNCH.md` | Clone/user launch entry | Shortest safe self-check and runtime path selection for new local users or agent hosts | Replacing detailed architecture, release, or protocol docs |
 | `README.md` | Project overview and entry index | Current state, capability summary, entrypoint discovery | Replacing detailed protocol docs |
 | `docs/` | Active protocol and release source | Architecture, release scope, host adapters, provider readiness, sync protocol | Historical session archaeology unless under `docs/archive/` |
+| `schemas/` | Active protocol schemas | Machine-checkable session, result, and handoff shapes | Runtime output storage or historical reports |
 | `prompts/` | Active prompt source | `/room`, `/debate`, and daily-mode prompt contracts | Runtime state persistence |
 | `examples/` | Active usage examples | Human-readable examples and expected usage patterns | Release or live validation proof |
 | `.codex/skills/` | Codex skill and runtime source | Canonical skill manifests, runtime bridges, validators, fixtures | Machine-local secrets or host-specific state |
@@ -26,7 +27,7 @@ repository to another local agent host.
 
 When a report or artifact reveals a useful rule, bug, or decision:
 
-1. Move the still-valid rule into `docs/`, `prompts/`, `examples/`, or `.codex/skills/`.
+1. Move the still-valid rule into `docs/`, `schemas/`, `prompts/`, `examples/`, or `.codex/skills/`.
 2. Add or update a repo-local validation command when possible.
 3. Cite the active source file in future work.
 4. Keep the original report or artifact as historical evidence only.

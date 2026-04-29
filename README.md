@@ -129,6 +129,7 @@ round-table-workspace/
 ├─ AGENTS.md
 ├─ CHANGELOG.md
 ├─ docs/
+├─ schemas/
 ├─ prompts/
 ├─ examples/
 ├─ .codex/skills/
@@ -142,6 +143,7 @@ Active source of truth:
 - `AGENTS.md`
 - `LAUNCH.md`
 - `docs/`
+- `schemas/`
 - `prompts/`
 - `examples/`
 - `.codex/skills/`
@@ -166,6 +168,7 @@ into active source files instead of leaving historical material as the authority
 | `docs/release-readiness.md` | release gate rules |
 | `docs/release-candidate-scope.md` | claim-safe support scope |
 | `docs/protocol-spec.md` | unified `/room`, `/debate`, and handoff protocol overview |
+| `schemas/room-session.schema.json` | portable `/room` session state schema |
 | `docs/room-architecture.md` | `/room` protocol and behavior |
 | `docs/debate-skill-architecture.md` | `/debate` protocol and behavior |
 | `docs/room-to-debate-handoff.md` | handoff contract from exploration to review |

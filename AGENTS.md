@@ -20,6 +20,7 @@ Primary source directories:
 - `LAUNCH.md`
 - `AGENTS.md`
 - `docs/`
+- `schemas/`
 - `prompts/`
 - `examples/`
 - `.codex/skills/debate-roundtable-skill/`
@@ -80,6 +81,7 @@ On `/room`, use:
   - `docs/room-chat-contract.md`
   - `docs/agent-registry.md`
   - `docs/room-to-debate-handoff.md`
+  - `schemas/room-session.schema.json`
   - `prompts/room-selection.md`
   - `prompts/room-chat.md`
   - `prompts/room-summary.md`
