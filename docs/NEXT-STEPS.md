@@ -55,11 +55,11 @@ The current launchable scope is the Codex local mainline:
 This does not mean every real local agent host or provider has been
 live-validated.
 
-Latest tagged release target: `v0.1.3`.
+Latest tagged release target: `v0.2.0-alpha`.
 
-Current `main` is intended to match the `v0.1.3` local-first launch scope once
-the tag is pushed. Do not assume any later post-`v0.1.3` changes are included in
-that tag unless a later tag is cut.
+Current `main` is intended to match the `v0.2.0-alpha` local-first development
+release scope once the tag is pushed. Do not assume any later
+post-`v0.2.0-alpha` changes are included in that tag unless a later tag is cut.
 
 Latest checked-in Claude Code host-live evidence:
 
@@ -73,6 +73,8 @@ Latest checked-in Claude Code host-live evidence:
 | Priority | Task | Status | Why Now | Completion Standard |
 |---|---|---|---|---|
 | P0 | Codex local mainline blocker | None known | The strict release gate currently reports no P0 blockers | Keep `release_readiness_check.py --include-fixture-runs --strict-git-clean` green |
+| P1 | Publish `v0.2.0-alpha` GitHub Release page | Ready after tag push | The v0.2.0 development scope is implemented and release notes are checked in | GitHub Release is published as a pre-release using `docs/releases/v0.2.0-alpha-github-release.md` |
+| P1 | Promote `v0.2.0-alpha` release | Ready after tag push | All 27 v0.2.0 development-canvas task IDs are implemented on `main` | Release notes/changelog point to v0.2.0-alpha, strict release gate passes from clean Git tree, tag is pushed, post-release audit passes |
 | P1 | Publish `v0.1.3` GitHub Release page | Completed | GitHub Actions run `25049260899` published the release page at `2026-04-28T11:06:45Z` | `gh release view v0.1.3 --repo MarkDonish/round-table-workspace` reports non-draft, non-prerelease, published |
 | P1 | Promote `v0.1.3` patch release | Completed | Current `main` has final P2 launch-boundary evidence not present in `v0.1.2` | Release notes/changelog point to v0.1.3, strict release gate passes from clean Git tree, tag is pushed, release page is published |
 | P1 | Publish `v0.1.2` GitHub Release page | Completed | GitHub Actions run `25040681309` published the release page at `2026-04-28T07:49:56Z` | `gh release view v0.1.2 --repo MarkDonish/round-table-workspace` reports non-draft, non-prerelease, published |
@@ -98,15 +100,14 @@ There are no known P0/P1 release blockers for the Codex local mainline. The
 remaining active work is P2 evidence expansion and must not delay launch unless
 the launch claim is widened beyond the current scope.
 
-Keep `v0.1.3` release publication evidence current if the release body is edited
-again. The checked-in GitHub Actions release publisher has already run
-successfully for `v0.1.2`; `v0.1.3` should use the same workflow after its tag
-is pushed. Verify publication with:
+Keep `v0.2.0-alpha` release publication evidence current if the release body is
+edited again. The checked-in GitHub Actions release publisher should publish it
+as a pre-release after its tag is pushed. Verify publication with:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/github_release_publication_check.py \
-  --tag v0.1.3 \
-  --release-draft docs/releases/v0.1.3-github-release.md \
+  --tag v0.2.0-alpha \
+  --release-draft docs/releases/v0.2.0-alpha-github-release.md \
   --strict-published \
   --state-root /tmp/round-table-github-release-publication
 ```
@@ -162,7 +163,7 @@ After tagging a release, audit the fresh consumer path:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
-  --ref v0.1.3 \
+  --ref v0.2.0-alpha \
   --state-root /tmp/round-table-post-release-consumer-audit
 ```
 

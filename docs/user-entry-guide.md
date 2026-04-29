@@ -209,13 +209,13 @@ For developers or future agents:
 For release/support claims:
 
 1. `docs/release-candidate-scope.md`
-2. `docs/releases/v0.1.3.md`
+2. `docs/releases/v0.2.0-alpha.md`
 3. `CHANGELOG.md`
-4. `reports/GITHUB_RELEASE_PUBLICATION_2026-04-28_v0.1.3.md`
+4. `docs/releases/v0.2.0-alpha-github-release.md`
 
 ## What The Repository Can Claim Today
 
-The current release is `v0.1.3`.
+The current release is `v0.2.0-alpha`.
 
 Claimable:
 

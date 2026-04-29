@@ -102,7 +102,7 @@ Example interaction shape:
 
 For longer illustrative walkthroughs, see `examples/transcripts/`.
 
-For release aggregation during v0.2.0 development:
+For v0.2.0-alpha release aggregation:
 
 ```bash
 ./rtw release-check --include-fixtures
@@ -110,7 +110,7 @@ For release aggregation during v0.2.0 development:
 
 ## Current Support Scope
 
-The current release is `v0.1.3`.
+The current release is `v0.2.0-alpha`.
 
 The repository may currently be used for:
 
@@ -135,7 +135,7 @@ The repository does not currently claim:
   `.env.room` and `.env.debate` files exist and live validation passes
 - universal production stability across all possible machines and accounts
 
-See `docs/release-candidate-scope.md` and `docs/releases/v0.1.3.md` for the
+See `docs/release-candidate-scope.md` and `docs/releases/v0.2.0-alpha.md` for the
 claim-safe release boundary.
 
 ## Repository Map

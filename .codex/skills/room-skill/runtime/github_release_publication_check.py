@@ -19,8 +19,8 @@ RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-github-release-publication"
 DEFAULT_REPOSITORY = "MarkDonish/round-table-workspace"
-DEFAULT_TAG = "v0.1.3"
-DEFAULT_RELEASE_DRAFT = "docs/releases/v0.1.3-github-release.md"
+DEFAULT_TAG = "v0.2.0-alpha"
+DEFAULT_RELEASE_DRAFT = "docs/releases/v0.2.0-alpha-github-release.md"
 DEFAULT_RELEASE_WORKFLOW = ".github/workflows/publish-github-release.yml"
 DEFAULT_WORKFLOW_RUN_LIMIT = 5
 

@@ -6,11 +6,21 @@ on:
       tag:
         description: "Release tag to publish or update."
         required: false
-        default: "v0.1.3"
+        default: "v0.2.0-alpha"
       release_draft:
         description: "Repo-relative release draft containing the GitHub Release body."
         required: false
-        default: "docs/releases/v0.1.3-github-release.md"
+        default: "docs/releases/v0.2.0-alpha-github-release.md"
+      prerelease:
+        description: "Publish as a prerelease."
+        required: false
+        type: boolean
+        default: true
+      make_latest:
+        description: "Mark as the latest release."
+        required: false
+        type: boolean
+        default: false
       dry_run:
         description: "Extract and inspect the body without creating or editing the release."
         required: false
@@ -22,13 +32,13 @@ on:
     paths:
       - ".github/workflows/publish-github-release.yml"
       - ".codex/skills/room-skill/runtime/extract_github_release_body.py"
-      - "docs/releases/v0.1.3-github-release.md"
+      - "docs/releases/v0.2.0-alpha-github-release.md"
 
 permissions:
   contents: write
 
 concurrency:
-  group: publish-github-release-${{ github.event.inputs.tag || 'v0.1.3' }}
+  group: publish-github-release-${{ github.event.inputs.tag || 'v0.2.0-alpha' }}
   cancel-in-progress: false
 
 jobs:
@@ -38,6 +48,8 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       TAG_INPUT: ${{ github.event.inputs.tag }}
       RELEASE_DRAFT_INPUT: ${{ github.event.inputs.release_draft }}
+      PRERELEASE_INPUT: ${{ github.event.inputs.prerelease }}
+      MAKE_LATEST_INPUT: ${{ github.event.inputs.make_latest }}
       DRY_RUN_INPUT: ${{ github.event.inputs.dry_run }}
     steps:
       - name: Checkout
@@ -48,11 +60,15 @@ jobs:
       - name: Normalize inputs
         shell: bash
         run: |
-          tag="${TAG_INPUT:-v0.1.3}"
-          release_draft="${RELEASE_DRAFT_INPUT:-docs/releases/v0.1.3-github-release.md}"
+          tag="${TAG_INPUT:-v0.2.0-alpha}"
+          release_draft="${RELEASE_DRAFT_INPUT:-docs/releases/v0.2.0-alpha-github-release.md}"
+          prerelease="${PRERELEASE_INPUT:-true}"
+          make_latest="${MAKE_LATEST_INPUT:-false}"
           dry_run="${DRY_RUN_INPUT:-false}"
           echo "TAG=${tag}" >> "$GITHUB_ENV"
           echo "RELEASE_DRAFT=${release_draft}" >> "$GITHUB_ENV"
+          echo "PRERELEASE=${prerelease}" >> "$GITHUB_ENV"
+          echo "MAKE_LATEST=${make_latest}" >> "$GITHUB_ENV"
           echo "DRY_RUN=${dry_run}" >> "$GITHUB_ENV"
 
       - name: Verify tag exists
@@ -81,21 +97,27 @@ jobs:
         if: env.DRY_RUN != 'true'
         shell: bash
         run: |
+          release_flags=(
+            --repo "$GITHUB_REPOSITORY"
+            --title "$TAG"
+            --notes-file /tmp/github-release-body.md
+          )
+          if [ "$PRERELEASE" = "true" ]; then
+            release_flags+=(--prerelease)
+          else
+            release_flags+=(--prerelease=false)
+          fi
+          if [ "$MAKE_LATEST" = "true" ]; then
+            release_flags+=(--latest)
+          fi
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /tmp/github-release-view.json 2> /tmp/github-release-view.err; then
             gh release edit "$TAG" \
-              --repo "$GITHUB_REPOSITORY" \
-              --title "$TAG" \
-              --notes-file /tmp/github-release-body.md \
-              --draft=false \
-              --prerelease=false \
-              --latest
+              "${release_flags[@]}" \
+              --draft=false
           else
             gh release create "$TAG" \
-              --repo "$GITHUB_REPOSITORY" \
-              --title "$TAG" \
-              --notes-file /tmp/github-release-body.md \
-              --verify-tag \
-              --latest
+              "${release_flags[@]}" \
+              --verify-tag
           fi
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
             --json tagName,name,isDraft,isPrerelease,publishedAt,targetCommitish,url

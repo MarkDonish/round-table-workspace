@@ -25,12 +25,12 @@ This is not the same as claiming every local agent host or every provider is liv
 
 ## Current Release Artifact
 
-The current release is `v0.1.3`.
+The current release is `v0.2.0-alpha`.
 
 Use:
 
 - `CHANGELOG.md` for the release history.
-- `docs/releases/v0.1.3.md` for the human-readable release note.
+- `docs/releases/v0.2.0-alpha.md` for the human-readable release note.
 - `release_candidate_report.py` output for machine-readable support-scope evidence.
 
 The tag must point to a commit that has passed the strict release gate.
