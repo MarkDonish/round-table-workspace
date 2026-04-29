@@ -21,6 +21,7 @@ Primary source directories:
 - `AGENTS.md`
 - `docs/`
 - `schemas/`
+- `roundtable_core/`
 - `prompts/`
 - `examples/`
 - `.codex/skills/debate-roundtable-skill/`

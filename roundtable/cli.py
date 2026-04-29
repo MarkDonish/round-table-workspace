@@ -8,9 +8,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Sequence
 
+from roundtable_core.runtime import resolve_state_root as core_resolve_state_root
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_STATE_ROOT_BASE = Path("/tmp") / "round-table-workspace"
 
 ROOM_SELF_CHECK = ".codex/skills/room-skill/runtime/agent_consumer_self_check.py"
 LIVE_LANE_EVIDENCE = ".codex/skills/room-skill/runtime/live_lane_evidence_report.py"
@@ -161,7 +161,7 @@ def run_schema_validation(args: argparse.Namespace) -> int:
         )
         return 2
 
-    from roundtable.schema_validation import validate_file
+    from roundtable_core.validation import validate_file
 
     schema_path = resolve_repo_path(args.schema)
     results = [
@@ -206,9 +206,7 @@ def resolve_repo_path(path_text: str) -> Path:
 
 
 def resolve_state_root(explicit_state_root: str | None, command: str) -> str:
-    if explicit_state_root:
-        return str(Path(explicit_state_root).expanduser())
-    return str(DEFAULT_STATE_ROOT_BASE / command / utc_timestamp())
+    return str(core_resolve_state_root(explicit_state_root, command, timestamp=utc_timestamp()))
 
 
 def utc_timestamp() -> str:

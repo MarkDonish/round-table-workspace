@@ -154,6 +154,8 @@ Active source of truth:
 - `AGENTS.md`
 - `README.md`
 - `docs/`
+- `schemas/`
+- `roundtable_core/`
 - `prompts/`
 - `examples/`
 - `.codex/skills/`

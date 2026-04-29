@@ -10,7 +10,16 @@ live validation evidence.
 
 ## Unreleased
 
-No release-scope changes yet.
+### Added
+
+- Initial `roundtable_core/` package for host-neutral validation, state-root,
+  evidence metadata, and claim boundary helpers.
+- `docs/roadmap.md` and `docs/milestones/v0.2.0.md` for v0.2.0 planning.
+
+### Changed
+
+- `./rtw validate --schema ...` now uses `roundtable_core.validation` while the
+  legacy `roundtable.schema_validation` import path remains compatible.
 
 ## v0.1.3 - 2026-04-28
 

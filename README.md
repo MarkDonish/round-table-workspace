@@ -130,6 +130,7 @@ round-table-workspace/
 ├─ CHANGELOG.md
 ├─ docs/
 ├─ schemas/
+├─ roundtable_core/
 ├─ prompts/
 ├─ examples/
 ├─ .codex/skills/
@@ -144,6 +145,7 @@ Active source of truth:
 - `LAUNCH.md`
 - `docs/`
 - `schemas/`
+- `roundtable_core/`
 - `prompts/`
 - `examples/`
 - `.codex/skills/`
@@ -167,6 +169,8 @@ into active source files instead of leaving historical material as the authority
 | `docs/source-truth-map.md` | source vs historical/output boundary |
 | `docs/release-readiness.md` | release gate rules |
 | `docs/release-candidate-scope.md` | claim-safe support scope |
+| `docs/roadmap.md` | project roadmap and release horizons |
+| `docs/milestones/v0.2.0.md` | v0.2.0 milestone scope and issue split |
 | `docs/protocol-spec.md` | unified `/room`, `/debate`, and handoff protocol overview |
 | `schemas/room-session.schema.json` | portable `/room` session state schema |
 | `schemas/debate-session.schema.json` | portable `/debate` session state schema |

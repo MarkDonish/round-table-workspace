@@ -13,6 +13,7 @@ Claude Code also gets a native project-skill discovery layer under `.claude/skil
 | Layer | Responsibility | Source of truth |
 |---|---|---|
 | Protocol prompts | Define JSON input/output contracts for room selection, room chat, summary, upgrade, debate roundtable, review, and follow-up | `prompts/` |
+| Runtime core | Provide host-neutral helpers for validation, state-root paths, evidence metadata, and claim boundaries | `roundtable_core/` |
 | Runtime bridge | Own state, validation, persistence, packet handoff, and runner orchestration | `.codex/skills/room-skill/runtime/`, `.codex/skills/debate-roundtable-skill/runtime/` |
 | Host adapter | Execute one prompt task through a concrete local agent or fallback provider and return one JSON object | `generic_agent_executor.py`, `local_codex_executor.py`, `chat_completions_executor.py` |
 | Adapter validation kit | Validate a candidate local agent CLI with smoke + full `/room -> /debate` fixture-backed integration | `generic_agent_adapter_validation.py`, `docs/generic-local-agent-adapter.md` |
