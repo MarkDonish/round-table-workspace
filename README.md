@@ -165,6 +165,7 @@ into active source files instead of leaving historical material as the authority
 | `docs/source-truth-map.md` | source vs historical/output boundary |
 | `docs/release-readiness.md` | release gate rules |
 | `docs/release-candidate-scope.md` | claim-safe support scope |
+| `docs/protocol-spec.md` | unified `/room`, `/debate`, and handoff protocol overview |
 | `docs/room-architecture.md` | `/room` protocol and behavior |
 | `docs/debate-skill-architecture.md` | `/debate` protocol and behavior |
 | `docs/room-to-debate-handoff.md` | handoff contract from exploration to review |
