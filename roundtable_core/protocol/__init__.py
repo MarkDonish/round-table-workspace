@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from roundtable_core.protocol.claims import ClaimStatus, local_first_claim_boundary
+from roundtable_core.protocol.debate_result_builder import build_debate_result, build_debate_result_from_artifacts
 from roundtable_core.protocol.handoff import portable_handoff_to_runtime_packet, runtime_packet_to_portable_handoff
 from roundtable_core.protocol.projections import (
     project_debate_artifacts_to_result,
@@ -11,6 +12,8 @@ from roundtable_core.protocol.projections import (
 __all__ = [
     "ClaimStatus",
     "local_first_claim_boundary",
+    "build_debate_result",
+    "build_debate_result_from_artifacts",
     "portable_handoff_to_runtime_packet",
     "runtime_packet_to_portable_handoff",
     "project_debate_artifacts_to_result",

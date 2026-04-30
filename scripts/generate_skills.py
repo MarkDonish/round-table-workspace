@@ -20,7 +20,7 @@ def main() -> int:
     parser.add_argument("--skill", choices=["room", "debate", "all"], default="all")
     args = parser.parse_args()
 
-    reports = []
+    reports = migration_warnings()
     for skill in selected_skills(args.skill):
         reports.extend(process_skill(skill, command=args.command))
 
@@ -34,8 +34,8 @@ def selected_skills(selection: str) -> list[str]:
 
 
 def process_skill(skill: str, *, command: str) -> list[dict[str, Any]]:
-    source = load_jsonish(REPO_ROOT / "skills_src" / f"{skill}.skill.yaml")
-    shared = load_jsonish(REPO_ROOT / "skills_src" / "shared_rules.yaml")
+    source = load_json(REPO_ROOT / "skills_src" / f"{skill}.skill.json")
+    shared = load_json(REPO_ROOT / "skills_src" / "shared_rules.json")
     section = render_section(source, shared)
     targets = [source["canonical_codex_path"], *source["adapter_paths"]]
     reports = []
@@ -106,11 +106,30 @@ def replace_section(text: str, section: str) -> str:
     return text.rstrip() + "\n\n" + section.rstrip() + "\n"
 
 
-def load_jsonish(path: Path) -> dict[str, Any]:
+def migration_warnings() -> list[dict[str, Any]]:
+    warnings = []
+    for path in [
+        REPO_ROOT / "skills_src" / "shared_rules.yaml",
+        REPO_ROOT / "skills_src" / "room.skill.yaml",
+        REPO_ROOT / "skills_src" / "debate.skill.yaml",
+    ]:
+        if path.exists():
+            warnings.append(
+                {
+                    "skill": "migration",
+                    "target": str(path.relative_to(REPO_ROOT)),
+                    "warning": "skills_src manifests now use .json; migrate this .yaml file.",
+                    "ok": False,
+                }
+            )
+    return warnings
+
+
+def load_json(path: Path) -> dict[str, Any]:
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        raise SystemExit(f"{path} must contain JSON-compatible YAML: {exc}") from exc
+        raise SystemExit(f"{path} must contain JSON: {exc}") from exc
     if not isinstance(data, dict):
         raise SystemExit(f"{path} must contain an object")
     return data

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import subprocess
 import sys
 import uuid
@@ -10,7 +9,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Sequence
 
-from roundtable_core.runtime import resolve_state_root as core_resolve_state_root
+from roundtable_core.commands import (
+    build_stub_payload as service_build_stub_payload,
+    resolve_cli_state_root,
+    run_debate_fixture,
+    run_golden_demo,
+    run_room_fixture,
+    validate_schema_files,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -22,6 +28,10 @@ LOCAL_CODEX_REGRESSION = ".codex/skills/room-skill/runtime/local_codex_regressio
 RELEASE_CHECK = "scripts/release_check.py"
 AGENT_REGISTRY_RUNTIME = ".codex/skills/agent-builder-skill/runtime/agent_registry.py"
 AGENT_BUNDLE_VALIDATOR = ".codex/skills/agent-builder-skill/runtime/validate_agent_bundle.py"
+EXIT_SUCCESS = 0
+EXIT_VALIDATION_FAILURE = 1
+EXIT_USAGE_OR_CONFIG = 2
+EXIT_RUNTIME_ERROR = 3
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -44,15 +54,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_agent(args)
     if args.command == "room":
         if args.stub:
-            return print_stub("room", " ".join(args.question), args.state_root)
+            return print_stub("room", " ".join(args.question), args.state_root, args=args)
         return run_room(args)
     if args.command == "debate":
         if args.stub:
-            return print_stub("debate", " ".join(args.question), args.state_root)
+            return print_stub("debate", " ".join(args.question), args.state_root, args=args)
         return run_debate(args)
 
     parser.error("unsupported command")
-    return 2
+    return EXIT_USAGE_OR_CONFIG
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -69,6 +79,7 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.add_argument("--quick", action="store_true", help="Run the fast self-check path.")
     doctor.add_argument("--state-root", help="Directory for generated doctor evidence.")
     doctor.add_argument("--timeout-seconds", type=int, default=30)
+    add_output_args(doctor)
 
     validate = subparsers.add_parser(
         "validate",
@@ -83,6 +94,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="append",
         help="Fixture JSON file to validate. Can be passed more than once.",
     )
+    add_output_args(validate)
 
     evidence = subparsers.add_parser(
         "evidence",
@@ -97,6 +109,7 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="HOST_ID=REASON",
         help="Pass an explicit host skip reason to the live-lane evidence report.",
     )
+    add_output_args(evidence)
 
     room = subparsers.add_parser(
         "room",
@@ -105,6 +118,7 @@ def build_parser() -> argparse.ArgumentParser:
     room.add_argument("question", nargs="+", help="Question to explore with /room.")
     room.add_argument("--state-root", help="Directory for generated /room runtime output.")
     room.add_argument("--stub", action="store_true", help="Show the old claim-safe stub instead of running fixtures.")
+    add_output_args(room)
 
     debate = subparsers.add_parser(
         "debate",
@@ -113,6 +127,7 @@ def build_parser() -> argparse.ArgumentParser:
     debate.add_argument("question", nargs="+", help="Question to review with /debate.")
     debate.add_argument("--state-root", help="Directory for generated /debate runtime output.")
     debate.add_argument("--stub", action="store_true", help="Show the old claim-safe stub instead of running fixtures.")
+    add_output_args(debate)
 
     release_check = subparsers.add_parser(
         "release-check",
@@ -122,6 +137,7 @@ def build_parser() -> argparse.ArgumentParser:
     release_check.add_argument("--include-fixtures", action="store_true")
     release_check.add_argument("--strict-git-clean", action="store_true")
     release_check.add_argument("--timeout-seconds", type=int, default=30)
+    add_output_args(release_check)
 
     interactive = subparsers.add_parser(
         "interactive",
@@ -135,12 +151,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     demo.add_argument("demo_name", choices=["startup-idea"])
     demo.add_argument("--state-root", help="Directory for generated demo output.")
+    add_output_args(demo)
 
     agent = subparsers.add_parser(
         "agent",
         help="Manage Agent Factory manifests and registry entries.",
     )
     agent.add_argument("--registry", help="Registry JSON path. Defaults to config/agent-registry.json.")
+    add_output_args(agent)
     agent_subparsers = agent.add_subparsers(dest="agent_command", required=True)
 
     agent_list = agent_subparsers.add_parser("list", help="List Agent Factory registry entries.")
@@ -165,6 +183,13 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def add_output_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--json", action="store_true", help="Emit stable JSON output when the command supports structured output.")
+    parser.add_argument("--quiet", action="store_true", help="Suppress human/stdout output; exit code remains authoritative.")
+    parser.add_argument("--output-json", help="Write structured command output to this JSON file when available.")
+    parser.add_argument("--output-markdown", help="Write a Markdown summary to this file when available.")
+
+
 def run_doctor(args: argparse.Namespace) -> int:
     command = [
         sys.executable,
@@ -176,7 +201,7 @@ def run_doctor(args: argparse.Namespace) -> int:
     ]
     if args.quick:
         command.append("--quick")
-    return run_command(command)
+    return run_command(command, args=args)
 
 
 def run_validate(args: argparse.Namespace) -> int:
@@ -200,7 +225,7 @@ def run_validate(args: argparse.Namespace) -> int:
             "--state-root",
             resolve_state_root(args.state_root, "validate"),
         ]
-    return run_command(command)
+    return run_command(command, args=args)
 
 
 def run_schema_validation(args: argparse.Namespace) -> int:
@@ -215,7 +240,7 @@ def run_schema_validation(args: argparse.Namespace) -> int:
                 indent=2,
             )
         )
-        return 2
+        return EXIT_USAGE_OR_CONFIG
 
     if not args.schema or not args.fixture:
         print(
@@ -228,24 +253,11 @@ def run_schema_validation(args: argparse.Namespace) -> int:
                 indent=2,
             )
         )
-        return 2
+        return EXIT_USAGE_OR_CONFIG
 
-    from roundtable_core.validation import validate_file
-
-    schema_path = resolve_repo_path(args.schema)
-    results = [
-        validate_file(schema_path=schema_path, instance_path=resolve_repo_path(fixture))
-        for fixture in args.fixture
-    ]
-    payload = {
-        "ok": all(result.ok for result in results),
-        "action": "schema-validation",
-        "schema": args.schema,
-        "fixtures": args.fixture,
-        "results": [result.to_dict() for result in results],
-    }
-    print(json.dumps(payload, ensure_ascii=False, indent=2))
-    return 0 if payload["ok"] else 1
+    payload = validate_schema_files(schema=args.schema, fixtures=list(args.fixture))
+    emit_payload(args, payload, markdown=render_payload_summary(payload))
+    return EXIT_SUCCESS if payload["ok"] else EXIT_VALIDATION_FAILURE
 
 
 def run_evidence(args: argparse.Namespace) -> int:
@@ -259,7 +271,7 @@ def run_evidence(args: argparse.Namespace) -> int:
     ]
     for skip_host in args.skip_host:
         command.extend(["--skip-host", skip_host])
-    return run_command(command)
+    return run_command(command, args=args)
 
 
 def run_agent(args: argparse.Namespace) -> int:
@@ -290,26 +302,26 @@ def run_agent(args: argparse.Namespace) -> int:
     elif args.agent_command == "disable":
         command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "disable", args.agent_id]
     else:
-        return 2
-    return run_captured_command(command)
+        return EXIT_USAGE_OR_CONFIG
+    return run_captured_command(command, args=args)
 
 
 def run_room(args: argparse.Namespace) -> int:
-    payload = build_room_fixture_run(
+    payload = run_room_fixture(
         question=" ".join(args.question),
         state_root=Path(resolve_state_root(args.state_root, "room")),
     )
-    print(json.dumps(payload, ensure_ascii=False, indent=2))
-    return 0 if payload["ok"] else 1
+    emit_payload(args, payload, markdown=render_payload_summary(payload))
+    return exit_code_for_payload(payload)
 
 
 def run_debate(args: argparse.Namespace) -> int:
-    payload = build_debate_fixture_run(
+    payload = run_debate_fixture(
         question=" ".join(args.question),
         state_root=Path(resolve_state_root(args.state_root, "debate")),
     )
-    print(json.dumps(payload, ensure_ascii=False, indent=2))
-    return 0 if payload["ok"] else 1
+    emit_payload(args, payload, markdown=render_payload_summary(payload))
+    return exit_code_for_payload(payload)
 
 
 def run_release_check(args: argparse.Namespace) -> int:
@@ -325,7 +337,7 @@ def run_release_check(args: argparse.Namespace) -> int:
         command.append("--include-fixtures")
     if args.strict_git_clean:
         command.append("--strict-git-clean")
-    return run_command(command)
+    return run_command(command, args=args)
 
 
 def run_interactive(args: argparse.Namespace) -> int:
@@ -356,106 +368,92 @@ def run_interactive(args: argparse.Namespace) -> int:
 
 
 def run_demo(args: argparse.Namespace) -> int:
-    from roundtable_core.runtime import create_run_dir, write_evidence, write_input, write_output, write_summary
-    from roundtable_core.runtime.state_store import build_run_evidence
-
-    state_root = Path(resolve_state_root(args.state_root, "demo"))
-    run = create_run_dir(state_root, "demo", run_id=f"demo-{args.demo_name}")
-    input_payload = {
-        "demo": args.demo_name,
-        "mode": "fixture_mock",
-        "claim_boundary": "not host-live or provider-live validation evidence",
-    }
-    write_input(run.run_dir, input_payload)
-
-    room_run = build_room_fixture_run(
-        question="我想讨论一个面向大学生的 AI 学习产品，从方向、切口、风险一步步推进",
-        state_root=run.run_dir / "runtime-room",
-        run_id="demo-room",
+    summary = run_golden_demo(
+        demo_name=args.demo_name,
+        state_root=Path(resolve_state_root(args.state_root, "demo")),
     )
-    debate_run = build_debate_fixture_run(
-        question="这个创业方向值不值得做",
-        state_root=run.run_dir / "runtime-debate",
-        run_id="demo-debate",
-    )
-    quality_json = run.run_dir / "decision-quality-self-check.json"
-    quality_md = run.run_dir / "decision-quality-self-check.md"
-    quality_run = run_json_command(
-        [
-            sys.executable,
-            "evals/decision_quality/run_decision_evals.py",
-            "--output-json",
-            str(quality_json),
-            "--output-markdown",
-            str(quality_md),
-        ]
-    )
-    if room_run["ok"]:
-        shutil.copyfile(room_run["outputs"]["room_session"], run.run_dir / "room-session.json")
-        shutil.copyfile(room_run["outputs"]["portable_handoff_packet"], run.run_dir / "handoff-packet.json")
-    if debate_run["ok"]:
-        shutil.copyfile(debate_run["outputs"]["debate_session"], run.run_dir / "debate-session.json")
-        shutil.copyfile(debate_run["outputs"]["debate_result"], run.run_dir / "debate-result.json")
-
-    ok = bool(room_run["ok"] and debate_run["ok"] and quality_run["ok"])
-    outputs = {
-        "room_session": str(run.run_dir / "room-session.json"),
-        "handoff_packet": str(run.run_dir / "handoff-packet.json"),
-        "debate_session": str(run.run_dir / "debate-session.json"),
-        "debate_result": str(run.run_dir / "debate-result.json"),
-        "decision_quality_self_check": str(quality_md),
-        "decision_quality_self_check_json": str(quality_json),
-    }
-    summary = {
-        "ok": ok,
-        "action": "golden-demo",
-        "demo": args.demo_name,
-        "mode": "fixture_mock",
-        "run_dir": str(run.run_dir),
-        "outputs": outputs,
-        "runtime": {
-            "room": room_run,
-            "debate": debate_run,
-            "decision_quality": quality_run,
-        },
-        "claim_boundary": [
-            "This is a fixture/mock demo.",
-            "It is not host-live validation and not provider-live validation.",
-        ],
-    }
-    write_output(run.run_dir, summary)
-    write_evidence(
-        run.run_dir,
-        build_run_evidence(
-            run=run,
-            action="golden-demo",
-            input_data=input_payload,
-            claim_boundary={
-                "local_first": True,
-                "host_live": "not_claimed",
-                "provider_live": "not_claimed",
-                "notes": summary["claim_boundary"],
-            },
-            artifact_paths=outputs,
-        ),
-    )
-    write_summary(run.run_dir, render_demo_summary(summary))
-    print(json.dumps(summary, ensure_ascii=False, indent=2))
-    return 0 if ok else 1
+    emit_payload(args, summary, markdown=render_demo_summary(summary))
+    return exit_code_for_payload(summary)
 
 
-def run_command(command: list[str]) -> int:
+def run_command(command: list[str], *, args: argparse.Namespace | None = None) -> int:
+    if args and has_structured_output_request(args):
+        return run_captured_command(command, args=args)
     result = subprocess.run(command, cwd=REPO_ROOT)
     return result.returncode
 
 
-def run_captured_command(command: list[str]) -> int:
+def run_captured_command(command: list[str], *, args: argparse.Namespace | None = None) -> int:
     result = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True, check=False)
-    if result.stdout:
-        print(result.stdout, end="")
-    if result.stderr:
-        print(result.stderr, file=sys.stderr, end="")
+    stdout = result.stdout or ""
+    stderr = result.stderr or ""
+    if args and has_structured_output_request(args):
+        payload = parse_json_output(stdout)
+        if not isinstance(payload, dict):
+            payload = {
+                "ok": result.returncode == 0,
+                "action": "subprocess-command",
+                "command": command,
+                "returncode": result.returncode,
+                "stdout": stdout.strip(),
+                "stderr": stderr.strip(),
+            }
+        emit_payload(args, payload, markdown=render_payload_summary(payload))
+    else:
+        if stdout:
+            print(stdout, end="")
+        if stderr:
+            print(stderr, file=sys.stderr, end="")
     return result.returncode
+
+
+def has_structured_output_request(args: argparse.Namespace) -> bool:
+    return bool(
+        getattr(args, "quiet", False)
+        or getattr(args, "json", False)
+        or getattr(args, "output_json", None)
+        or getattr(args, "output_markdown", None)
+    )
+
+
+def emit_payload(args: argparse.Namespace, payload: dict[str, object], *, markdown: str | None = None) -> None:
+    if getattr(args, "output_json", None):
+        write_json_file(Path(args.output_json).expanduser(), payload)
+    if getattr(args, "output_markdown", None):
+        path = Path(args.output_markdown).expanduser()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text((markdown or render_payload_summary(payload)).rstrip() + "\n", encoding="utf-8")
+    if getattr(args, "quiet", False):
+        return
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+
+
+def render_payload_summary(payload: dict[str, object]) -> str:
+    lines = [
+        f"# {str(payload.get('action', 'rtw')).replace('-', ' ').title()}",
+        "",
+        f"- Result: `{'PASS' if payload.get('ok') is not False else 'FAIL'}`",
+    ]
+    if "run_dir" in payload:
+        lines.append(f"- Run dir: `{payload['run_dir']}`")
+    if "release_blockers" in payload:
+        blockers = payload.get("release_blockers")
+        lines.append(f"- Release blockers: `{blockers}`")
+    outputs = payload.get("outputs")
+    if isinstance(outputs, dict):
+        lines.extend(["", "## Outputs", ""])
+        for name, path in outputs.items():
+            lines.append(f"- `{name}`: `{path}`")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def exit_code_for_payload(payload: dict[str, object]) -> int:
+    if payload.get("ok"):
+        return EXIT_SUCCESS
+    status = str(payload.get("status", ""))
+    if "failed" in status:
+        return EXIT_RUNTIME_ERROR
+    return EXIT_VALIDATION_FAILURE
 
 
 def looks_like_manifest_path(target: str) -> bool:
@@ -728,59 +726,24 @@ def resolve_repo_path(path_text: str) -> Path:
 
 
 def resolve_state_root(explicit_state_root: str | None, command: str) -> str:
-    return str(core_resolve_state_root(explicit_state_root, command, timestamp=utc_timestamp()))
+    return resolve_cli_state_root(explicit_state_root, command, timestamp=utc_timestamp())
 
 
 def utc_timestamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
-def print_stub(action: str, question: str, state_root: str | None) -> int:
+def print_stub(action: str, question: str, state_root: str | None, *, args: argparse.Namespace | None = None) -> int:
     payload = build_stub_payload(action=action, question=question, state_root=state_root)
-    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    if args:
+        emit_payload(args, payload, markdown=render_payload_summary(payload))
+    else:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
     return 0
 
 
 def build_stub_payload(action: str, question: str, state_root: str | None) -> dict[str, object]:
-    if action == "room":
-        return {
-            "ok": False,
-            "action": "room",
-            "status": "safe_stub",
-            "question": question,
-            "state_root": state_root,
-            "message": (
-                "./rtw room --stub shows the boundary-only response. Run ./rtw room without "
-                "--stub for the fixture-backed local runtime path."
-            ),
-            "claim_boundary": [
-                "This is not host-live validation and not provider-live validation.",
-                "The checked-in room runtime bridge and canonical fixtures remain available for local validation.",
-            ],
-            "next_commands": [
-                "python3 .codex/skills/room-skill/runtime/room_runtime.py validate-canonical --state-root /tmp/round-table-room-canonical",
-                "python3 .codex/skills/room-skill/runtime/room_e2e_validation.py --executor fixture --state-root /tmp/round-table-room-e2e",
-            ],
-        }
-    return {
-        "ok": False,
-        "action": "debate",
-        "status": "safe_stub",
-        "question": question,
-        "state_root": state_root,
-        "message": (
-            "./rtw debate --stub shows the boundary-only response. Run ./rtw debate without "
-            "--stub for the fixture-backed local runtime path."
-        ),
-        "claim_boundary": [
-            "This is not provider-live validation and not host-live validation.",
-            "The checked-in debate runtime bridge and canonical fixtures remain available for local validation.",
-        ],
-        "next_commands": [
-            "python3 .codex/skills/debate-roundtable-skill/runtime/debate_runtime.py validate-canonical --state-root /tmp/round-table-debate-canonical",
-            "python3 .codex/skills/debate-roundtable-skill/runtime/debate_e2e_validation.py --executor fixture --state-root /tmp/round-table-debate-e2e",
-        ],
-    }
+    return service_build_stub_payload(action, question, state_root)
 
 
 def render_demo_summary(summary: dict[str, object]) -> str:

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
 
-DEFAULT_STATE_ROOT_BASE = Path("/tmp") / "round-table-workspace"
+DEFAULT_STATE_ROOT_BASE = Path(tempfile.gettempdir()) / "round-table-workspace"
 
 
 def utc_timestamp() -> str:

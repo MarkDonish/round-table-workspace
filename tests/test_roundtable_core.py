@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -36,18 +37,33 @@ class RoundtableCoreTest(unittest.TestCase):
 
     def test_runtime_state_root_helper_matches_cli_defaults(self) -> None:
         from roundtable import cli
+        from roundtable_core.commands import resolve_cli_state_root
         from roundtable_core.runtime import default_state_root, resolve_state_root
 
         with patch("roundtable_core.runtime.paths.utc_timestamp", return_value="20260429T030405Z"):
             self.assertEqual(
                 str(default_state_root("validate")),
-                "/tmp/round-table-workspace/validate/20260429T030405Z",
+                str(Path(tempfile.gettempdir()) / "round-table-workspace" / "validate" / "20260429T030405Z"),
             )
 
         self.assertEqual(
             cli.resolve_state_root("/tmp/custom-state-root", "validate"),
             str(resolve_state_root("/tmp/custom-state-root", "validate")),
         )
+        self.assertEqual(
+            resolve_cli_state_root("/tmp/custom-state-root", "validate"),
+            str(resolve_state_root("/tmp/custom-state-root", "validate")),
+        )
+
+    def test_core_command_schema_validation_service(self) -> None:
+        from roundtable_core.commands import validate_schema_files
+
+        payload = validate_schema_files(
+            schema="schemas/room-session.schema.json",
+            fixtures=["tests/fixtures/room-session.valid.json"],
+        )
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["action"], "schema-validation")
 
     def test_claim_boundary_helper_is_claim_safe(self) -> None:
         from roundtable_core.protocol import ClaimStatus, local_first_claim_boundary

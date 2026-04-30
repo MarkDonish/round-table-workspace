@@ -1,0 +1,23 @@
+{
+  "id": "negative_no_next_step",
+  "workflow": "room-to-debate",
+  "input": "Should we validate an AI study product?",
+  "fixture_output": "The decision is whether students need a better study product. Key variables: segment, channel, retention. Fact: no live data yet. Assumption: students repeat the workflow. Risk: exam-week curiosity may be misleading. Unknowns: segment and channel.",
+  "must_identify": [
+    "segment",
+    "retention"
+  ],
+  "must_not": [],
+  "expected_next_testable_step": "seven-day cohort",
+  "uncertainty_requirements": [
+    "unknowns"
+  ],
+  "expected_scores_min": {
+    "next_testable_step": 2
+  },
+  "blocking_rules": [
+    "next_testable_step"
+  ],
+  "minimum_total": 10,
+  "expected_pass": false
+}

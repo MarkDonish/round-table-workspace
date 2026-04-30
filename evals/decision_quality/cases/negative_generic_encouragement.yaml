@@ -1,0 +1,27 @@
+{
+  "id": "negative_generic_encouragement",
+  "workflow": "room",
+  "input": "Should I build this startup?",
+  "fixture_output": "This is a promising idea. You should stay optimistic, work hard, and keep iterating until the market responds.",
+  "must_identify": [
+    "decision",
+    "variables"
+  ],
+  "must_not": [
+    "guaranteed success"
+  ],
+  "expected_next_testable_step": "interview five users",
+  "uncertainty_requirements": [
+    "unknown"
+  ],
+  "expected_scores_min": {
+    "next_testable_step": 2,
+    "uncertainty_disclosure": 2
+  },
+  "blocking_rules": [
+    "next_testable_step",
+    "uncertainty_disclosure"
+  ],
+  "minimum_total": 10,
+  "expected_pass": false
+}

@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "round-table-workspace"
+version = "0.2.0a0"
+description = "Local-first round-table decision workflows for CLI agent hosts."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "Round Table Workspace Maintainers" }
+]
+
+[project.scripts]
+rtw = "roundtable.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["roundtable*", "roundtable_core*"]

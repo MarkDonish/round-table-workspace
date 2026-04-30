@@ -41,7 +41,7 @@ class RoundtableCliTest(unittest.TestCase):
         self.assertIn("--quick", command)
         self.assertIn("--state-root", command)
         state_root = command[command.index("--state-root") + 1]
-        self.assertEqual(state_root, "/tmp/round-table-workspace/doctor/20260429T010203Z")
+        self.assertEqual(state_root, str(Path(tempfile.gettempdir()) / "round-table-workspace" / "doctor" / "20260429T010203Z"))
 
     def test_validate_quick_reuses_consumer_self_check(self) -> None:
         from roundtable import cli
@@ -61,7 +61,7 @@ class RoundtableCliTest(unittest.TestCase):
         self.assertIn(".codex/skills/room-skill/runtime/agent_consumer_self_check.py", command)
         self.assertIn("--quick", command)
         state_root = command[command.index("--state-root") + 1]
-        self.assertEqual(state_root, "/tmp/round-table-workspace/validate/20260429T020304Z")
+        self.assertEqual(state_root, str(Path(tempfile.gettempdir()) / "round-table-workspace" / "validate" / "20260429T020304Z"))
 
     def test_validate_runs_local_codex_regression_without_quick(self) -> None:
         calls: list[list[str]] = []

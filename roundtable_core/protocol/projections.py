@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from roundtable_core.protocol.debate_result_builder import build_debate_result_from_artifacts
 from roundtable_core.protocol.handoff import runtime_packet_to_portable_handoff
 
 
@@ -68,27 +69,7 @@ def project_debate_artifacts_to_session(debate_artifacts: dict[str, Any]) -> dic
 
 
 def project_debate_artifacts_to_result(debate_artifacts: dict[str, Any]) -> dict[str, Any]:
-    common = _project_debate_common(debate_artifacts)
-    common["result_id"] = f"debate-result-{common['session_id'].replace('debate-', '', 1)}"
-    ordered = {
-        "schema_version": common["schema_version"],
-        "result_id": common["result_id"],
-        "session_id": common["session_id"],
-        "workflow": common["workflow"],
-        "launch_bundle": common["launch_bundle"],
-        "selected_panel": common["selected_panel"],
-        "agent_arguments": common["agent_arguments"],
-        "moderator_summary": common["moderator_summary"],
-        "reviewer_result": common["reviewer_result"],
-        "final_outcome": common["final_outcome"],
-        "final_decision": common["final_decision"],
-        "open_questions": common["open_questions"],
-        "evidence": common["evidence"],
-        "claim_boundary": common["claim_boundary"],
-        "created_at": common["created_at"],
-        "updated_at": common["updated_at"],
-    }
-    return ordered
+    return build_debate_result_from_artifacts(debate_artifacts)
 
 
 def _project_debate_common(debate_artifacts: dict[str, Any]) -> dict[str, Any]:

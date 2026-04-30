@@ -1,0 +1,23 @@
+{
+  "id": "negative_no_uncertainty",
+  "workflow": "debate",
+  "input": "Should the MVP automate every step?",
+  "fixture_output": "The decision is whether automation is valuable. Key variables: user value, cost, speed. Risk-to-action: build quickly and measure usage. Next testable step: run a ten-user pilot.",
+  "must_identify": [
+    "cost",
+    "speed"
+  ],
+  "must_not": [],
+  "expected_next_testable_step": "ten-user pilot",
+  "uncertainty_requirements": [
+    "unknown"
+  ],
+  "expected_scores_min": {
+    "uncertainty_disclosure": 2
+  },
+  "blocking_rules": [
+    "uncertainty_disclosure"
+  ],
+  "minimum_total": 10,
+  "expected_pass": false
+}

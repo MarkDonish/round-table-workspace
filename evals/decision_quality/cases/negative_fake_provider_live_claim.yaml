@@ -1,0 +1,28 @@
+{
+  "id": "negative_fake_provider_live_claim",
+  "workflow": "debate",
+  "input": "Should we ship this release?",
+  "fixture_output": "The decision is whether to ship. Key variables: tests, docs, release notes. Next testable step: run release-check. Unknown: production account status. The provider-live passed and host-live support is guaranteed.",
+  "must_identify": [
+    "tests",
+    "release"
+  ],
+  "must_not": [
+    "provider-live passed",
+    "guaranteed"
+  ],
+  "expected_next_testable_step": "release-check",
+  "uncertainty_requirements": [
+    "Unknown"
+  ],
+  "expected_scores_min": {
+    "next_testable_step": 1,
+    "uncertainty_disclosure": 1
+  },
+  "blocking_rules": [
+    "next_testable_step",
+    "uncertainty_disclosure"
+  ],
+  "minimum_total": 8,
+  "expected_pass": false
+}

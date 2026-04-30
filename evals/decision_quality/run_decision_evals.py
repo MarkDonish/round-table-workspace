@@ -8,10 +8,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
 EVAL_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = EVAL_ROOT.parents[1]
 CASE_DIR = EVAL_ROOT / "cases"
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from evals.decision_quality.rubric_engine import evaluate_case as evaluate_rubric_case
 
 
 def main() -> int:
@@ -46,20 +49,12 @@ def build_report() -> dict[str, Any]:
 
 
 def evaluate_case(case: dict[str, Any]) -> dict[str, Any]:
-    output = case["fixture_output"].lower()
-    missing_must = [item for item in case["must_identify"] if item.lower() not in output]
-    forbidden_present = [item for item in case["must_not"] if item.lower() in output]
-    next_step_present = case["expected_next_testable_step"].lower() in output
-    uncertainty_missing = [item for item in case["uncertainty_requirements"] if item.lower() not in output]
-    ok = not missing_must and not forbidden_present and next_step_present and not uncertainty_missing
+    rubric = evaluate_rubric_case(case)
     return {
         "id": case["id"],
         "workflow": case["workflow"],
-        "ok": ok,
-        "missing_must_identify": missing_must,
-        "forbidden_present": forbidden_present,
-        "next_step_present": next_step_present,
-        "uncertainty_missing": uncertainty_missing,
+        "ok": rubric.expected_result_met,
+        **rubric.to_dict(),
     }
 
 
@@ -80,7 +75,12 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
     ]
     for case in report["cases"]:
-        lines.append(f"- `{case['id']}` ({case['workflow']}): ok=`{case['ok']}`")
+        lines.append(
+            f"- `{case['id']}` ({case['workflow']}): expected_met=`{case['ok']}`, "
+            f"quality_pass=`{case['quality_pass']}`, total=`{case['total']}/14`"
+        )
+        for dimension, score in case["rubric_scores"].items():
+            lines.append(f"  - `{dimension}`: `{score}`")
     lines.extend(
         [
             "",

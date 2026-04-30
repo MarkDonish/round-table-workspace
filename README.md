@@ -23,6 +23,14 @@ Check whether this clone is usable locally:
 ./rtw doctor
 ```
 
+Cross-platform entrypoints:
+
+```bash
+python -m roundtable doctor --quick
+python -m pip install -e .
+rtw doctor --quick
+```
+
 For a faster source/readiness preflight:
 
 ```bash
@@ -46,6 +54,13 @@ For a lightweight command loop:
 
 ```bash
 ./rtw interactive
+```
+
+Most automation-friendly commands support structured output flags:
+
+```bash
+./rtw room "topic" --json
+./rtw release-check --include-fixtures --quiet --output-json /tmp/rtw-release-check.json
 ```
 
 Current support: the checked-in Codex local mainline for `/room`, `/debate`,
@@ -203,6 +218,7 @@ into active source files instead of leaving historical material as the authority
 | `docs/roadmap.md` | project roadmap and release horizons |
 | `docs/milestones/v0.2.0.md` | v0.2.0 milestone scope and issue split |
 | `docs/protocol-spec.md` | unified `/room`, `/debate`, and handoff protocol overview |
+| `docs/protocol-versioning.md` | release/protocol/schema/runtime/prompt/fixture version boundaries |
 | `docs/decision-quality-rubric.md` | machine-checkable decision quality rubric |
 | `docs/schema-validation-subset.md` | Draft 2020-12 fallback validator boundary |
 | `docs/skill-generation.md` | generated skill summary and drift-check maintenance |
@@ -221,7 +237,7 @@ into active source files instead of leaving historical material as the authority
 | `docs/room-to-debate-handoff.md` | handoff contract from exploration to review |
 | `docs/generic-local-agent-adapter.md` | generic local CLI agent contract |
 | `examples/transcripts/` | illustrative `/room`, `/debate`, and handoff walkthroughs |
-| `reports/claim-boundary-dashboard.md` | generated claim boundary matrix |
+| `reports/claim-boundary-dashboard.md` | generated snapshot only; run `./rtw evidence` or `./rtw release-check` for current status |
 | `CHANGELOG.md` | release history |
 
 ## Host And Provider Boundaries

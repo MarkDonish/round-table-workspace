@@ -16,5 +16,20 @@
   "uncertainty_requirements": [
     "Unknown",
     "manual"
-  ]
+  ],
+  "expected_scores_min": {
+    "problem_reframing": 2,
+    "key_variables": 2,
+    "assumption_separation": 1,
+    "opposition_quality": 2,
+    "risk_to_action": 2,
+    "next_testable_step": 2,
+    "uncertainty_disclosure": 2
+  },
+  "blocking_rules": [
+    "next_testable_step",
+    "uncertainty_disclosure"
+  ],
+  "minimum_total": 11,
+  "expected_pass": true
 }

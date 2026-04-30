@@ -52,6 +52,10 @@ Release claims are controlled by:
 Fixture, mock-provider, and readiness-preflight evidence must not be described as
 real third-party host-live or provider-live support.
 
+`reports/claim-boundary-dashboard.md` is a generated snapshot with freshness
+metadata. For current evidence classification, run `./rtw evidence` or
+`./rtw release-check` instead of treating the checked-in report as authority.
+
 ## Runtime Output Rule
 
 Runtime outputs under `artifacts/runtime/` are evidence. They are not source.

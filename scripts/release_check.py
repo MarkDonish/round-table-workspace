@@ -5,6 +5,7 @@ import argparse
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +15,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Aggregate Round Table Workspace release checks.")
-    parser.add_argument("--state-root", default="/tmp/round-table-release-check")
+    parser.add_argument("--state-root", default=str(Path(tempfile.gettempdir()) / "round-table-release-check"))
     parser.add_argument("--include-fixtures", action="store_true")
     parser.add_argument("--strict-git-clean", action="store_true")
     parser.add_argument("--timeout-seconds", type=int, default=30)
@@ -156,6 +157,9 @@ def run_schema_validations(timeout: int) -> dict[str, Any]:
         ["./rtw", "validate", "--schema", "schemas/room-session.schema.json", "--fixture", "tests/fixtures/room-session.valid.json"],
         ["./rtw", "validate", "--schema", "schemas/debate-session.schema.json", "--fixture", "examples/fixtures/debate-session.valid.json"],
         ["./rtw", "validate", "--schema", "schemas/debate-result.schema.json", "--fixture", "examples/fixtures/debate-result.valid.json"],
+        ["./rtw", "validate", "--schema", "schemas/debate-result.schema.json", "--fixture", "examples/fixtures/debate-result.allow.json"],
+        ["./rtw", "validate", "--schema", "schemas/debate-result.schema.json", "--fixture", "examples/fixtures/debate-result.reject.json"],
+        ["./rtw", "validate", "--schema", "schemas/debate-result.schema.json", "--fixture", "examples/fixtures/debate-result.follow-up-required.json"],
         ["./rtw", "validate", "--schema", "schemas/room-to-debate-handoff.schema.json", "--fixture", "examples/fixtures/room-to-debate-handoff.valid.json"],
         ["./rtw", "validate", "--schema", "schemas/claim-boundary.schema.json", "--fixture", "examples/fixtures/claim-boundary.valid.json"],
         ["./rtw", "validate", "--schema", "schemas/agent-manifest.schema.json", "--fixture", "examples/agent-factory/duan-yongping.agent.manifest.json"],
@@ -211,10 +215,31 @@ def run_runtime_projection_validations(state_root: Path, timeout: int) -> dict[s
         ],
         timeout=timeout + 30,
     )
+    room_standard = check_standard_run_files(room)
+    debate_standard = check_standard_run_files(debate)
     return {
-        "ok": room.get("ok") and debate.get("ok"),
+        "ok": room.get("ok") and debate.get("ok") and room_standard["ok"] and debate_standard["ok"],
         "room": room,
         "debate": debate,
+        "standard_runs": {
+            "room": room_standard,
+            "debate": debate_standard,
+        },
+    }
+
+
+def check_standard_run_files(result: dict[str, Any]) -> dict[str, Any]:
+    payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
+    run_dir = payload.get("run_dir") if isinstance(payload, dict) else None
+    if not run_dir:
+        return {"ok": False, "run_dir": None, "missing": ["run_dir"]}
+    required = ["run.json", "input.json", "output.json", "evidence.json", "summary.md"]
+    missing = [name for name in required if not (Path(str(run_dir)) / name).exists()]
+    return {
+        "ok": not missing,
+        "run_dir": str(run_dir),
+        "required": required,
+        "missing": missing,
     }
 
 

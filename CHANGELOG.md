@@ -24,6 +24,12 @@ live validation evidence.
 - Machine-readable `agents/registry.json` plus registry sync checks so runtime
   no longer parses `docs/agent-registry.md` tables.
 - Negative fixture runner for schema and claim-boundary rejection checks.
+- `roundtable_core.commands` service layer for schema validation, fixture-backed
+  room/debate runs, golden demo generation, and CLI state-root resolution.
+- `roundtable_core.protocol.debate_result_builder` with allow/reject/follow-up
+  portable `debate-result` construction paths.
+- `docs/protocol-versioning.md` and GitHub Actions CI for the core non-secret
+  validation chain.
 
 ### Changed
 
@@ -31,6 +37,17 @@ live validation evidence.
   and debate runtime paths instead of copying only static demo files.
 - JSON Schema validation fallback now supports the conditional and composition
   keywords used by current schemas and reports its validator boundary.
+- Default state roots now use `tempfile.gettempdir()`, with `python -m
+  roundtable` and `pip install -e .` supported through `pyproject.toml`.
+- Decision quality evals now use a seven-dimension rubric engine with positive
+  and negative fixtures.
+- Prompt rendering defaults to explicit variable contracts, and structured
+  output parsing reports all JSON candidates.
+- `skills_src` manifests are now strict `.json`, and skill drift checks include
+  frontmatter, entry-command, generated-section, and forbidden-claim checks.
+- Claim boundary dashboard snapshots now include freshness metadata and source
+  commit scope; README points users to live `./rtw evidence`/`release-check`
+  commands for current state.
 
 ## v0.2.0-alpha - 2026-04-29
 

@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  core-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run unit tests
+        run: python3 -m unittest discover -v
+
+      - name: Check source truth consistency
+        run: python3 scripts/check_source_truth_consistency.py
+
+      - name: Check skill drift
+        run: python3 scripts/check_skill_drift.py
+
+      - name: Run regression fixtures
+        run: python3 scripts/run_regression_fixtures.py
+
+      - name: Run quick doctor
+        run: ./rtw doctor --quick --quiet
+
+      - name: Run release check
+        run: ./rtw release-check --include-fixtures --state-root "$RUNNER_TEMP/rtw-release-check" --quiet
+
+      - name: Upload release-check artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-check
+          path: ${{ runner.temp }}/rtw-release-check/
+          if-no-files-found: ignore

@@ -7,12 +7,13 @@
 
 Skill summary source lives under `skills_src/`:
 
-- `skills_src/shared_rules.yaml`
-- `skills_src/room.skill.yaml`
-- `skills_src/debate.skill.yaml`
+- `skills_src/shared_rules.json`
+- `skills_src/room.skill.json`
+- `skills_src/debate.skill.json`
 
-These files contain JSON-compatible YAML so the generator can run with only the
-Python standard library.
+These files are strict JSON so the generator can run with only the Python
+standard library. If an old `.yaml` manifest remains in `skills_src/`, the
+generator reports a migration warning instead of silently treating it as source.
 
 ## Commands
 

@@ -5,6 +5,8 @@ round-table workspace.
 
 For a plain-language explanation of the repository logic, read
 `docs/user-entry-guide.md`.
+For the difference between release, protocol, schema, runtime artifact, prompt,
+and fixture versions, read `docs/protocol-versioning.md`.
 
 The default launch path is local-first. You do not need a provider URL to use
 or validate the Codex local mainline.
@@ -23,6 +25,14 @@ Use the full self-check when validating a clone for real use:
 
 ```bash
 ./rtw doctor
+```
+
+Cross-platform alternatives:
+
+```bash
+python -m roundtable doctor --quick
+python -m pip install -e .
+rtw doctor --quick
 ```
 
 The legacy script path remains supported:
@@ -68,6 +78,7 @@ Run the v0.2.0 aggregate release checks:
 
 ```bash
 ./rtw release-check --include-fixtures
+./rtw release-check --include-fixtures --quiet --output-json /tmp/rtw-release-check.json
 ```
 
 The equivalent legacy command is:

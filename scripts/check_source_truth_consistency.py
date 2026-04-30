@@ -37,6 +37,8 @@ def build_report() -> dict[str, Any]:
     quickstart = check_quickstart_commands(readme, launch)
     historical_boundary = check_historical_boundary(readme, launch, agents)
     required_docs = check_required_docs()
+    claim_dashboard_freshness = check_claim_dashboard_freshness(readme)
+    protocol_versions = check_protocol_versioning(readme, launch)
     checks = {
         "active_source_paths": {
             "ok": all(item["exists"] for item in source_checks),
@@ -46,6 +48,8 @@ def build_report() -> dict[str, Any]:
         "release_version_consistency": version_check,
         "quickstart_commands": quickstart,
         "required_docs": required_docs,
+        "claim_dashboard_freshness": claim_dashboard_freshness,
+        "protocol_versioning": protocol_versions,
     }
     ok = all(item["ok"] for item in checks.values())
     return {
@@ -53,6 +57,7 @@ def build_report() -> dict[str, Any]:
         "action": "source-truth-consistency-check",
         "checks": checks,
         "problems": collect_problems(checks),
+        "warnings": collect_warnings(checks),
     }
 
 
@@ -106,10 +111,44 @@ def check_required_docs() -> dict[str, Any]:
         "docs/release-candidate-scope.md",
         "docs/source-truth-map.md",
         "docs/protocol-spec.md",
+        "docs/protocol-versioning.md",
         "docs/decision-quality-rubric.md",
     ]
     items = [{"path": path, "exists": (REPO_ROOT / path).is_file()} for path in docs]
     return {"ok": all(item["exists"] for item in items), "items": items}
+
+
+def check_claim_dashboard_freshness(readme: str) -> dict[str, Any]:
+    warnings = []
+    report_path = REPO_ROOT / "reports" / "claim-boundary-dashboard.md"
+    report_text = report_path.read_text(encoding="utf-8") if report_path.exists() else ""
+    if "reports/claim-boundary-dashboard.md" in readme and not any(
+        phrase in readme.lower()
+        for phrase in ["snapshot", "generated", "run `./rtw evidence", "run `./rtw release-check"]
+    ):
+        warnings.append("readme_treats_claim_dashboard_report_as_current_authority")
+    for marker in ["generated_at:", "source_commit:", "stale_after:"]:
+        if marker not in report_text:
+            warnings.append(f"claim_dashboard_missing_{marker.rstrip(':')}")
+    return {
+        "ok": True,
+        "report": "reports/claim-boundary-dashboard.md",
+        "warnings": warnings,
+    }
+
+
+def check_protocol_versioning(readme: str, launch: str) -> dict[str, Any]:
+    doc_exists = (REPO_ROOT / "docs" / "protocol-versioning.md").is_file()
+    warnings = []
+    if "v0.2.0-alpha" in readme and "0.1.0" in readme and "protocol-versioning" not in readme:
+        warnings.append("readme_mentions_release_and_schema_versions_without_versioning_link")
+    if "v0.2.0-alpha" in launch and "protocol-versioning" not in launch:
+        warnings.append("launch_mentions_release_without_versioning_link")
+    return {
+        "ok": doc_exists,
+        "doc_exists": doc_exists,
+        "warnings": warnings,
+    }
 
 
 def collect_problems(checks: dict[str, Any]) -> list[dict[str, Any]]:
@@ -118,6 +157,14 @@ def collect_problems(checks: dict[str, Any]) -> list[dict[str, Any]]:
         if not check["ok"]:
             problems.append({"check": name, "detail": check})
     return problems
+
+
+def collect_warnings(checks: dict[str, Any]) -> list[dict[str, Any]]:
+    warnings = []
+    for name, check in checks.items():
+        for warning in check.get("warnings", []):
+            warnings.append({"check": name, "warning": warning})
+    return warnings
 
 
 def read(path: str) -> str:
@@ -136,6 +183,12 @@ def render_markdown(report: dict[str, Any]) -> str:
         lines.append("")
         for problem in report["problems"]:
             lines.append(f"- `{problem['check']}`")
+    if report.get("warnings"):
+        lines.append("")
+        lines.append("## Warnings")
+        lines.append("")
+        for warning in report["warnings"]:
+            lines.append(f"- `{warning['check']}`: {warning['warning']}")
     return "\n".join(lines).rstrip() + "\n"
 
 

@@ -1,0 +1,193 @@
+{
+  "schema_version": "0.1.0",
+  "result_id": "debate-result-example-session-reject",
+  "session_id": "debate-example-session",
+  "workflow": "debate",
+  "launch_bundle": {
+    "schema_version": "v0.1",
+    "mode": "debate_launch",
+    "source_kind": "room_handoff",
+    "debate_id": "debate-example-session",
+    "source_room_id": "room-example-session",
+    "topic": "Decide whether to start product validation for an AI study product.",
+    "room_title": "AI study product wedge",
+    "primary_type": "product",
+    "secondary_type": "startup",
+    "participants": [
+      {
+        "agent_id": "steve-jobs",
+        "short_name": "Jobs",
+        "responsibility": "Compress the product into one sharp repeated experience."
+      },
+      {
+        "agent_id": "munger",
+        "short_name": "Munger",
+        "responsibility": "Check validation discipline, downside, and kill rules."
+      },
+      {
+        "agent_id": "karpathy",
+        "short_name": "Karpathy",
+        "responsibility": "Check whether the thinnest technical loop can support real use."
+      }
+    ],
+    "speaker_order": [
+      "steve-jobs",
+      "munger",
+      "karpathy"
+    ]
+  },
+  "selected_panel": [
+    {
+      "agent_id": "steve-jobs",
+      "short_name": "Jobs",
+      "responsibility": "Compress the product into one sharp repeated experience."
+    },
+    {
+      "agent_id": "munger",
+      "short_name": "Munger",
+      "responsibility": "Check validation discipline, downside, and kill rules."
+    },
+    {
+      "agent_id": "karpathy",
+      "short_name": "Karpathy",
+      "responsibility": "Check whether the thinnest technical loop can support real use."
+    }
+  ],
+  "agent_arguments": [
+    {
+      "agent_id": "steve-jobs",
+      "role_duty": "Compress the product into one sharp repeated experience.",
+      "core_conclusion": "Do not start with a broad AI tutor; test one repeated study moment.",
+      "evidence": [
+        "The room summary already converged on a narrow repeated study bottleneck.",
+        "A broad feature set would make early retention signals hard to interpret."
+      ],
+      "biggest_problem": "The first wedge is still not narrow enough to test cleanly.",
+      "opposed_misjudgment": "Treating a feature list as a product value proposition.",
+      "concrete_recommendation": "Pick one study bottleneck and test whether students repeat it for seven days.",
+      "confidence": "medium",
+      "uncertainties": [
+        "Which study moment has the strongest combination of frequency and pain."
+      ]
+    },
+    {
+      "agent_id": "munger",
+      "role_duty": "Check validation discipline, downside, and kill rules.",
+      "core_conclusion": "The next step is acceptable only if the kill rules are written before the test starts.",
+      "evidence": [
+        "The room had an unresolved tension about weak signals and false validation.",
+        "Student curiosity can look like product demand during the first week."
+      ],
+      "biggest_problem": "There is not yet a hard stop condition for weak retention.",
+      "opposed_misjudgment": "Interpreting polite positive feedback as demand.",
+      "concrete_recommendation": "Define retention, completion, and active return thresholds before building more.",
+      "confidence": "high",
+      "uncertainties": [
+        "Whether the target group has enough repeated frequency to support retention."
+      ]
+    },
+    {
+      "agent_id": "karpathy",
+      "role_duty": "Check whether the thinnest technical loop can support real use.",
+      "core_conclusion": "The technical loop can stay thin if quality control is explicit.",
+      "evidence": [
+        "A single input-to-feedback loop can be tested without a full platform.",
+        "Manual review can reduce model-error exposure during the first validation run."
+      ],
+      "biggest_problem": "Too much automation would add noise before demand is proven.",
+      "opposed_misjudgment": "Assuming model capability means the product should expand scope immediately.",
+      "concrete_recommendation": "Use a semi-manual thin loop for the first cohort.",
+      "confidence": "medium",
+      "uncertainties": [
+        "Which step should remain manual to protect feedback quality."
+      ]
+    }
+  ],
+  "moderator_summary": {
+    "topic_restatement": "The debate is deciding whether to start formal product validation, not whether to build a full platform.",
+    "participants_and_roles": [
+      {
+        "agent_id": "steve-jobs",
+        "short_name": "Jobs",
+        "responsibility": "Compress the product into one sharp repeated experience."
+      },
+      {
+        "agent_id": "munger",
+        "short_name": "Munger",
+        "responsibility": "Check validation discipline, downside, and kill rules."
+      },
+      {
+        "agent_id": "karpathy",
+        "short_name": "Karpathy",
+        "responsibility": "Check whether the thinnest technical loop can support real use."
+      }
+    ],
+    "consensus_points": [
+      "Start with one study bottleneck, not a broad AI tutor.",
+      "Write kill rules before expanding scope.",
+      "Use a thin technical loop with quality control."
+    ],
+    "core_conflicts": [
+      "The product argument wants a sharper experience while the validation argument wants harder stop rules."
+    ],
+    "hidden_assumptions": [
+      "Students will submit enough real study material to make the test meaningful."
+    ],
+    "preliminary_recommendation": "Run a seven-day single-bottleneck validation with explicit retention and stop thresholds.",
+    "review_focus": [
+      "Check whether the recommendation is concrete enough to execute.",
+      "Check whether the evidence separates facts, inferences, and uncertainties."
+    ]
+  },
+  "reviewer_result": {
+    "review_applicable": true,
+    "overall_score": 3,
+    "best_agent": "munger",
+    "weak_agents": [],
+    "evidence_gaps": [
+      "The exact first student segment still needs live discovery."
+    ],
+    "logic_gaps": [],
+    "overlooked_issues": [
+      "The first acquisition channel is not yet specified."
+    ],
+    "severe_red_flags": [
+      "The recommendation depends on a fabricated live provider claim."
+    ],
+    "allow_final_decision": false,
+    "required_followups": [],
+    "rationale": "Reject the result because a severe claim-boundary red flag invalidates the decision."
+  },
+  "final_outcome": "reject",
+  "final_decision": null,
+  "open_questions": [
+    "Which student segment should be tested first?",
+    "Which acquisition channel can produce the first cohort?"
+  ],
+  "evidence": {
+    "facts": [
+      "The result used a visible three-agent panel.",
+      "The reviewer allowed a final decision with score 8."
+    ],
+    "inferences": [
+      "A narrower test will produce cleaner retention signals."
+    ],
+    "uncertainties": [
+      "The highest-frequency study bottleneck is still unproven."
+    ],
+    "recommendations": [
+      "Run one narrow validation before productizing."
+    ]
+  },
+  "claim_boundary": {
+    "local_first": true,
+    "host_live": "not_claimed",
+    "provider_live": "not_claimed",
+    "notes": [
+      "This fixture validates schema shape only.",
+      "It is not host-live validation and not provider-live validation."
+    ]
+  },
+  "created_at": "2026-04-29T00:20:00Z",
+  "updated_at": "2026-04-29T00:45:00Z"
+}

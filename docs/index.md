@@ -26,6 +26,7 @@
 | Document | Use |
 |---|---|
 | `docs/protocol-spec.md` | Unified `/room`, `/debate`, and `/room -> /debate` overview. |
+| `docs/protocol-versioning.md` | Release/protocol/schema/runtime/prompt/fixture version boundaries. |
 | `docs/room-architecture.md` | Detailed `/room` behavior and state rules. |
 | `docs/debate-skill-architecture.md` | Detailed `/debate` routing and review workflow. |
 | `docs/room-to-debate-handoff.md` | Handoff contract from exploration to decision review. |
@@ -62,7 +63,7 @@
 | `docs/release-readiness.md` | Release gate rules. |
 | `docs/release-candidate-scope.md` | Claim-safe release support scope. |
 | `docs/provider-live-readiness.md` | Provider fallback readiness rules. |
-| `reports/claim-boundary-dashboard.md` | Generated dashboard of claimable, blocked, and unconfigured lanes. |
+| `reports/claim-boundary-dashboard.md` | Generated snapshot of claimable, blocked, and unconfigured lanes; run `./rtw evidence` or `./rtw release-check` for current status. |
 | `CHANGELOG.md` | Release history and unreleased changes. |
 
 ## Historical And Generated Material

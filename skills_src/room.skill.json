@@ -23,6 +23,20 @@
     "prompts/room-summary.md",
     "prompts/room-upgrade.md"
   ],
+  "adapter_refs": [
+    ".codex/skills/room-skill/SKILL.md",
+    ".codex/skills/room-skill/WORKFLOW.md",
+    ".codex/skills/room-skill/runtime/README.md"
+  ],
+  "host_specific_allowed_differences": [
+    "Codex skill contains canonical runtime details.",
+    "Claude project skill is an adapter and may be shorter."
+  ],
+  "forbidden_unverified_claims": [
+    "provider-live supported",
+    "host-live supported",
+    "production live support guaranteed"
+  ],
   "host_specific": {
     "codex": "Canonical checked-in runtime and skill entrypoint.",
     "claude": "Project-skill adapter that points back to canonical Codex/docs sources."

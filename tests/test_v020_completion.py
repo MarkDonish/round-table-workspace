@@ -38,6 +38,8 @@ class V020CompletionTest(unittest.TestCase):
             REPO_ROOT / "prompts" / "room-selection.md",
             {"mode": "room_full", "topic": "AI study product"},
             required_variables=["mode", "topic"],
+            allowed_variables=["mode", "topic"],
+            append_context=True,
         )
         self.assertIn("Runtime Input", rendered.text)
 
@@ -76,8 +78,8 @@ class V020CompletionTest(unittest.TestCase):
             "scripts/claim_boundary_dashboard.py",
             "scripts/release_check.py",
             "evals/decision_quality/run_decision_evals.py",
-            "skills_src/room.skill.yaml",
-            "skills_src/debate.skill.yaml",
+            "skills_src/room.skill.json",
+            "skills_src/debate.skill.json",
         ]
         for rel_path in required_paths:
             self.assertTrue((REPO_ROOT / rel_path).exists(), rel_path)

@@ -20,6 +20,7 @@ Primary sources:
 - `docs/room-chat-contract.md`
 - `docs/reviewer-protocol.md`
 - `docs/decision-quality-rubric.md`
+- `docs/protocol-versioning.md`
 - `docs/release-candidate-scope.md`
 
 Supporting runtime and prompt sources:

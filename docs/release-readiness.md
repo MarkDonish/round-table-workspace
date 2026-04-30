@@ -131,6 +131,22 @@ validation, regression fixtures, live-lane evidence, and the claim boundary
 dashboard. It does not convert fixture/mock/config readiness into host-live or
 provider-live support.
 
+## CI Coverage
+
+`.github/workflows/ci.yml` runs the core non-secret validation chain on push and
+pull request:
+
+- `python3 -m unittest discover -v`
+- `python3 scripts/check_source_truth_consistency.py`
+- `python3 scripts/check_skill_drift.py`
+- `python3 scripts/run_regression_fixtures.py`
+- `./rtw doctor --quick --quiet`
+- `./rtw release-check --include-fixtures --quiet`
+
+The workflow uploads release-check output as an artifact. It does not require
+provider URLs and does not claim host-live or provider-live support from fixture
+passes.
+
 ## Recommended Release Validation
 
 Before tagging or announcing a release, run:
