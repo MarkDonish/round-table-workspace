@@ -22,6 +22,7 @@ Primary source directories:
 - `docs/`
 - `schemas/`
 - `agents/`
+- `config/`
 - `roundtable_core/`
 - `scripts/`
 - `skills_src/`
@@ -30,6 +31,7 @@ Primary source directories:
 - `examples/`
 - `.codex/skills/debate-roundtable-skill/`
 - `.codex/skills/room-skill/`
+- `.codex/skills/agent-builder-skill/`
 - `.codex/skills/*/roundtable-profile.md`
 - `.claude/skills/` (Claude Code project-skill adapter layer only; not protocol implementation)
 

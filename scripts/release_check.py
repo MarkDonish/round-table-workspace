@@ -13,7 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Aggregate v0.2.0 release checks.")
+    parser = argparse.ArgumentParser(description="Aggregate Round Table Workspace release checks.")
     parser.add_argument("--state-root", default="/tmp/round-table-release-check")
     parser.add_argument("--include-fixtures", action="store_true")
     parser.add_argument("--strict-git-clean", action="store_true")
@@ -65,6 +65,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ],
         timeout=args.timeout_seconds + 10,
     )
+    checks["agent_factory"] = run_agent_factory_checks(args.timeout_seconds)
     checks["schema_validation"] = run_schema_validations(args.timeout_seconds)
     checks["runtime_projection_validation"] = run_runtime_projection_validations(state_root, args.timeout_seconds)
     checks["regression_fixtures"] = run_json(
@@ -157,9 +158,36 @@ def run_schema_validations(timeout: int) -> dict[str, Any]:
         ["./rtw", "validate", "--schema", "schemas/debate-result.schema.json", "--fixture", "examples/fixtures/debate-result.valid.json"],
         ["./rtw", "validate", "--schema", "schemas/room-to-debate-handoff.schema.json", "--fixture", "examples/fixtures/room-to-debate-handoff.valid.json"],
         ["./rtw", "validate", "--schema", "schemas/claim-boundary.schema.json", "--fixture", "examples/fixtures/claim-boundary.valid.json"],
+        ["./rtw", "validate", "--schema", "schemas/agent-manifest.schema.json", "--fixture", "examples/agent-factory/duan-yongping.agent.manifest.json"],
+        ["./rtw", "validate", "--schema", "schemas/agent-registry.schema.json", "--fixture", "config/agent-registry.json"],
+        ["./rtw", "validate", "--schema", "schemas/agent-selection-request.schema.json", "--fixture", "examples/agent-factory/selection-request.manual-pool.json"],
     ]
     results = [run_json(command, timeout=timeout) for command in commands]
     return {"ok": all(item.get("ok") for item in results), "results": results}
+
+
+def run_agent_factory_checks(timeout: int) -> dict[str, Any]:
+    commands = {
+        "bundle_validation": [
+            sys.executable,
+            ".codex/skills/agent-builder-skill/runtime/validate_agent_bundle.py",
+            "examples/agent-factory/duan-yongping.agent.manifest.json",
+            "--profile",
+            "examples/agent-factory/duan-yongping.roundtable-profile.md",
+        ],
+        "registry_list": [
+            sys.executable,
+            ".codex/skills/agent-builder-skill/runtime/agent_registry.py",
+            "list",
+        ],
+        "registry_validate": [
+            sys.executable,
+            ".codex/skills/agent-builder-skill/runtime/agent_registry.py",
+            "validate",
+        ],
+    }
+    results = {name: run_json(command, timeout=timeout + 10) for name, command in commands.items()}
+    return {"ok": all(item.get("ok") for item in results.values()), "results": results}
 
 
 def run_runtime_projection_validations(state_root: Path, timeout: int) -> dict[str, Any]:

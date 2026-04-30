@@ -12,6 +12,9 @@ live validation evidence.
 
 ### Added
 
+- Agent Factory Phase 1 backend foundation: custom/candidate registry,
+  manifest/registry/selection-request schemas, Agent Builder skill runtime,
+  Duan Yongping example bundle, and `./rtw agent` CLI bridge.
 - `./rtw room` and `./rtw debate` now run fixture-backed local runtime paths,
   write standard `runs/<run_id>/` artifacts, and validate portable schema
   projections.

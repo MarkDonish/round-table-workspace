@@ -151,6 +151,7 @@ round-table-workspace/
 ├─ docs/
 ├─ schemas/
 ├─ agents/
+├─ config/
 ├─ roundtable_core/
 ├─ scripts/
 ├─ skills_src/
@@ -170,6 +171,7 @@ Active source of truth:
 - `docs/`
 - `schemas/`
 - `agents/`
+- `config/`
 - `roundtable_core/`
 - `scripts/`
 - `skills_src/`
@@ -204,11 +206,16 @@ into active source files instead of leaving historical material as the authority
 | `docs/decision-quality-rubric.md` | machine-checkable decision quality rubric |
 | `docs/schema-validation-subset.md` | Draft 2020-12 fallback validator boundary |
 | `docs/skill-generation.md` | generated skill summary and drift-check maintenance |
+| `docs/agent-factory-architecture.md` | Agent Factory manifest, profile, and registry lifecycle |
 | `agents/registry.json` | machine-readable agent registry consumed by runtime bridges |
+| `config/agent-registry.json` | Agent Factory custom/candidate registry |
 | `schemas/room-session.schema.json` | portable `/room` session state schema |
 | `schemas/debate-session.schema.json` | portable `/debate` session state schema |
 | `schemas/debate-result.schema.json` | portable `/debate` result schema |
 | `schemas/room-to-debate-handoff.schema.json` | portable `/room -> /debate` handoff schema |
+| `schemas/agent-manifest.schema.json` | Agent Factory manifest schema |
+| `schemas/agent-registry.schema.json` | Agent Factory custom/candidate registry schema |
+| `schemas/agent-selection-request.schema.json` | future selection bridge request schema |
 | `docs/room-architecture.md` | `/room` protocol and behavior |
 | `docs/debate-skill-architecture.md` | `/debate` protocol and behavior |
 | `docs/room-to-debate-handoff.md` | handoff contract from exploration to review |

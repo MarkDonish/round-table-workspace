@@ -1,0 +1,18 @@
+{
+  "mode": "debate_selection",
+  "topic": "AI 中转站要不要做分销系统",
+  "selection_mode": "manual_pool",
+  "candidate_pool": [
+    "duan-yongping",
+    "munger",
+    "zhang-yiming",
+    "paul-graham",
+    "mrbeast"
+  ],
+  "pinned_agents": [],
+  "excluded_agents": [
+    "trump"
+  ],
+  "max_agents": 5,
+  "min_agents": 3
+}

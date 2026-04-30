@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://round-table-workspace.local/schemas/agent-selection-request.schema.json",
+  "title": "Round Table Agent Selection Request",
+  "description": "Portable request shape for Agent Factory selection bridge inputs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "mode",
+    "topic",
+    "selection_mode",
+    "candidate_pool",
+    "pinned_agents",
+    "excluded_agents",
+    "max_agents",
+    "min_agents"
+  ],
+  "properties": {
+    "mode": {
+      "const": "debate_selection"
+    },
+    "topic": {
+      "type": "string",
+      "minLength": 1
+    },
+    "selection_mode": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "manual_pool",
+        "forced"
+      ]
+    },
+    "candidate_pool": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "pinned_agents": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "excluded_agents": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "max_agents": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 8
+    },
+    "min_agents": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 8
+    }
+  }
+}

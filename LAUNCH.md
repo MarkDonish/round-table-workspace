@@ -51,6 +51,15 @@ Run the fixture-backed CLI runtime paths:
 ./rtw debate "这个创业方向值不值得做"
 ```
 
+Check Agent Factory metadata without provider setup:
+
+```bash
+./rtw agent list
+./rtw agent validate
+./rtw agent validate examples/agent-factory/duan-yongping.agent.manifest.json \
+  --profile examples/agent-factory/duan-yongping.roundtable-profile.md
+```
+
 These commands write standard `runs/<run_id>/` output and portable schema
 projections. They do not claim host-live or provider-live execution. Add
 `--stub` to either command when you only want the boundary-only stub response.

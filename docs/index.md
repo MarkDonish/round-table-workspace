@@ -31,10 +31,14 @@
 | `docs/room-to-debate-handoff.md` | Handoff contract from exploration to decision review. |
 | `docs/reviewer-protocol.md` | Reviewer behavior, red flags, and allow/reject logic. |
 | `docs/decision-quality-rubric.md` | Decision quality scoring dimensions for eval and reviewer use. |
+| `docs/agent-factory-architecture.md` | Agent Factory lifecycle, registry split, and current backend boundary. |
 | `schemas/room-session.schema.json` | Portable `/room` session state shape. |
 | `schemas/debate-session.schema.json` | Portable `/debate` session state shape. |
 | `schemas/debate-result.schema.json` | Portable `/debate` final result shape. |
 | `schemas/room-to-debate-handoff.schema.json` | Portable handoff packet shape. |
+| `schemas/agent-manifest.schema.json` | Agent Factory manifest shape. |
+| `schemas/agent-registry.schema.json` | Agent Factory custom/candidate registry shape. |
+| `schemas/agent-selection-request.schema.json` | Selection bridge request shape for later `/debate --pool` work. |
 
 ## Runtime And Adapters
 
@@ -47,6 +51,8 @@
 | `docs/local-agent-host-recipes.md` | Host-specific validation recipes. |
 | `docs/third-party-agent-wrapper-recipes.md` | Wrapper recipes for noisy local CLI agents. |
 | `docs/skill-generation.md` | Skill generator and drift-check maintenance path. |
+| `docs/agent-builder-workflow.md` | Agent Builder validation and registry workflow. |
+| `docs/agent-library-ui.md` | Future local UI data contract notes. |
 
 ## Validation And Release
 

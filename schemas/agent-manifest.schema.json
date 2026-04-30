@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://round-table-workspace.local/schemas/agent-manifest.schema.json",
+  "title": "Round Table Agent Manifest",
+  "description": "Machine-readable manifest for an Agent Factory candidate participant.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "agent_id",
+    "display_name",
+    "short_name",
+    "skill_name",
+    "source",
+    "status",
+    "version",
+    "cognitive_lens",
+    "useful_when",
+    "avoid",
+    "style_rule",
+    "structural_role",
+    "expression",
+    "strength",
+    "default_excluded",
+    "task_types",
+    "stage_fit",
+    "sub_problem_tags",
+    "bias_risk",
+    "counterweights",
+    "quality"
+  ],
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "short_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "skill_name": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-skill$"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "checked-in",
+        "nuwa",
+        "imported",
+        "manual",
+        "agent-builder"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "registered",
+        "enabled",
+        "disabled"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cognitive_lens": {
+      "type": [
+        "string",
+        "array"
+      ],
+      "minLength": 1,
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "useful_when": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "avoid": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "style_rule": {
+      "type": "string",
+      "minLength": 1
+    },
+    "structural_role": {
+      "type": "string",
+      "enum": [
+        "offensive",
+        "defensive",
+        "moderate"
+      ]
+    },
+    "expression": {
+      "type": "string",
+      "enum": [
+        "grounded",
+        "abstract",
+        "dramatic"
+      ]
+    },
+    "strength": {
+      "type": "string",
+      "enum": [
+        "dominant",
+        "moderate"
+      ]
+    },
+    "default_excluded": {
+      "type": "boolean"
+    },
+    "task_types": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "startup",
+          "product",
+          "learning",
+          "content",
+          "risk",
+          "planning",
+          "strategy",
+          "writing"
+        ]
+      }
+    },
+    "stage_fit": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "explore",
+          "simulate",
+          "stress_test",
+          "converge",
+          "decision"
+        ]
+      }
+    },
+    "sub_problem_tags": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "value_proposition",
+          "product_focus",
+          "user_experience",
+          "first_principles",
+          "narrative_construction",
+          "execution_path",
+          "resource_allocation",
+          "technical_feasibility",
+          "downside_analysis",
+          "long_term_strategy",
+          "team_dynamics",
+          "learning_explanation",
+          "regulatory_risk",
+          "market_timing",
+          "market_sizing",
+          "growth_strategy",
+          "distribution",
+          "tail_risk",
+          "competitive_structure",
+          "monetization",
+          "opportunity_cost",
+          "business_model"
+        ]
+      }
+    },
+    "bias_risk": {
+      "type": "string",
+      "minLength": 1
+    },
+    "counterweights": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_complete",
+        "manifest_valid",
+        "registry_ready",
+        "selection_ready"
+      ],
+      "properties": {
+        "profile_complete": {
+          "type": "boolean"
+        },
+        "manifest_valid": {
+          "type": "boolean"
+        },
+        "registry_ready": {
+          "type": "boolean"
+        },
+        "selection_ready": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

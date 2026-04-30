@@ -20,6 +20,8 @@ DEBATE_RUNTIME = ".codex/skills/debate-roundtable-skill/runtime/debate_runtime.p
 LIVE_LANE_EVIDENCE = ".codex/skills/room-skill/runtime/live_lane_evidence_report.py"
 LOCAL_CODEX_REGRESSION = ".codex/skills/room-skill/runtime/local_codex_regression.py"
 RELEASE_CHECK = "scripts/release_check.py"
+AGENT_REGISTRY_RUNTIME = ".codex/skills/agent-builder-skill/runtime/agent_registry.py"
+AGENT_BUNDLE_VALIDATOR = ".codex/skills/agent-builder-skill/runtime/validate_agent_bundle.py"
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -38,6 +40,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_interactive(args)
     if args.command == "demo":
         return run_demo(args)
+    if args.command == "agent":
+        return run_agent(args)
     if args.command == "room":
         if args.stub:
             return print_stub("room", " ".join(args.question), args.state_root)
@@ -131,6 +135,32 @@ def build_parser() -> argparse.ArgumentParser:
     )
     demo.add_argument("demo_name", choices=["startup-idea"])
     demo.add_argument("--state-root", help="Directory for generated demo output.")
+
+    agent = subparsers.add_parser(
+        "agent",
+        help="Manage Agent Factory manifests and registry entries.",
+    )
+    agent.add_argument("--registry", help="Registry JSON path. Defaults to config/agent-registry.json.")
+    agent_subparsers = agent.add_subparsers(dest="agent_command", required=True)
+
+    agent_list = agent_subparsers.add_parser("list", help="List Agent Factory registry entries.")
+    agent_list.add_argument("--status", help="Optional status filter.")
+
+    agent_validate = agent_subparsers.add_parser("validate", help="Validate registry or one manifest/bundle.")
+    agent_validate.add_argument("target", nargs="?", help="Optional manifest path or registry agent_id.")
+    agent_validate.add_argument("--profile", help="Profile path when validating a manifest bundle.")
+
+    agent_register = agent_subparsers.add_parser("register", help="Register an agent manifest.")
+    agent_register.add_argument("manifest", help="Path to manifest JSON.")
+    agent_register.add_argument("--replace", action="store_true", help="Replace existing agent_id.")
+    agent_register.add_argument("--enable", action="store_true", help="Register directly as enabled.")
+
+    agent_enable = agent_subparsers.add_parser("enable", help="Enable a registered agent.")
+    agent_enable.add_argument("agent_id")
+    agent_enable.add_argument("--allow-missing-skill", action="store_true", help="Allow enable without local skill dir.")
+
+    agent_disable = agent_subparsers.add_parser("disable", help="Disable a registered agent.")
+    agent_disable.add_argument("agent_id")
 
     return parser
 
@@ -230,6 +260,38 @@ def run_evidence(args: argparse.Namespace) -> int:
     for skip_host in args.skip_host:
         command.extend(["--skip-host", skip_host])
     return run_command(command)
+
+
+def run_agent(args: argparse.Namespace) -> int:
+    registry_args = ["--registry", args.registry] if args.registry else []
+    if args.agent_command == "list":
+        command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "list"]
+        if args.status:
+            command.extend(["--status", args.status])
+    elif args.agent_command == "validate":
+        if args.target and looks_like_manifest_path(args.target):
+            command = [sys.executable, AGENT_BUNDLE_VALIDATOR, args.target]
+            if args.profile:
+                command.extend(["--profile", args.profile])
+        elif args.target:
+            command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "validate", "--agent-id", args.target]
+        else:
+            command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "validate"]
+    elif args.agent_command == "register":
+        command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "register", args.manifest]
+        if args.replace:
+            command.append("--replace")
+        if args.enable:
+            command.append("--enable")
+    elif args.agent_command == "enable":
+        command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "enable", args.agent_id]
+        if args.allow_missing_skill:
+            command.append("--allow-missing-skill")
+    elif args.agent_command == "disable":
+        command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "disable", args.agent_id]
+    else:
+        return 2
+    return run_captured_command(command)
 
 
 def run_room(args: argparse.Namespace) -> int:
@@ -385,6 +447,19 @@ def run_demo(args: argparse.Namespace) -> int:
 def run_command(command: list[str]) -> int:
     result = subprocess.run(command, cwd=REPO_ROOT)
     return result.returncode
+
+
+def run_captured_command(command: list[str]) -> int:
+    result = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True, check=False)
+    if result.stdout:
+        print(result.stdout, end="")
+    if result.stderr:
+        print(result.stderr, file=sys.stderr, end="")
+    return result.returncode
+
+
+def looks_like_manifest_path(target: str) -> bool:
+    return target.endswith(".json") or "/" in target or "\\" in target
 
 
 def build_room_fixture_run(*, question: str, state_root: Path, run_id: str | None = None) -> dict[str, object]:
