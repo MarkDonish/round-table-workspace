@@ -1,129 +1,123 @@
 # Round Table Workspace
 
-Local-first multi-agent decision workflows for Codex, Claude Code, and other
-local CLI agents.
+[![CI](https://github.com/MarkDonish/round-table-workspace/actions/workflows/ci.yml/badge.svg)](https://github.com/MarkDonish/round-table-workspace/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Local First](https://img.shields.io/badge/local--first-yes-2ea44f)
+![AI Agents](https://img.shields.io/badge/AI%20agents-round--table-orange)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-Round Table Workspace turns `/room` and `/debate` into checked-in docs,
-prompts, skills, runtime scripts, validation tools, and release boundaries. It
-is local-first: the "room" is not a web conference room, and provider URLs are
-optional fallback infrastructure rather than the default path.
+Make your AI coding agents argue before they ship.
 
-## Quick Start In 5 Minutes
-
-Clone and enter the repository:
+Round Table Workspace is a local-first decision layer for Codex, Claude Code,
+and other CLI agents. It turns vague product and engineering questions into
+structured `/room` exploration, escalates risky choices into `/debate`, and
+adds a `ship-check` gate that returns a practical ship / revise / reject review
+before you trust one AI-generated answer.
 
 ```bash
 git clone https://github.com/MarkDonish/round-table-workspace.git
 cd round-table-workspace
+./rtw ship-check "Should we merge this AI-generated feature?"
+./rtw room "What is the smallest useful MVP for this idea?"
+./rtw debate "Is this launch ready?"
+./rtw doctor --quick
 ```
 
-Check whether this clone is usable locally:
+Example `ship-check` shape:
+
+```text
+Decision: revise
+Panel: product, engineering, risk, user-advocate
+Why: useful direction, but public claims and evidence need tightening
+Next: run tests, add a visible demo, keep claims local-first unless validated
+```
+
+## Why This Exists
+
+AI coding agents are fast. Too fast.
+
+They can produce a feature before anyone asks:
+
+- should we build this at all?
+- what evidence would change our mind?
+- what user risk are we ignoring?
+- is this actually ready to ship, or just plausible-looking?
+- are we claiming host-live/provider-live support without evidence?
+
+Round Table Workspace adds a decision layer before execution. It is not another
+chat UI. It is a checked-in protocol, CLI, schema set, fixture-backed runtime,
+and evidence trail for making AI-assisted decisions reviewable.
+
+## 30-Second Demo
+
+Run the new pre-ship decision gate:
 
 ```bash
-./rtw doctor
+./rtw ship-check "Launch the new AI-generated onboarding flow"
 ```
 
-Cross-platform entrypoints:
-
-```bash
-python -m roundtable doctor --quick
-python -m pip install -e .
-rtw doctor --quick
-```
-
-For a faster source/readiness preflight:
+Run the clone-friendly self-check:
 
 ```bash
 ./rtw doctor --quick
 ```
 
-Try the command surfaces:
+Try the fixture-backed room/debate surfaces:
 
 ```bash
-./rtw room "我想讨论一个面向大学生的 AI 学习产品，从方向、切口、风险一步步推进"
-./rtw debate "这个创业方向值不值得做"
+./rtw room "I want to build an AI study product for college students"
+./rtw debate "Should this MVP be shipped this week?"
 ```
 
-Try the fixture/mock golden demo without provider setup:
+Run the golden demo without provider setup:
 
 ```bash
 ./rtw demo startup-idea
 ```
 
-For a lightweight command loop:
+Most commands support automation-friendly output:
 
 ```bash
-./rtw interactive
-```
-
-Most automation-friendly commands support structured output flags:
-
-```bash
+./rtw ship-check "Should we merge this?" --output-json /tmp/ship-check.json --quiet
 ./rtw room "topic" --json
 ./rtw release-check --include-fixtures --quiet --output-json /tmp/rtw-release-check.json
 ```
 
-Current support: the checked-in Codex local mainline for `/room`, `/debate`,
-and `/room -> /debate`; Claude Code project-skill discovery; generic local
-agent adapter contracts with fixture validation; clone-friendly self-checks;
-and host/provider evidence reporting.
+## How It Works
 
-Current limits: `./rtw room` and `./rtw debate` now run checked-in
-fixture-backed local runtime paths and project their artifacts into portable
-schemas. They are still not host-live or provider-live executions. Use
-`--stub` on either command to show the old boundary-only stub. Provider-live
-support requires real `.env.room` and `.env.debate` files plus live validation;
-fixture passes, wrapper presence, and config preflights are not host-live or
-provider-live claims.
+```mermaid
+flowchart TD
+    A[Ambiguous idea or AI-generated change] --> B[/room exploration]
+    B --> C[summary + handoff packet]
+    C --> D[/debate decision review]
+    D --> E{ship-check gate}
+    E -->|ship| F[Proceed with evidence]
+    E -->|revise| G[Fix risks / collect missing evidence]
+    E -->|reject| H[Stop or reframe]
+    F --> I[JSON + Markdown artifacts]
+    G --> I
+    H --> I
+```
 
-For the shortest maintained startup path, read `LAUNCH.md`.
+Core surfaces:
 
-## What It Does
-
-Round Table Workspace helps a local agent host:
-
-- explore ambiguous questions through a stateful multi-agent discussion
-- escalate mature questions into a formal review workflow
-- preserve summaries, handoff packets, review results, and validation evidence
-- keep source files, generated artifacts, and historical reports clearly
-  separated
-- verify which host and provider claims are actually supported before release
-
-The project is intentionally conservative about claims. A fixture pass, wrapper
-presence, or config preflight is not described as real host-live or
-provider-live support unless the matching validation evidence exists.
-
-## Core Workflows
-
-| Workflow | Use It When | Output |
+| Command | Use it when | Output |
 |---|---|---|
-| `/room` | You are still exploring a topic and need a stateful discussion | selected panel, structured turns, summaries, optional handoff packet |
-| `/debate` | You need a higher-stakes decision reviewed by a round table | launch bundle, round-table record, reviewer result, allow/reject/follow-up outcome |
-| `/room -> /debate` | Exploration has produced enough context for formal review | persisted handoff from discussion into decision review |
-| self-check | You want to know whether a fresh clone is usable locally | JSON/Markdown evidence under a chosen state root |
+| `ship-check` | You need a quick ship / revise / reject review before trusting AI-generated work | panel votes, risks, missing evidence, next actions |
+| `/room` / `./rtw room` | You are still exploring a topic and need a stateful multi-agent discussion | selected panel, structured turns, summaries, optional handoff packet |
+| `/debate` / `./rtw debate` | You need a higher-stakes decision reviewed by a round table | launch bundle, round-table record, reviewer result, allow/reject/follow-up outcome |
+| `doctor` | You want to know whether a fresh clone is usable locally | JSON/Markdown evidence under a chosen state root |
+| `release-check` | You want release-scope validation without replacing historical reports | aggregated readiness evidence |
 
-Example interaction shape:
+## Use Cases
 
-```text
-/room 我想讨论一个面向大学生的 AI 学习产品，从方向、切口、风险一步步推进
-/focus 先只盯最小可验证切口
-/summary
-/upgrade-to-debate
-```
-
-```text
-/debate 这个创业方向值不值得做
-/debate --with Jobs,Taleb 这个方向值不值得做
-/debate --quick 我该不该先做这个 MVP
-```
-
-For longer illustrative walkthroughs, see `examples/transcripts/`.
-
-For v0.2.0-alpha release aggregation:
-
-```bash
-./rtw release-check --include-fixtures
-```
+- Pre-ship review for AI-generated code or docs
+- Product decision review before building an MVP
+- Architecture tradeoff review before refactoring
+- Risk review before publishing launch claims
+- Local-first agent workflow experiments
+- Decision evidence generation for Codex / Claude Code projects
+- Teaching teams not to trust a single confident agent answer
 
 ## Current Support Scope
 
@@ -134,6 +128,7 @@ The repository may currently be used for:
 - Codex local mainline `/room`
 - Codex local mainline `/debate`
 - Codex local mainline `/room -> /debate`
+- fixture-backed `ship-check` decision-gate scaffolding
 - checked-in protocol docs, prompts, skill entrypoints, runtime bridges, and
   validation harnesses
 - Claude Code project-skill discovery structure as an adapter layer
@@ -152,8 +147,9 @@ The repository does not currently claim:
   `.env.room` and `.env.debate` files exist and live validation passes
 - universal production stability across all possible machines and accounts
 
-See `docs/release-candidate-scope.md` and `docs/releases/v0.2.0-alpha.md` for the
-claim-safe release boundary.
+The project is intentionally conservative about claims. A fixture pass, wrapper
+presence, or config preflight is not described as real host-live or
+provider-live support unless matching validation evidence exists.
 
 ## Repository Map
 
@@ -217,6 +213,8 @@ into active source files instead of leaving historical material as the authority
 | `docs/release-candidate-scope.md` | claim-safe support scope |
 | `docs/roadmap.md` | project roadmap and release horizons |
 | `docs/milestones/v0.2.0.md` | v0.2.0 milestone scope and issue split |
+| `docs/launch-copy.md` | public launch copy for X, Hacker News, Reddit, and community posts |
+| `docs/demo.html` | static visual demo for GitHub Pages or screenshots |
 | `docs/protocol-spec.md` | unified `/room`, `/debate`, and handoff protocol overview |
 | `docs/protocol-versioning.md` | release/protocol/schema/runtime/prompt/fixture version boundaries |
 | `docs/decision-quality-rubric.md` | machine-checkable decision quality rubric |
@@ -262,11 +260,15 @@ python3 .codex/skills/room-skill/runtime/local_codex_regression.py \
 For release-scope review:
 
 ```bash
-python3 .codex/skills/room-skill/runtime/release_candidate_report.py \
-  --include-fixture-runs \
-  --strict-git-clean \
-  --state-root /tmp/round-table-release-candidate
+./rtw release-check --include-fixtures --state-root /tmp/round-table-release-check
 ```
+
+## Contributing
+
+Contributions are welcome when they preserve the claim boundary: do not turn a
+fixture pass into a host-live or provider-live claim. Start with
+`CONTRIBUTING.md`, keep changes local-first by default, and include fresh
+verification evidence in PRs.
 
 ## Development Notes
 

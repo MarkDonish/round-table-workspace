@@ -135,6 +135,19 @@ class RoundtableCliTest(unittest.TestCase):
             self.assertTrue(Path(payload["outputs"]["debate_session"]).exists())
             self.assertTrue(Path(payload["outputs"]["debate_result"]).exists())
 
+    def test_ship_check_returns_fixture_backed_decision_gate(self) -> None:
+        code, output = self.invoke(["ship-check", "Launch the AI-generated MVP README polish"])
+
+        self.assertEqual(code, 0)
+        payload = json.loads(output)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["action"], "ship-check")
+        self.assertEqual(payload["status"], "fixture_backed")
+        self.assertEqual(payload["decision"], "revise")
+        self.assertIn("ship/revise/reject", payload["claim_boundary"][0])
+        self.assertGreaterEqual(len(payload["panel_votes"]), 3)
+        self.assertIn("next_actions", payload)
+
     def test_repo_root_points_to_checkout(self) -> None:
         from roundtable import cli
 

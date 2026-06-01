@@ -52,6 +52,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_demo(args)
     if args.command == "agent":
         return run_agent(args)
+    if args.command == "ship-check":
+        return run_ship_check(args)
     if args.command == "room":
         if args.stub:
             return print_stub("room", " ".join(args.question), args.state_root, args=args)
@@ -128,6 +130,13 @@ def build_parser() -> argparse.ArgumentParser:
     debate.add_argument("--state-root", help="Directory for generated /debate runtime output.")
     debate.add_argument("--stub", action="store_true", help="Show the old claim-safe stub instead of running fixtures.")
     add_output_args(debate)
+
+    ship_check = subparsers.add_parser(
+        "ship-check",
+        help="Run a local ship/revise/reject decision gate for AI-generated work.",
+    )
+    ship_check.add_argument("question", nargs="+", help="Change, feature, or launch decision to review before shipping.")
+    add_output_args(ship_check)
 
     release_check = subparsers.add_parser(
         "release-check",
@@ -324,6 +333,13 @@ def run_debate(args: argparse.Namespace) -> int:
     return exit_code_for_payload(payload)
 
 
+def run_ship_check(args: argparse.Namespace) -> int:
+    question = " ".join(args.question)
+    payload = build_ship_check_payload(question)
+    emit_payload(args, payload, markdown=render_ship_check_summary(payload))
+    return exit_code_for_payload(payload)
+
+
 def run_release_check(args: argparse.Namespace) -> int:
     command = [
         sys.executable,
@@ -444,6 +460,84 @@ def render_payload_summary(payload: dict[str, object]) -> str:
         lines.extend(["", "## Outputs", ""])
         for name, path in outputs.items():
             lines.append(f"- `{name}`: `{path}`")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_ship_check_payload(question: str) -> dict[str, object]:
+    panel_votes = [
+        {
+            "agent": "product",
+            "vote": "revise",
+            "reason": "The user value should be stated as an observable outcome before shipping.",
+        },
+        {
+            "agent": "engineering",
+            "vote": "ship",
+            "reason": "The change is small enough to ship when tests and local validation pass.",
+        },
+        {
+            "agent": "risk",
+            "vote": "revise",
+            "reason": "Claim boundaries and rollback notes should be explicit before launch copy is promoted.",
+        },
+        {
+            "agent": "user-advocate",
+            "vote": "revise",
+            "reason": "The public README should show a concrete before/after example, not only architecture language.",
+        },
+    ]
+    return {
+        "ok": True,
+        "action": "ship-check",
+        "status": "fixture_backed",
+        "question": question,
+        "decision": "revise",
+        "confidence": "medium",
+        "summary": "Useful enough to continue, but revise positioning, evidence, and user-facing examples before claiming it is launch-ready.",
+        "panel_votes": panel_votes,
+        "risks": [
+            "Overclaiming host-live or provider-live behavior without fresh validation evidence.",
+            "README positioning may stay too abstract for first-time visitors.",
+            "A single-agent answer can miss product, risk, and user-readiness tradeoffs.",
+        ],
+        "missing_evidence": [
+            "Fresh test run for the current checkout.",
+            "A visible demo transcript or screenshot for the public launch surface.",
+            "A short rollback or revision path if launch feedback is weak.",
+        ],
+        "next_actions": [
+            "Run ./rtw doctor --quick and the unit test suite.",
+            "Add one concrete demo transcript or screenshot to the README.",
+            "Keep public claims local-first unless host-live/provider-live evidence exists.",
+        ],
+        "claim_boundary": [
+            "ship-check is a fixture-backed local ship/revise/reject decision gate, not a host-live or provider-live agent execution claim.",
+            "Use it as a pre-ship review scaffold; verify with project-specific tests before merging or releasing.",
+        ],
+    }
+
+
+def render_ship_check_summary(payload: dict[str, object]) -> str:
+    lines = [
+        "# Ship Check",
+        "",
+        f"- Decision: `{payload.get('decision')}`",
+        f"- Confidence: `{payload.get('confidence')}`",
+        f"- Summary: {payload.get('summary')}",
+        "",
+        "## Panel Votes",
+        "",
+    ]
+    panel_votes = payload.get("panel_votes")
+    if isinstance(panel_votes, list):
+        for vote in panel_votes:
+            if isinstance(vote, dict):
+                lines.append(f"- `{vote.get('agent')}`: `{vote.get('vote')}` — {vote.get('reason')}")
+    lines.extend(["", "## Next Actions", ""])
+    next_actions = payload.get("next_actions")
+    if isinstance(next_actions, list):
+        for action in next_actions:
+            lines.append(f"- {action}")
     return "\n".join(lines).rstrip() + "\n"
 
 

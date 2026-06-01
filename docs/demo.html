@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Round Table Workspace Demo</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f0e6;
+      --panel: #fffaf2;
+      --ink: #221b14;
+      --muted: #74675a;
+      --line: #eadcc9;
+      --amber: #c77721;
+      --green: #327a4b;
+      --red: #9d3a2f;
+      --shadow: 0 22px 70px rgba(69, 43, 19, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #fff7ea, var(--bg) 42%, #efe3d3);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    main {
+      width: min(1120px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 56px 0;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 28px;
+      align-items: center;
+    }
+    .eyebrow {
+      color: var(--amber);
+      font-weight: 750;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+    h1 {
+      font-size: clamp(42px, 6vw, 78px);
+      line-height: .96;
+      letter-spacing: -0.06em;
+      margin: 12px 0 20px;
+    }
+    .lead {
+      font-size: 19px;
+      color: var(--muted);
+      max-width: 620px;
+    }
+    .terminal, .card {
+      background: rgba(255, 250, 242, 0.86);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+    .terminal {
+      overflow: hidden;
+    }
+    .bar {
+      display: flex;
+      gap: 8px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #f2e4d2;
+    }
+    .dot { width: 11px; height: 11px; border-radius: 99px; background: #d86654; }
+    .dot:nth-child(2) { background: #ddae4e; }
+    .dot:nth-child(3) { background: #68a66f; }
+    pre {
+      margin: 0;
+      padding: 22px;
+      white-space: pre-wrap;
+      font-size: 14px;
+      color: #2f251a;
+    }
+    code { font-family: "SFMono-Regular", Menlo, Consolas, monospace; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 30px;
+    }
+    .card {
+      padding: 20px;
+    }
+    .card h3 { margin: 0 0 8px; font-size: 16px; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; }
+    .decision {
+      margin-top: 30px;
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      gap: 18px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      border: 1px solid #f0c78c;
+      background: #fff2db;
+      color: #9a5515;
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    ul { padding-left: 20px; color: var(--muted); }
+    .vote {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      border-top: 1px solid var(--line);
+      padding: 14px 0;
+    }
+    .vote:first-of-type { border-top: 0; }
+    .ship { color: var(--green); font-weight: 800; }
+    .revise { color: var(--amber); font-weight: 800; }
+    footer {
+      margin-top: 34px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    a { color: var(--amber); font-weight: 700; }
+    @media (max-width: 860px) {
+      .hero, .decision { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .grid { grid-template-columns: 1fr; }
+      main { padding: 34px 0; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Local-first AI agent workflow</div>
+        <h1>Make your AI agents argue before they ship.</h1>
+        <p class="lead">
+          Round Table Workspace adds a decision layer for Codex, Claude Code,
+          and CLI agents: explore with <code>/room</code>, review with
+          <code>/debate</code>, and run a <code>ship-check</code> before trusting
+          AI-generated work.
+        </p>
+      </div>
+      <div class="terminal" aria-label="Command demo">
+        <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <pre><code>$ ./rtw ship-check "Should we merge this AI-generated feature?"
+
+Decision: revise
+Confidence: medium
+Panel: product, engineering, risk, user-advocate
+
+Why:
+- useful direction, but evidence is incomplete
+- public claims need tighter boundaries
+- a visible demo should exist before launch
+
+Next:
+1. run tests and doctor
+2. add a concrete demo transcript
+3. keep claims local-first unless validated</code></pre>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="Workflow cards">
+      <div class="card"><h3>/room</h3><p>Explore ambiguous ideas with a structured multi-agent discussion.</p></div>
+      <div class="card"><h3>/debate</h3><p>Escalate higher-stakes choices into a formal decision review.</p></div>
+      <div class="card"><h3>ship-check</h3><p>Get a ship / revise / reject gate for AI-generated work.</p></div>
+      <div class="card"><h3>evidence</h3><p>Keep JSON and Markdown artifacts for auditability.</p></div>
+    </section>
+
+    <section class="decision">
+      <div class="card">
+        <span class="pill">Decision: revise</span>
+        <h2>Not another chat UI.</h2>
+        <p>
+          The goal is to make AI-assisted decisions reviewable: source docs,
+          schemas, prompts, fixtures, runtime scripts, tests, and claim
+          boundaries live in the repo.
+        </p>
+        <ul>
+          <li>local-first by default</li>
+          <li>fixture-backed demo without provider setup</li>
+          <li>no host-live/provider-live claims without evidence</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="vote"><strong>Product</strong><span class="revise">revise</span></div>
+        <div class="vote"><strong>Engineering</strong><span class="ship">ship after tests</span></div>
+        <div class="vote"><strong>Risk</strong><span class="revise">revise claims</span></div>
+        <div class="vote"><strong>User advocate</strong><span class="revise">add demo</span></div>
+      </div>
+    </section>
+
+    <footer>
+      GitHub: <a href="https://github.com/MarkDonish/round-table-workspace">MarkDonish/round-table-workspace</a>
+    </footer>
+  </main>
+</body>
+</html>
