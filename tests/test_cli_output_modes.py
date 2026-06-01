@@ -58,6 +58,28 @@ class CliOutputModesTest(unittest.TestCase):
             self.assertTrue((Path(payload["run_dir"]) / "run.json").exists())
             self.assertIn("Room", output_md.read_text(encoding="utf-8"))
 
+    def test_ship_check_writes_output_json_and_markdown(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_json = Path(temp_dir) / "ship-check.json"
+            output_md = Path(temp_dir) / "ship-check.md"
+            code, stdout = self.invoke(
+                [
+                    "ship-check",
+                    "Should we merge this AI-generated feature?",
+                    "--quiet",
+                    "--output-json",
+                    str(output_json),
+                    "--output-markdown",
+                    str(output_md),
+                ]
+            )
+            self.assertEqual(code, 0)
+            self.assertEqual(stdout, "")
+            payload = json.loads(output_json.read_text(encoding="utf-8"))
+            self.assertEqual(payload["action"], "ship-check")
+            self.assertEqual(payload["decision"], "revise")
+            self.assertIn("Ship Check", output_md.read_text(encoding="utf-8"))
+
     def test_usage_validation_returns_two(self) -> None:
         code, output = self.invoke(["validate", "--schema", "schemas/room-session.schema.json"])
         self.assertEqual(code, 2)
