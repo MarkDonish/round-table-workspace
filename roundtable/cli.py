@@ -54,6 +54,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return run_agent(args)
     if args.command == "ship-check":
         return run_ship_check(args)
+    if args.command == "launch-kit":
+        return run_launch_kit(args)
     if args.command == "room":
         if args.stub:
             return print_stub("room", " ".join(args.question), args.state_root, args=args)
@@ -137,6 +139,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     ship_check.add_argument("question", nargs="+", help="Change, feature, or launch decision to review before shipping.")
     add_output_args(ship_check)
+
+    launch_kit = subparsers.add_parser(
+        "launch-kit",
+        help="Print the public launch assets, links, and GitHub topic checklist.",
+    )
+    add_output_args(launch_kit)
 
     release_check = subparsers.add_parser(
         "release-check",
@@ -340,6 +348,12 @@ def run_ship_check(args: argparse.Namespace) -> int:
     return exit_code_for_payload(payload)
 
 
+def run_launch_kit(args: argparse.Namespace) -> int:
+    payload = build_launch_kit_payload()
+    emit_payload(args, payload, markdown=render_launch_kit_summary(payload))
+    return exit_code_for_payload(payload)
+
+
 def run_release_check(args: argparse.Namespace) -> int:
     command = [
         sys.executable,
@@ -538,6 +552,74 @@ def render_ship_check_summary(payload: dict[str, object]) -> str:
     if isinstance(next_actions, list):
         for action in next_actions:
             lines.append(f"- {action}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def build_launch_kit_payload() -> dict[str, object]:
+    topics = [
+        "ai-agents",
+        "multi-agent",
+        "codex",
+        "claude-code",
+        "developer-tools",
+        "local-first",
+        "decision-making",
+        "ai-coding",
+        "cli",
+        "python",
+        "agent-workflow",
+        "code-review",
+        "vibe-coding",
+        "openai",
+        "llm",
+    ]
+    return {
+        "ok": True,
+        "action": "launch-kit",
+        "positioning": "Make your AI agents argue before they ship.",
+        "repository": "https://github.com/MarkDonish/round-table-workspace",
+        "pages_url": "https://markdonish.github.io/round-table-workspace/",
+        "assets": [
+            "README.md",
+            "docs/index.html",
+            "docs/launch-copy.md",
+            "docs/demo.html",
+            "CONTRIBUTING.md",
+            "LICENSE",
+        ],
+        "topics": topics,
+        "commands": [
+            "./rtw ship-check \"Should we merge this AI-generated feature?\"",
+            "./rtw room \"What is the smallest useful MVP for this idea?\"",
+            "./rtw debate \"Is this launch ready?\"",
+            "./rtw doctor --quick",
+        ],
+        "claim_boundary": [
+            "The launch kit is a public packaging checklist for the local-first fixture-backed project surface.",
+            "It does not claim new host-live or provider-live support.",
+        ],
+    }
+
+
+def render_launch_kit_summary(payload: dict[str, object]) -> str:
+    lines = [
+        "# Launch Kit",
+        "",
+        f"- Positioning: {payload.get('positioning')}",
+        f"- Repository: {payload.get('repository')}",
+        f"- Pages demo: {payload.get('pages_url')}",
+        "",
+        "## Assets",
+        "",
+    ]
+    assets = payload.get("assets")
+    if isinstance(assets, list):
+        for asset in assets:
+            lines.append(f"- `{asset}`")
+    lines.extend(["", "## Topics", ""])
+    topics = payload.get("topics")
+    if isinstance(topics, list):
+        lines.append(", ".join(str(topic) for topic in topics))
     return "\n".join(lines).rstrip() + "\n"
 
 

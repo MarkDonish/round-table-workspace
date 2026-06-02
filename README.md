@@ -6,6 +6,8 @@
 ![AI Agents](https://img.shields.io/badge/AI%20agents-round--table-orange)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
+Demo: https://markdonish.github.io/round-table-workspace/
+
 Make your AI coding agents argue before they ship.
 
 Round Table Workspace is a local-first decision layer for Codex, Claude Code,
@@ -121,7 +123,7 @@ Core surfaces:
 
 ## Current Support Scope
 
-The current release is `v0.2.0-alpha`.
+The current release is `v0.2.2-pages-launch-kit`.
 
 The repository may currently be used for:
 
