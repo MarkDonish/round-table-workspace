@@ -84,6 +84,9 @@ Useful for:
 GitHub:
 https://github.com/MarkDonish/round-table-workspace
 
+Live demo:
+https://markdonish.github.io/round-table-workspace/
+
 If this helps your AI coding workflow, star it and try it before your next
 AI-generated feature ships.
 

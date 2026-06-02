@@ -74,7 +74,19 @@ These commands write standard `runs/<run_id>/` output and portable schema
 projections. They do not claim host-live or provider-live execution. Add
 `--stub` to either command when you only want the boundary-only stub response.
 
-Run the v0.2.0 aggregate release checks:
+For a browser-friendly public demo, open:
+
+```text
+https://markdonish.github.io/round-table-workspace/
+```
+
+For public launch assets and topic checklist:
+
+```bash
+./rtw launch-kit
+```
+
+Run the release-scope aggregate checks:
 
 ```bash
 ./rtw release-check --include-fixtures
@@ -110,7 +122,7 @@ consumer checkout of the release tag:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
-  --ref v0.2.0-alpha \
+  --ref v0.2.2-pages-launch-kit \
   --state-root /tmp/round-table-post-release-consumer-audit
 ```
 
@@ -229,4 +241,4 @@ python3 .codex/skills/room-skill/runtime/development_checkpoint.py \
 Checkpoint outputs under `reports/checkpoints/generated/` are historical
 continuity records, not implementation source.
 
-Current release notes: `docs/releases/v0.2.0-alpha.md`.
+Current release notes: `docs/releases/v0.2.2-pages-launch-kit.md`.

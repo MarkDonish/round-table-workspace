@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Round Table Workspace: make your AI agents argue before they ship." />
+  <title>Round Table Workspace</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f0e6;
+      --panel: #fffaf2;
+      --ink: #211912;
+      --muted: #75685b;
+      --line: #eadcc9;
+      --amber: #c77721;
+      --green: #2f7a4c;
+      --shadow: 0 24px 80px rgba(72, 44, 18, .13);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 8% 0%, #fff7ea 0, var(--bg) 42%, #efe2d1 100%);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    main { width: min(1120px, calc(100vw - 32px)); margin: 0 auto; padding: 58px 0 44px; }
+    .hero { display: grid; grid-template-columns: 1fr 1.08fr; gap: 30px; align-items: center; }
+    .eyebrow { color: var(--amber); font-size: 12px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    h1 { margin: 12px 0 18px; font-size: clamp(44px, 6vw, 82px); line-height: .94; letter-spacing: -.065em; }
+    .lead { margin: 0 0 24px; color: var(--muted); font-size: 19px; max-width: 610px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); background: var(--panel); text-decoration: none; font-weight: 750; }
+    .button.primary { border-color: #d79041; background: #d58328; color: #fffaf2; }
+    .terminal, .card { background: rgba(255,250,242,.9); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); }
+    .terminal { overflow: hidden; }
+    .bar { display: flex; gap: 8px; padding: 16px 18px; border-bottom: 1px solid var(--line); background: #f1e3d1; }
+    .dot { width: 11px; height: 11px; border-radius: 999px; background: #d86654; }
+    .dot:nth-child(2) { background: #ddae4e; }
+    .dot:nth-child(3) { background: #68a66f; }
+    pre { margin: 0; padding: 22px; white-space: pre-wrap; font-size: 14px; color: #30251a; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
+    .card { padding: 20px; }
+    .card h2, .card h3 { margin: 0 0 8px; letter-spacing: -.03em; }
+    .card p { margin: 0; color: var(--muted); }
+    .workflow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+    .step { padding: 16px; border-radius: 18px; background: #fff7eb; border: 1px solid var(--line); }
+    .step strong { display: block; margin-bottom: 6px; }
+    .badge { display: inline-flex; border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 800; background: #fff0d8; color: #9a5515; border: 1px solid #edc58b; }
+    footer { margin-top: 28px; color: var(--muted); font-size: 14px; }
+    a { color: var(--amber); }
+    @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .grid, .workflow { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { main { padding-top: 34px; } .grid, .workflow { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Local-first AI agent decision layer</div>
+        <h1>Make your AI agents argue before they ship.</h1>
+        <p class="lead">
+          Round Table Workspace gives Codex, Claude Code, and CLI agents a
+          round-table workflow: explore ambiguous ideas, debate risky choices,
+          and run a ship/revise/reject gate before trusting AI-generated work.
+        </p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/MarkDonish/round-table-workspace">View on GitHub</a>
+          <a class="button" href="./demo.html">Open visual demo</a>
+        </div>
+      </div>
+      <div class="terminal" aria-label="Round Table Workspace command demo">
+        <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <pre><code>$ ./rtw ship-check "Should we merge this AI-generated feature?"
+
+Decision: revise
+Panel: product, engineering, risk, user-advocate
+Why: useful direction, but public claims and evidence need tightening
+Next: run tests, add a visible demo, keep claims local-first unless validated</code></pre>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="Use cases">
+      <div class="card"><span class="badge">/room</span><h3>Explore first</h3><p>Turn vague product or engineering questions into structured multi-agent exploration.</p></div>
+      <div class="card"><span class="badge">/debate</span><h3>Review risky calls</h3><p>Escalate mature questions into decision review with explicit tradeoffs and evidence.</p></div>
+      <div class="card"><span class="badge">ship-check</span><h3>Gate before shipping</h3><p>Get a practical ship / revise / reject result before trusting one confident agent.</p></div>
+    </section>
+
+    <section class="card" style="margin-top: 24px;">
+      <h2>Workflow</h2>
+      <div class="workflow">
+        <div class="step"><strong>1. Ask</strong><span>Start with an idea, change, or launch decision.</span></div>
+        <div class="step"><strong>2. Discuss</strong><span>Use /room to create a structured exploration trail.</span></div>
+        <div class="step"><strong>3. Debate</strong><span>Use /debate for product, engineering, risk, and user review.</span></div>
+        <div class="step"><strong>4. Decide</strong><span>Use ship-check to ship, revise, or reject with boundaries.</span></div>
+      </div>
+    </section>
+
+    <footer>
+      Claim boundary: fixture-backed and local-first by default; no host-live or provider-live claim without evidence.
+    </footer>
+  </main>
+</body>
+</html>
