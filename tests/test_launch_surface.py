@@ -30,14 +30,18 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn('name="theme-color"', text)
         self.assertNotIn("<script", text.lower())
 
-    def test_application_packet_doc_exists_for_credit_applications(self) -> None:
+    def test_credits_application_answers_exist_and_are_linked(self) -> None:
+        answers = REPO_ROOT / "docs" / "credits-application-answers.md"
         packet = REPO_ROOT / "docs" / "application-packet.md"
-        self.assertTrue(packet.exists())
-        text = packet.read_text(encoding="utf-8")
-        self.assertIn("# Application Packet", text)
-        self.assertIn("GitHub repository", text)
-        self.assertIn("What reviewers can verify", text)
+        self.assertTrue(answers.exists())
+        text = answers.read_text(encoding="utf-8")
+        self.assertIn("# Credits Application Answers", text)
+        self.assertIn("## Short project description", text)
+        self.assertIn("## What will you use the credits for?", text)
+        self.assertIn("fixture-backed", text)
+        self.assertIn("provider-live", text)
         self.assertIn("No host-live or provider-live support is claimed", text)
+        self.assertIn("docs/credits-application-answers.md", packet.read_text(encoding="utf-8"))
 
     def test_readme_and_launch_copy_point_to_pages_demo(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
@@ -62,7 +66,13 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertEqual(payload["pages_url"], "https://markdonish.github.io/round-table-workspace/")
         self.assertIn("docs/launch-copy.md", payload["assets"])
         self.assertIn("docs/application-packet.md", payload["assets"])
+        self.assertIn("docs/credits-application-answers.md", payload["assets"])
         self.assertIn("application_packet", payload)
+        self.assertIn("credits_application_answers", payload)
+        self.assertEqual(
+            payload["credits_application_answers"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/credits-application-answers.md",
+        )
         self.assertEqual(
             payload["application_packet"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/application-packet.md",
