@@ -43,6 +43,22 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("No host-live or provider-live support is claimed", text)
         self.assertIn("docs/credits-application-answers.md", packet.read_text(encoding="utf-8"))
 
+    def test_reviewer_checklist_exists_and_is_linked_from_public_surfaces(self) -> None:
+        checklist = REPO_ROOT / "docs" / "reviewer-checklist.md"
+        packet = REPO_ROOT / "docs" / "application-packet.md"
+        answers = REPO_ROOT / "docs" / "credits-application-answers.md"
+        index = REPO_ROOT / "docs" / "index.html"
+
+        self.assertTrue(checklist.exists())
+        text = checklist.read_text(encoding="utf-8")
+        self.assertIn("# Reviewer Checklist", text)
+        self.assertIn("## 2-minute review path", text)
+        self.assertIn("## Evidence matrix", text)
+        self.assertIn("python3 -m unittest discover -v", text)
+        self.assertIn("No host-live or provider-live support is claimed", text)
+        for surface in (packet, answers, index):
+            self.assertIn("reviewer-checklist", surface.read_text(encoding="utf-8"))
+
     def test_readme_and_launch_copy_point_to_pages_demo(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         launch_copy = (REPO_ROOT / "docs" / "launch-copy.md").read_text(encoding="utf-8")
@@ -67,7 +83,13 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/launch-copy.md", payload["assets"])
         self.assertIn("docs/application-packet.md", payload["assets"])
         self.assertIn("docs/credits-application-answers.md", payload["assets"])
+        self.assertIn("docs/reviewer-checklist.md", payload["assets"])
         self.assertIn("application_packet", payload)
+        self.assertIn("reviewer_checklist", payload)
+        self.assertEqual(
+            payload["reviewer_checklist"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md",
+        )
         self.assertIn("credits_application_answers", payload)
         self.assertEqual(
             payload["credits_application_answers"],
