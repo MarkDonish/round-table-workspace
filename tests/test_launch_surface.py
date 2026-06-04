@@ -25,7 +25,19 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Make your AI agents argue before they ship", text)
         self.assertIn("./rtw ship-check", text)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
+        self.assertIn('property="og:title"', text)
+        self.assertIn('name="twitter:card"', text)
+        self.assertIn('name="theme-color"', text)
         self.assertNotIn("<script", text.lower())
+
+    def test_application_packet_doc_exists_for_credit_applications(self) -> None:
+        packet = REPO_ROOT / "docs" / "application-packet.md"
+        self.assertTrue(packet.exists())
+        text = packet.read_text(encoding="utf-8")
+        self.assertIn("# Application Packet", text)
+        self.assertIn("GitHub repository", text)
+        self.assertIn("What reviewers can verify", text)
+        self.assertIn("No host-live or provider-live support is claimed", text)
 
     def test_readme_and_launch_copy_point_to_pages_demo(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
@@ -49,9 +61,23 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertEqual(payload["action"], "launch-kit")
         self.assertEqual(payload["pages_url"], "https://markdonish.github.io/round-table-workspace/")
         self.assertIn("docs/launch-copy.md", payload["assets"])
-        self.assertIn("docs/index.html", payload["assets"])
-        self.assertIn("ai-agents", payload["topics"])
+        self.assertIn("docs/application-packet.md", payload["assets"])
+        self.assertIn("application_packet", payload)
+        self.assertEqual(
+            payload["application_packet"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/application-packet.md",
+        )
         self.assertIn("Make your AI agents argue", payload["positioning"])
+
+        summary_path = REPO_ROOT / ".tmp-launch-kit-summary.md"
+        try:
+            summary_code, _summary_stdout = self.invoke(["launch-kit", "--output-markdown", str(summary_path), "--quiet"])
+            self.assertEqual(summary_code, 0)
+            summary = summary_path.read_text(encoding="utf-8")
+            self.assertIn("Application packet", summary)
+            self.assertIn("docs/application-packet.md", summary)
+        finally:
+            summary_path.unlink(missing_ok=True)
 
     def test_next_release_notes_exist_and_readme_names_current_release(self) -> None:
         release_note = REPO_ROOT / "docs" / "releases" / "v0.2.2-pages-launch-kit.md"
