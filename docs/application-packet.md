@@ -47,6 +47,8 @@ Expected evidence:
   checks.
 - `tests/test_launch_surface.py` locks the public launch surface and packet
   into CI.
+- `docs/credits-application-answers.md` provides copy-ready answers for credits
+  or startup-program application forms.
 
 ## Why It Is Relevant For Credits / Startup Programs
 
