@@ -49,6 +49,8 @@ Expected evidence:
   into CI.
 - `docs/credits-application-answers.md` provides copy-ready answers for credits
   or startup-program application forms.
+- `docs/reviewer-checklist.md` gives reviewers a 2-minute verification path and
+  evidence matrix.
 
 ## Why It Is Relevant For Credits / Startup Programs
 

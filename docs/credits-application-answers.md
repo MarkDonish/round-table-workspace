@@ -77,5 +77,5 @@ project scope unless separate live validation evidence is produced.
 
 - GitHub repository: https://github.com/MarkDonish/round-table-workspace
 - Application packet: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/application-packet.md
-- Public demo target: https://markdonish.github.io/round-table-workspace/
+- Reviewer checklist: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md
 - Release notes: https://github.com/MarkDonish/round-table-workspace/releases/tag/v0.2.2-pages-launch-kit
