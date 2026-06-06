@@ -84,6 +84,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/application-packet.md", payload["assets"])
         self.assertIn("docs/credits-application-answers.md", payload["assets"])
         self.assertIn("docs/reviewer-checklist.md", payload["assets"])
+        self.assertIn("docs/competitive-insights.md", payload["assets"])
         self.assertIn("application_packet", payload)
         self.assertIn("reviewer_checklist", payload)
         self.assertEqual(
@@ -99,6 +100,10 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["application_packet"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/application-packet.md",
         )
+        self.assertEqual(
+            payload["competitive_insights"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/competitive-insights.md",
+        )
         self.assertIn("Make your AI agents argue", payload["positioning"])
 
         summary_path = REPO_ROOT / ".tmp-launch-kit-summary.md"
@@ -107,9 +112,31 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertEqual(summary_code, 0)
             summary = summary_path.read_text(encoding="utf-8")
             self.assertIn("Application packet", summary)
+            self.assertIn("Competitive insights", summary)
             self.assertIn("docs/application-packet.md", summary)
         finally:
             summary_path.unlink(missing_ok=True)
+
+    def test_competitive_insights_doc_is_original_and_source_attributed(self) -> None:
+        insights = REPO_ROOT / "docs" / "competitive-insights.md"
+        packet = REPO_ROOT / "docs" / "application-packet.md"
+        answers = REPO_ROOT / "docs" / "credits-application-answers.md"
+        index = REPO_ROOT / "docs" / "index.html"
+
+        self.assertTrue(insights.exists())
+        text = insights.read_text(encoding="utf-8")
+        self.assertIn("# Competitive Insights", text)
+        self.assertIn("## What we learned without copying code", text)
+        self.assertIn("## Differentiation for Round Table Workspace", text)
+        self.assertIn("addyosmani/agent-skills", text)
+        self.assertIn("FoundationAgents/MetaGPT", text)
+        self.assertIn("camel-ai/camel", text)
+        self.assertIn("pydantic/pydantic-ai", text)
+        self.assertIn("plandex-ai/plandex", text)
+        self.assertIn("No source code was copied", text)
+        self.assertIn("fixture-backed", text)
+        for surface in (packet, answers, index):
+            self.assertIn("competitive-insights", surface.read_text(encoding="utf-8"))
 
     def test_next_release_notes_exist_and_readme_names_current_release(self) -> None:
         release_note = REPO_ROOT / "docs" / "releases" / "v0.2.2-pages-launch-kit.md"

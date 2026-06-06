@@ -582,6 +582,7 @@ def build_launch_kit_payload() -> dict[str, object]:
         "application_packet": "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/application-packet.md",
         "credits_application_answers": "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/credits-application-answers.md",
         "reviewer_checklist": "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md",
+        "competitive_insights": "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/competitive-insights.md",
         "assets": [
             "README.md",
             "docs/index.html",
@@ -589,6 +590,7 @@ def build_launch_kit_payload() -> dict[str, object]:
             "docs/application-packet.md",
             "docs/credits-application-answers.md",
             "docs/reviewer-checklist.md",
+            "docs/competitive-insights.md",
             "docs/demo.html",
             "CONTRIBUTING.md",
             "LICENSE",
@@ -617,6 +619,7 @@ def render_launch_kit_summary(payload: dict[str, object]) -> str:
         f"- Application packet: {payload.get('application_packet')}",
         f"- Credits application answers: {payload.get('credits_application_answers')}",
         f"- Reviewer checklist: {payload.get('reviewer_checklist')}",
+        f"- Competitive insights: {payload.get('competitive_insights')}",
         "",
         "## Assets",
         "",

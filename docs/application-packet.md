@@ -51,6 +51,8 @@ Expected evidence:
   or startup-program application forms.
 - `docs/reviewer-checklist.md` gives reviewers a 2-minute verification path and
   evidence matrix.
+- `docs/competitive-insights.md` records the benchmark scan and explicitly notes
+  that no competitor source code was copied.
 
 ## Why It Is Relevant For Credits / Startup Programs
 
@@ -78,4 +80,5 @@ unless separate live validation evidence is produced.
 
 - Repository: https://github.com/MarkDonish/round-table-workspace
 - Public demo target: https://markdonish.github.io/round-table-workspace/
+- Competitive insights: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/competitive-insights.md
 - Release notes: https://github.com/MarkDonish/round-table-workspace/releases/tag/v0.2.2-pages-launch-kit
