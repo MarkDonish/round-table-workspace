@@ -53,6 +53,7 @@ more realistic prompts, while preserving the current claim boundary.
 - Release checks and doctor checks
 - Public launch copy and a static Pages landing page
 - Reviewer-facing application packet
+- Source-attributed competitive-insights note
 - CI-backed unit tests
 - Explicit claim boundary documentation
 
@@ -78,4 +79,5 @@ project scope unless separate live validation evidence is produced.
 - GitHub repository: https://github.com/MarkDonish/round-table-workspace
 - Application packet: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/application-packet.md
 - Reviewer checklist: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md
+- Competitive insights: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/competitive-insights.md
 - Release notes: https://github.com/MarkDonish/round-table-workspace/releases/tag/v0.2.2-pages-launch-kit
