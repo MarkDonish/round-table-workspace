@@ -22,9 +22,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Check source-of-truth consistency across repo entry docs.")
     parser.add_argument("--output-json", help="Optional JSON output path.")
     parser.add_argument("--output-markdown", help="Optional Markdown output path.")
+    parser.add_argument(
+        "--skip-claim-dashboard-freshness",
+        action="store_true",
+        help="Internal use while regenerating the claim dashboard; normal release-check must not pass this.",
+    )
     args = parser.parse_args()
 
-    report = build_report()
+    report = build_report(skip_claim_dashboard_freshness=args.skip_claim_dashboard_freshness)
     if args.output_json:
         write_json(resolve_checked_path(args.output_json), report)
     if args.output_markdown:
@@ -33,7 +38,7 @@ def main() -> int:
     return 0 if report["ok"] else 1
 
 
-def build_report() -> dict[str, Any]:
+def build_report(*, skip_claim_dashboard_freshness: bool = False) -> dict[str, Any]:
     agents = read("AGENTS.md")
     readme = read("README.md")
     launch = read("LAUNCH.md")
@@ -43,7 +48,18 @@ def build_report() -> dict[str, Any]:
     quickstart = check_quickstart_commands(readme, launch)
     historical_boundary = check_historical_boundary(readme, launch, agents)
     required_docs = check_required_docs()
-    claim_dashboard_freshness = check_claim_dashboard_freshness(readme)
+    claim_dashboard_freshness = (
+        {
+            "ok": True,
+            "skipped": True,
+            "reason": "claim dashboard is currently being regenerated",
+            "report": "reports/claim-boundary-dashboard.md",
+            "warnings": [],
+            "problems": [],
+        }
+        if skip_claim_dashboard_freshness
+        else check_claim_dashboard_freshness(readme)
+    )
     protocol_versions = check_protocol_versioning(readme, launch)
     release_publication_defaults = check_release_publication_defaults(version_check)
     checks = {

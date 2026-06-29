@@ -52,17 +52,17 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     state_root = raw_state_root.resolve()
     state_root.mkdir(parents=True, exist_ok=True)
     checks: dict[str, Any] = {}
-    checks["source_truth_consistency"] = run_json(
-        [
-            sys.executable,
-            "scripts/check_source_truth_consistency.py",
-            "--output-json",
-            str(state_root / "source-truth-consistency.json"),
-            "--output-markdown",
-            str(state_root / "source-truth-consistency.md"),
-        ],
-        timeout=args.timeout_seconds + 10,
-    )
+    source_truth_command = [
+        sys.executable,
+        "scripts/check_source_truth_consistency.py",
+        "--output-json",
+        str(state_root / "source-truth-consistency.json"),
+        "--output-markdown",
+        str(state_root / "source-truth-consistency.md"),
+    ]
+    if args.skip_claim_dashboard:
+        source_truth_command.append("--skip-claim-dashboard-freshness")
+    checks["source_truth_consistency"] = run_json(source_truth_command, timeout=args.timeout_seconds + 10)
     checks["agent_registry_sync"] = run_json(
         [
             sys.executable,
