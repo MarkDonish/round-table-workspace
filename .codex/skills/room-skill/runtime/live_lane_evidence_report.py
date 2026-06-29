@@ -76,7 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_state_root(args.state_root)
     state_root.mkdir(parents=True, exist_ok=True)
 
     host_matrix_command = [
@@ -481,6 +481,12 @@ def write_text(path: Path, text: str) -> None:
     assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def resolve_state_root(value: str | Path) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=True)
+    return raw_path.resolve()
 
 
 def utc_now_iso() -> str:

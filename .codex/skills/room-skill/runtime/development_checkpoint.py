@@ -21,6 +21,12 @@ from typing import Any
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components
+from secret_redaction import redact_sensitive_text, redact_sensitive_value
+
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "reports" / "checkpoints" / "generated"
 
 ACTIVE_SOURCE_TRUTH = [
@@ -211,13 +217,13 @@ def summarize_release_readiness(result: dict[str, Any] | None) -> dict[str, Any]
 
 
 def resolve_output_paths(args: argparse.Namespace, report: dict[str, Any]) -> tuple[Path, Path]:
-    output_dir = Path(args.output_dir).expanduser().resolve()
+    output_dir = resolve_user_path(args.output_dir, include_leaf=True)
     slug = slugify(report["title"])
     timestamp = compact_utc_timestamp(report["generated_at"])
     default_base = output_dir / f"checkpoint-{timestamp}-{slug}"
-    output_json = Path(args.output_json).expanduser().resolve() if args.output_json else default_base.with_suffix(".json")
+    output_json = resolve_user_path(args.output_json, include_leaf=True) if args.output_json else default_base.with_suffix(".json")
     output_markdown = (
-        Path(args.output_markdown).expanduser().resolve()
+        resolve_user_path(args.output_markdown, include_leaf=True)
         if args.output_markdown
         else default_base.with_suffix(".md")
     )
@@ -319,20 +325,20 @@ def run_command(command: list[str]) -> dict[str, Any]:
             errors="replace",
             check=False,
         )
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": completed.returncode,
             "stdout": completed.stdout,
             "stderr": completed.stderr,
-        }
+        })
     except OSError as exc:
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": None,
             "stdout": "",
             "stderr": str(exc),
             "launch_failed": True,
-        }
+        })
 
 
 def run_json_command(command: list[str], *, timeout_seconds: int) -> dict[str, Any]:
@@ -348,16 +354,16 @@ def run_json_command(command: list[str], *, timeout_seconds: int) -> dict[str, A
             check=False,
         )
         payload = parse_json_object(completed.stdout)
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": completed.returncode,
             "json_parse_ok": isinstance(payload, dict),
             "ok": completed.returncode == 0 and isinstance(payload, dict) and payload.get("ok") is True,
             "payload": payload,
             "stderr": completed.stderr.strip(),
-        }
+        })
     except subprocess.TimeoutExpired as exc:
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": None,
             "json_parse_ok": False,
@@ -366,16 +372,16 @@ def run_json_command(command: list[str], *, timeout_seconds: int) -> dict[str, A
             "timeout_seconds": timeout_seconds,
             "stdout": ensure_text(exc.stdout).strip(),
             "stderr": ensure_text(exc.stderr).strip(),
-        }
+        })
     except OSError as exc:
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": None,
             "json_parse_ok": False,
             "ok": False,
             "launch_failed": True,
             "stderr": str(exc),
-        }
+        })
 
 
 def parse_json_object(text: str) -> Any:
@@ -396,13 +402,24 @@ def parse_json_object(text: str) -> Any:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
 
 def write_text(path: Path, text: str) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
+    path.write_text(redact_sensitive_text(text), encoding="utf-8")
+
+
+def resolve_user_path(value: str | Path, *, include_leaf: bool) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=include_leaf)
+    return raw_path.resolve()
 
 
 def first_non_empty_line(text: str) -> str | None:

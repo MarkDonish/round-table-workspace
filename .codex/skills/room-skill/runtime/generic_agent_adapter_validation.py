@@ -17,11 +17,14 @@ from secret_redaction import redact_sensitive_text, redact_sensitive_value
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 DEBATE_RUNTIME_DIR = REPO_ROOT / ".codex" / "skills" / "debate-roundtable-skill" / "runtime"
 if str(DEBATE_RUNTIME_DIR) not in sys.path:
     sys.path.insert(0, str(DEBATE_RUNTIME_DIR))
 
 import debate_e2e_validation as debate_validation
+from roundtable_core.runtime.paths import assert_no_symlink_components
 
 
 DEFAULT_AGENT_COMMAND = "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py"
@@ -106,7 +109,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_validation(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_state_root(args.state_root)
     state_root.mkdir(parents=True, exist_ok=True)
     command = args.agent_command.strip()
     started_at = utc_now_iso()
@@ -170,8 +173,15 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def resolve_state_root(value: str | Path) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=True)
+    return raw_path.resolve()
 
 
 def utc_now_iso() -> str:

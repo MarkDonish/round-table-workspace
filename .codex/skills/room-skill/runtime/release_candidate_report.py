@@ -14,6 +14,12 @@ import release_readiness_check
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components
+from secret_redaction import redact_sensitive_text, redact_sensitive_value
+
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-release-candidate"
 
 
@@ -71,7 +77,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_user_path(args.state_root, include_leaf=True)
     state_root.mkdir(parents=True, exist_ok=True)
 
     release_args = argparse.Namespace(
@@ -278,13 +284,24 @@ def escape_md(value: str) -> str:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
 
 def write_text(path: Path, text: str) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
+    path.write_text(redact_sensitive_text(text), encoding="utf-8")
+
+
+def resolve_user_path(value: str | Path, *, include_leaf: bool) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=include_leaf)
+    return raw_path.resolve()
 
 
 def utc_now_iso() -> str:

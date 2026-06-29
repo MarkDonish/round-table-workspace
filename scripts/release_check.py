@@ -34,7 +34,7 @@ def main() -> int:
     args = parser.parse_args()
 
     report = build_report(args)
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = Path(report["state_root"])
     write_json(state_root / "release-check.json", report)
     write_text(state_root / "release-check.md", render_markdown(report))
     print(json.dumps(report, ensure_ascii=False, indent=2))
@@ -143,7 +143,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ],
         timeout=args.timeout_seconds + 60,
     )
-    checks["legacy_release_readiness"] = run_legacy_release_readiness(args)
+    checks["legacy_release_readiness"] = run_legacy_release_readiness(args, state_root=state_root)
     if args.include_fixtures:
         checks["decision_quality_evals"] = run_json(
             [
@@ -254,14 +254,14 @@ def run_public_cli_surface_checks(timeout: int) -> dict[str, Any]:
     }
 
 
-def run_legacy_release_readiness(args: argparse.Namespace) -> dict[str, Any]:
+def run_legacy_release_readiness(args: argparse.Namespace, *, state_root: Path) -> dict[str, Any]:
     command = [
         sys.executable,
         ".codex/skills/room-skill/runtime/release_readiness_check.py",
         "--state-root",
-        str(Path(args.state_root).expanduser().resolve() / "legacy-release-readiness"),
+        str(state_root / "legacy-release-readiness"),
         "--output-json",
-        str(Path(args.state_root).expanduser().resolve() / "legacy-release-readiness.json"),
+        str(state_root / "legacy-release-readiness.json"),
         "--timeout-seconds",
         str(args.timeout_seconds),
     ]

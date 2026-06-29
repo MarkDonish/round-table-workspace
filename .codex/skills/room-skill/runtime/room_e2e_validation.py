@@ -18,6 +18,10 @@ import room_runtime as runtime
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+from roundtable_core.runtime.paths import assert_no_symlink_components
+
 DEFAULT_FIXTURES_DIR = RUNTIME_DIR / "fixtures" / "canonical"
 DEFAULT_LOCAL_CODEX_PRESET = "gpt54_family"
 ROOM_SELECTION_PROMPT = REPO_ROOT / "prompts" / "room-selection.md"
@@ -169,7 +173,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
     if not follow_up_input:
         raise RoomE2EValidationError("follow-up input cannot be empty.")
 
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_state_root(args.state_root)
     room_id = args.room_id or f"room-e2e-{uuid.uuid4().hex[:8]}"
     registry = runtime.load_registry()
     room_dir = runtime.get_room_dir(state_root, room_id)
@@ -784,6 +788,12 @@ def load_fixture_output(
 
     payload = runtime.load_json(fixtures_dir / fixture_name)
     return runtime.materialize_placeholders(payload, {"__ROOM_ID__": room_id})
+
+
+def resolve_state_root(value: str | Path) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=True)
+    return raw_path.resolve()
 
 
 if __name__ == "__main__":

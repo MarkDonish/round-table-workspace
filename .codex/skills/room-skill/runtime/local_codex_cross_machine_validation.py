@@ -17,6 +17,10 @@ import local_codex_regression as local_regression
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+from roundtable_core.runtime.paths import assert_no_symlink_components, validate_path_segment
+
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "local-codex-cross-machine-validation"
 DEFAULT_TARGET_STATE_ROOT = "/tmp/round-table-local-codex-cross-machine"
 DEFAULT_LOCAL_CODEX_PRESET = local_regression.DEFAULT_LOCAL_CODEX_PRESET
@@ -164,8 +168,8 @@ def add_regression_config_args(parser: argparse.ArgumentParser) -> None:
 
 
 def prepare_bundle(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
-    run_id = args.run_id or f"local-codex-cross-machine-{uuid.uuid4().hex[:8]}"
+    state_root = resolve_state_root(args.state_root)
+    run_id = validate_path_segment(args.run_id or f"local-codex-cross-machine-{uuid.uuid4().hex[:8]}", "run_id")
     bundle_dir = state_root / run_id
     bundle_dir.mkdir(parents=True, exist_ok=True)
 
@@ -457,8 +461,15 @@ def load_json_dict(path: Path) -> dict[str, Any]:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def resolve_state_root(value: str | Path) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=True)
+    return raw_path.resolve()
 
 
 def utc_now_iso() -> str:

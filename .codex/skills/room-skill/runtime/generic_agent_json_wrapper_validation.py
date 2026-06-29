@@ -53,7 +53,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_validation(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_state_root(args.state_root)
     selected_modes = MODES if args.mode == "all" else [args.mode]
     mode_reports = []
     for mode in selected_modes:
@@ -103,6 +103,12 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
     assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def resolve_state_root(value: str | Path) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=True)
+    return raw_path.resolve()
 
 
 def utc_now_iso() -> str:

@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 
@@ -112,10 +113,15 @@ class JsonSuccessGateTest(unittest.TestCase):
             run_decision_evals,
             load_module("agent_host_inventory_guard_test", runtime_dir / "agent_host_inventory.py"),
             load_module("generic_agent_json_wrapper_validation_guard_test", runtime_dir / "generic_agent_json_wrapper_validation.py"),
+            load_module("generic_agent_adapter_validation_guard_test", runtime_dir / "generic_agent_adapter_validation.py"),
+            load_module("local_agent_host_validation_matrix_guard_test", runtime_dir / "local_agent_host_validation_matrix.py"),
             load_module("chat_completions_live_validation_guard_test", runtime_dir / "chat_completions_live_validation.py"),
             load_module("host_recipes_consistency_check_guard_test", runtime_dir / "host_recipes_consistency_check.py"),
             load_module("live_lane_evidence_report_guard_test", runtime_dir / "live_lane_evidence_report.py"),
             load_module("release_readiness_check_guard_test", runtime_dir / "release_readiness_check.py"),
+            load_module("development_checkpoint_guard_test", runtime_dir / "development_checkpoint.py"),
+            load_module("post_release_consumer_audit_guard_test", runtime_dir / "post_release_consumer_audit.py"),
+            load_module("release_candidate_report_guard_test", runtime_dir / "release_candidate_report.py"),
         ]
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -146,6 +152,135 @@ class JsonSuccessGateTest(unittest.TestCase):
                 module.write_json_file(output_json, {"ok": True})
 
             self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
+
+    def test_runtime_state_root_helpers_refuse_symlink_roots(self) -> None:
+        from scripts import claim_boundary_dashboard
+
+        runtime_dir = REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime"
+        helper_calls = [
+            lambda value: claim_boundary_dashboard.resolve_state_root(value),
+            lambda value: load_module(
+                "agent_consumer_self_check_state_root_guard_test",
+                runtime_dir / "agent_consumer_self_check.py",
+            ).resolve_state_root(value),
+            lambda value: load_module(
+                "release_readiness_check_state_root_guard_test",
+                runtime_dir / "release_readiness_check.py",
+            ).resolve_state_root(value),
+            lambda value: load_module(
+                "live_lane_evidence_report_state_root_guard_test",
+                runtime_dir / "live_lane_evidence_report.py",
+            ).resolve_state_root(value),
+            lambda value: load_module(
+                "local_agent_host_validation_matrix_state_root_guard_test",
+                runtime_dir / "local_agent_host_validation_matrix.py",
+            ).resolve_state_root(value),
+            lambda value: load_module(
+                "generic_agent_adapter_validation_state_root_guard_test",
+                runtime_dir / "generic_agent_adapter_validation.py",
+            ).resolve_state_root(value),
+            lambda value: load_module(
+                "generic_agent_json_wrapper_validation_state_root_guard_test",
+                runtime_dir / "generic_agent_json_wrapper_validation.py",
+            ).resolve_state_root(value),
+            lambda value: load_module(
+                "development_checkpoint_state_root_guard_test",
+                runtime_dir / "development_checkpoint.py",
+            ).resolve_user_path(value, include_leaf=True),
+            lambda value: load_module(
+                "post_release_consumer_audit_state_root_guard_test",
+                runtime_dir / "post_release_consumer_audit.py",
+            ).resolve_user_path(value, include_leaf=True),
+            lambda value: load_module(
+                "release_candidate_report_state_root_guard_test",
+                runtime_dir / "release_candidate_report.py",
+            ).resolve_user_path(value, include_leaf=True),
+        ]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            real_dir = Path(temp_dir) / "real"
+            real_dir.mkdir()
+            link_dir = Path(temp_dir) / "link"
+            link_dir.symlink_to(real_dir, target_is_directory=True)
+
+            for helper in helper_calls:
+                with self.assertRaisesRegex(ValueError, "symlink component"):
+                    helper(str(link_dir))
+
+    def test_runtime_run_ids_refuse_path_traversal(self) -> None:
+        runtime_dir = REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            invalid_run_id = "../escape"
+            cases = [
+                (
+                    load_module(
+                        "post_release_consumer_audit_run_id_guard_test",
+                        runtime_dir / "post_release_consumer_audit.py",
+                    ).build_report,
+                    SimpleNamespace(
+                        state_root=temp_dir,
+                        run_id=invalid_run_id,
+                        source=str(REPO_ROOT),
+                        ref="HEAD",
+                        quick=True,
+                        timeout_seconds=1,
+                        keep_worktree=False,
+                    ),
+                ),
+                (
+                    load_module(
+                        "room_debate_e2e_validation_flow_id_guard_test",
+                        runtime_dir / "room_debate_e2e_validation.py",
+                    ).run_validation,
+                    SimpleNamespace(state_root=temp_dir, flow_id=invalid_run_id),
+                ),
+                (
+                    load_module(
+                        "chat_completions_live_validation_run_id_guard_test",
+                        runtime_dir / "chat_completions_live_validation.py",
+                    ).run_validation,
+                    SimpleNamespace(state_root=temp_dir, run_id=invalid_run_id),
+                ),
+                (
+                    load_module(
+                        "chat_completions_regression_run_id_guard_test",
+                        runtime_dir / "chat_completions_regression.py",
+                    ).run_regression,
+                    SimpleNamespace(state_root=temp_dir, run_id=invalid_run_id),
+                ),
+                (
+                    load_module(
+                        "claude_code_live_validation_run_id_guard_test",
+                        runtime_dir / "claude_code_live_validation.py",
+                    ).run_validation,
+                    SimpleNamespace(state_root=temp_dir, run_id=invalid_run_id),
+                ),
+                (
+                    load_module(
+                        "local_codex_regression_run_id_guard_test",
+                        runtime_dir / "local_codex_regression.py",
+                    ).run_regression,
+                    SimpleNamespace(state_root=temp_dir, run_id=invalid_run_id),
+                ),
+                (
+                    load_module(
+                        "local_codex_second_host_validation_run_id_guard_test",
+                        runtime_dir / "local_codex_second_host_validation.py",
+                    ).run_validation,
+                    SimpleNamespace(state_root=temp_dir, run_id=invalid_run_id),
+                ),
+                (
+                    load_module(
+                        "local_codex_cross_machine_validation_run_id_guard_test",
+                        runtime_dir / "local_codex_cross_machine_validation.py",
+                    ).prepare_bundle,
+                    SimpleNamespace(state_root=temp_dir, run_id=invalid_run_id),
+                ),
+            ]
+
+            for func, args in cases:
+                with self.assertRaisesRegex(ValueError, "path traversal"):
+                    func(args)
 
     def test_source_boundary_audit_refuses_symlink_output_json(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

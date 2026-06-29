@@ -17,6 +17,10 @@ import room_e2e_validation as room_validation
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+from roundtable_core.runtime.paths import assert_no_symlink_components, validate_path_segment
+
 DEBATE_RUNTIME_DIR = REPO_ROOT / ".codex" / "skills" / "debate-roundtable-skill" / "runtime"
 if str(DEBATE_RUNTIME_DIR) not in sys.path:
     sys.path.insert(0, str(DEBATE_RUNTIME_DIR))
@@ -180,8 +184,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_validation(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
-    flow_id = args.flow_id or f"room-debate-e2e-{uuid.uuid4().hex[:8]}"
+    state_root = resolve_state_root(args.state_root)
+    flow_id = validate_path_segment(args.flow_id or f"room-debate-e2e-{uuid.uuid4().hex[:8]}", "flow_id")
     flow_dir = state_root / flow_id
     room_state_root = flow_dir / "rooms"
     debate_state_root = flow_dir / "debates"
@@ -285,8 +289,15 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def resolve_state_root(value: str | Path) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=True)
+    return raw_path.resolve()
 
 
 if __name__ == "__main__":

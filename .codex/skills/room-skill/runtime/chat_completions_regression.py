@@ -20,6 +20,10 @@ import room_debate_e2e_validation as integration_validation
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+from roundtable_core.runtime.paths import assert_no_symlink_components, validate_path_segment
+
 DEBATE_RUNTIME_DIR = REPO_ROOT / ".codex" / "skills" / "debate-roundtable-skill" / "runtime"
 if str(DEBATE_RUNTIME_DIR) not in sys.path:
     sys.path.insert(0, str(DEBATE_RUNTIME_DIR))
@@ -110,8 +114,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_regression(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
-    run_id = args.run_id or f"chat-completions-regression-{uuid.uuid4().hex[:8]}"
+    state_root = resolve_state_root(args.state_root)
+    run_id = validate_path_segment(args.run_id or f"chat-completions-regression-{uuid.uuid4().hex[:8]}", "run_id")
     regression_dir = state_root / run_id
     regression_dir.mkdir(parents=True, exist_ok=True)
 
@@ -405,8 +409,15 @@ def stop_server(server: dict[str, Any]) -> None:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def resolve_state_root(value: str | Path) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=True)
+    return raw_path.resolve()
 
 
 if __name__ == "__main__":

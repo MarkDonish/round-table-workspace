@@ -17,6 +17,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from roundtable_core.runtime.paths import assert_no_symlink_components
+from secret_redaction import redact_sensitive_value
 
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-release-readiness"
 CLAUDE_CODE_LIVE_EVIDENCE_PATTERN = "CLAUDE_CODE_HOST_LIVE_VALIDATION_*.md"
@@ -111,7 +112,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_state_root(args.state_root)
     state_root.mkdir(parents=True, exist_ok=True)
 
     source_truth = check_source_truth()
@@ -527,29 +528,29 @@ def run_command(command: list[str], *, timeout_seconds: int) -> dict[str, Any]:
             timeout=timeout_seconds,
             check=False,
         )
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": completed.returncode,
             "stdout": (completed.stdout or "").strip(),
             "stderr": (completed.stderr or "").strip(),
-        }
+        })
     except subprocess.TimeoutExpired as exc:
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": None,
             "timeout_seconds": timeout_seconds,
             "stdout": ensure_text(exc.stdout).strip(),
             "stderr": ensure_text(exc.stderr).strip(),
             "timed_out": True,
-        }
+        })
     except OSError as exc:
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": None,
             "stdout": "",
             "stderr": str(exc),
             "launch_failed": True,
-        }
+        })
 
 
 def extract_json(text: str) -> Any:
@@ -610,7 +611,16 @@ def summarize_command(result: dict[str, Any] | None) -> dict[str, Any] | None:
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def resolve_state_root(value: str | Path) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=True)
+    return raw_path.resolve()
 
 
 def ensure_text(value: Any) -> str:

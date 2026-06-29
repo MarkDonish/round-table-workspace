@@ -53,12 +53,13 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     generated_at = iso_now()
     stale_after = iso_after(days=7)
     source_commit = git_commit()
+    state_root = resolve_state_root(args.state_root)
     live_report = run_json_command(
         [
             sys.executable,
             ".codex/skills/room-skill/runtime/live_lane_evidence_report.py",
             "--state-root",
-            args.state_root,
+            str(state_root),
             "--timeout-seconds",
             str(args.timeout_seconds),
         ],
@@ -67,7 +68,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     payload = live_report.get("payload") if isinstance(live_report.get("payload"), dict) else {}
     host_lanes = payload.get("host_live_lanes", []) if isinstance(payload, dict) else []
     provider_lane = payload.get("provider_live_lane", {}) if isinstance(payload, dict) else {}
-    release_readiness = run_release_readiness(args)
+    release_readiness = run_release_readiness(args, state_root=state_root)
     release_payload = release_readiness.get("payload") if isinstance(release_readiness.get("payload"), dict) else {}
     release_scope = release_payload.get("release_scope", {}) if isinstance(release_payload, dict) else {}
     p0_blockers = release_payload.get("p0_blockers", []) if isinstance(release_payload, dict) else []
@@ -160,14 +161,15 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
-def run_release_readiness(args: argparse.Namespace) -> dict[str, Any]:
+def run_release_readiness(args: argparse.Namespace, *, state_root: Path | None = None) -> dict[str, Any]:
+    state_root = state_root or resolve_state_root(args.state_root)
     command = [
         sys.executable,
         ".codex/skills/room-skill/runtime/release_readiness_check.py",
         "--state-root",
-        str(Path(args.state_root).expanduser().resolve() / "release-readiness"),
+        str(state_root / "release-readiness"),
         "--output-json",
-        str(Path(args.state_root).expanduser().resolve() / "release-readiness.json"),
+        str(state_root / "release-readiness.json"),
         "--timeout-seconds",
         str(args.timeout_seconds),
     ]
@@ -213,6 +215,12 @@ def sanitize(value: Any) -> Any:
     if isinstance(value, dict):
         return {key: sanitize(item) for key, item in value.items()}
     return value
+
+
+def resolve_state_root(value: str | Path) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=True)
+    return raw_path.resolve()
 
 
 def build_evidence_record(

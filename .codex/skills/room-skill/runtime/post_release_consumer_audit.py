@@ -15,6 +15,12 @@ from typing import Any
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components, validate_path_segment
+from secret_redaction import redact_sensitive_text, redact_sensitive_value
+
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-post-release-consumer-audit"
 DEFAULT_REF = "v0.1.2"
 
@@ -91,8 +97,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
-    run_id = args.run_id or f"post-release-consumer-audit-{uuid.uuid4().hex[:8]}"
+    state_root = resolve_user_path(args.state_root, include_leaf=True)
+    run_id = validate_path_segment(args.run_id or f"post-release-consumer-audit-{uuid.uuid4().hex[:8]}", "run_id")
     audit_dir = state_root / run_id
     evidence_dir = audit_dir / "evidence"
     checkout_dir = audit_dir / "checkout"
@@ -232,8 +238,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def build_error_report(args: argparse.Namespace, error: str) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
-    run_id = args.run_id or f"post-release-consumer-audit-{uuid.uuid4().hex[:8]}"
+    state_root = resolve_user_path(args.state_root, include_leaf=True)
+    run_id = validate_path_segment(args.run_id or f"post-release-consumer-audit-{uuid.uuid4().hex[:8]}", "run_id")
     audit_dir = state_root / run_id
     audit_dir.mkdir(parents=True, exist_ok=True)
     return {
@@ -360,32 +366,32 @@ def run_command(command: list[str], *, cwd: Path, timeout_seconds: int) -> dict[
             capture_output=True,
             timeout=timeout_seconds,
         )
-        return {
+        return redact_sensitive_value({
             "command": command,
             "cwd": str(cwd),
             "returncode": completed.returncode,
             "stdout": completed.stdout,
             "stderr": completed.stderr,
             "timed_out": False,
-        }
+        })
     except subprocess.TimeoutExpired as exc:
-        return {
+        return redact_sensitive_value({
             "command": command,
             "cwd": str(cwd),
             "returncode": 124,
             "stdout": exc.stdout or "",
             "stderr": exc.stderr or f"Timed out after {timeout_seconds} seconds.",
             "timed_out": True,
-        }
+        })
     except OSError as exc:
-        return {
+        return redact_sensitive_value({
             "command": command,
             "cwd": str(cwd),
             "returncode": 127,
             "stdout": "",
             "stderr": str(exc),
             "timed_out": False,
-        }
+        })
 
 
 def command_stdout(command: list[str], cwd: Path) -> str:
@@ -463,13 +469,24 @@ def render_markdown(report: dict[str, Any]) -> str:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
 
 def write_text(path: Path, text: str) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
+    path.write_text(redact_sensitive_text(text), encoding="utf-8")
+
+
+def resolve_user_path(value: str | Path, *, include_leaf: bool) -> Path:
+    raw_path = Path(value).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=include_leaf)
+    return raw_path.resolve()
 
 
 def utc_now_iso() -> str:
