@@ -19,6 +19,8 @@ RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+if str(RUNTIME_DIR) not in sys.path:
+    sys.path.insert(0, str(RUNTIME_DIR))
 
 from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 from secret_redaction import redact_sensitive_text, redact_sensitive_value
