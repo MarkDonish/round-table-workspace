@@ -1,9 +1,9 @@
 {
   "ok": true,
   "action": "claim-boundary-dashboard",
-  "generated_at": "2026-06-29T08:38:28Z",
-  "source_commit": "0429a8386fd2d3dba5d9a8880eec6f91cccc1818",
-  "stale_after": "2026-07-06T08:38:28Z",
+  "generated_at": "2026-06-29T09:08:07Z",
+  "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+  "stale_after": "2026-07-06T09:08:07Z",
   "machine_scope": "MarkDonishdeMacBook-Air-708.local",
   "account_scope": "not_collected",
   "source": {
@@ -11,16 +11,14 @@
       "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
       ".codex/skills/room-skill/runtime/live_lane_evidence_report.py",
       "--state-root",
-      "/private/tmp/rtw-claim-boundary-dashboard-refresh",
+      "/private/tmp/rtw-claim-dashboard-refresh-final",
       "--timeout-seconds",
       "30"
     ],
     "returncode": 0,
     "ok": true,
     "summary": {
-      "claimable_host_live": [
-        "claude_code"
-      ],
+      "claimable_host_live": [],
       "missing_host_cli": [
         "gemini_cli",
         "opencode",
@@ -42,41 +40,49 @@
   "release_gate": {
     "command": [
       "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
-      ".codex/skills/room-skill/runtime/release_readiness_check.py",
+      "scripts/release_check.py",
+      "--include-fixtures",
+      "--skip-claim-dashboard",
       "--state-root",
-      "/private/tmp/rtw-claim-boundary-dashboard-refresh/release-readiness",
-      "--output-json",
-      "/private/tmp/rtw-claim-boundary-dashboard-refresh/release-readiness.json",
+      "/private/tmp/rtw-claim-dashboard-refresh-final/release-check",
       "--timeout-seconds",
       "30"
     ],
     "returncode": 0,
     "ok": true,
-    "ship_decision": "ready_for_codex_local_mainline_scope",
-    "p0_blockers": [],
+    "release_blockers": [],
+    "release_warnings": [],
+    "artifacts": {
+      "json": "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.json",
+      "markdown": "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.md"
+    },
     "stderr": ""
   },
   "matrix": [
     {
       "lane": "local_mainline",
       "status": "supported",
-      "claim": "Codex local-first mainline when release readiness has no P0 blockers",
+      "claim": "Codex local-first mainline when aggregate release-check has no blockers",
       "evidence": {
-        "release_readiness": {
+        "release_check": {
           "command": [
             "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
-            ".codex/skills/room-skill/runtime/release_readiness_check.py",
+            "scripts/release_check.py",
+            "--include-fixtures",
+            "--skip-claim-dashboard",
             "--state-root",
-            "/private/tmp/rtw-claim-boundary-dashboard-refresh/release-readiness",
-            "--output-json",
-            "/private/tmp/rtw-claim-boundary-dashboard-refresh/release-readiness.json",
+            "/private/tmp/rtw-claim-dashboard-refresh-final/release-check",
             "--timeout-seconds",
             "30"
           ],
           "returncode": 0,
           "ok": true,
-          "ship_decision": "ready_for_codex_local_mainline_scope",
-          "p0_blockers": [],
+          "release_blockers": [],
+          "release_warnings": [],
+          "artifacts": {
+            "json": "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.json",
+            "markdown": "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.md"
+          },
           "stderr": ""
         }
       },
@@ -90,39 +96,68 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T08:38:28Z",
-        "stale_after": "2026-07-06T08:38:28Z",
-        "source_commit": "0429a8386fd2d3dba5d9a8880eec6f91cccc1818",
-        "artifact_paths": [],
+        "generated_at": "2026-06-29T09:08:07Z",
+        "stale_after": "2026-07-06T09:08:07Z",
+        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "artifact_paths": [
+          "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.json",
+          "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.md"
+        ],
+        "source_evidence": null,
         "claimable": true,
-        "claim_text": "Local-first fixture/runtime mainline supported when release-check has no P0 blockers."
+        "claim_text": "Local-first fixture/runtime mainline supported when release-check has no blockers."
       }
     },
     {
       "lane": "host:claude_code",
-      "status": "live_passed",
-      "claim": "claimable_for_scope:default_claude_code_host_live_on_validated_mac_account",
+      "status": "historical_only",
+      "claim": "historical_evidence_not_current_claim",
       "evidence": {
         "host_id": "claude_code",
         "scope": "default_claude_code_host_live_on_validated_mac_account",
-        "report": "reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md"
+        "report": "reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md",
+        "validated_at": "2026-04-27",
+        "source_commit": null,
+        "stale_after": null,
+        "has_structured_provenance": false,
+        "claimable": false,
+        "evidence_status": "historical_only",
+        "historical_reason": "checked-in host-live report lacks fresh structured provenance; rerun claude_code_live_validation.py before making a current host-live claim",
+        "report_mtime": "2026-04-28T11:24:32Z"
       },
       "evidence_record": {
         "evidence_kind": "claim_boundary_lane",
         "evidence_source": "scripts/claim_boundary_dashboard.py",
         "validator": "live_lane_evidence_report.py",
         "lane": "host:claude_code",
-        "status": "live_passed",
+        "status": "historical_only",
         "host_id": "claude_code",
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T08:38:28Z",
-        "stale_after": "2026-07-06T08:38:28Z",
-        "source_commit": "0429a8386fd2d3dba5d9a8880eec6f91cccc1818",
-        "artifact_paths": [],
-        "claimable": true,
-        "claim_text": "claimable_for_scope:default_claude_code_host_live_on_validated_mac_account"
+        "generated_at": "2026-06-29T09:08:07Z",
+        "stale_after": "2026-07-06T09:08:07Z",
+        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "artifact_paths": [
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md",
+          "reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md"
+        ],
+        "source_evidence": {
+          "host_id": "claude_code",
+          "scope": "default_claude_code_host_live_on_validated_mac_account",
+          "report": "reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md",
+          "validated_at": "2026-04-27",
+          "source_commit": null,
+          "stale_after": null,
+          "has_structured_provenance": false,
+          "claimable": false,
+          "evidence_status": "historical_only",
+          "historical_reason": "checked-in host-live report lacks fresh structured provenance; rerun claude_code_live_validation.py before making a current host-live claim",
+          "report_mtime": "2026-04-28T11:24:32Z"
+        },
+        "claimable": false,
+        "claim_text": "historical_evidence_not_current_claim"
       }
     },
     {
@@ -140,10 +175,14 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T08:38:28Z",
-        "stale_after": "2026-07-06T08:38:28Z",
-        "source_commit": "0429a8386fd2d3dba5d9a8880eec6f91cccc1818",
-        "artifact_paths": [],
+        "generated_at": "2026-06-29T09:08:07Z",
+        "stale_after": "2026-07-06T09:08:07Z",
+        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "artifact_paths": [
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+        ],
+        "source_evidence": null,
         "claimable": false,
         "claim_text": "not_claimed"
       }
@@ -163,10 +202,14 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T08:38:28Z",
-        "stale_after": "2026-07-06T08:38:28Z",
-        "source_commit": "0429a8386fd2d3dba5d9a8880eec6f91cccc1818",
-        "artifact_paths": [],
+        "generated_at": "2026-06-29T09:08:07Z",
+        "stale_after": "2026-07-06T09:08:07Z",
+        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "artifact_paths": [
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+        ],
+        "source_evidence": null,
         "claimable": false,
         "claim_text": "not_claimed"
       }
@@ -186,10 +229,14 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T08:38:28Z",
-        "stale_after": "2026-07-06T08:38:28Z",
-        "source_commit": "0429a8386fd2d3dba5d9a8880eec6f91cccc1818",
-        "artifact_paths": [],
+        "generated_at": "2026-06-29T09:08:07Z",
+        "stale_after": "2026-07-06T09:08:07Z",
+        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "artifact_paths": [
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+        ],
+        "source_evidence": null,
         "claimable": false,
         "claim_text": "not_claimed"
       }
@@ -209,10 +256,14 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T08:38:28Z",
-        "stale_after": "2026-07-06T08:38:28Z",
-        "source_commit": "0429a8386fd2d3dba5d9a8880eec6f91cccc1818",
-        "artifact_paths": [],
+        "generated_at": "2026-06-29T09:08:07Z",
+        "stale_after": "2026-07-06T09:08:07Z",
+        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "artifact_paths": [
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+        ],
+        "source_evidence": null,
         "claimable": false,
         "claim_text": "not_claimed"
       }
@@ -232,10 +283,14 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T08:38:28Z",
-        "stale_after": "2026-07-06T08:38:28Z",
-        "source_commit": "0429a8386fd2d3dba5d9a8880eec6f91cccc1818",
-        "artifact_paths": [],
+        "generated_at": "2026-06-29T09:08:07Z",
+        "stale_after": "2026-07-06T09:08:07Z",
+        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "artifact_paths": [
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+        ],
+        "source_evidence": null,
         "claimable": false,
         "claim_text": "not_claimed"
       }
@@ -255,10 +310,14 @@
         "provider_id": "chat_completions",
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T08:38:28Z",
-        "stale_after": "2026-07-06T08:38:28Z",
-        "source_commit": "0429a8386fd2d3dba5d9a8880eec6f91cccc1818",
-        "artifact_paths": [],
+        "generated_at": "2026-06-29T09:08:07Z",
+        "stale_after": "2026-07-06T09:08:07Z",
+        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "artifact_paths": [
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
+          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+        ],
+        "source_evidence": null,
         "claimable": false,
         "claim_text": "not_claimed"
       }
@@ -266,7 +325,7 @@
   ],
   "claim_boundary": [
     "Fixture, mock-provider, wrapper, inventory, and config preflight evidence is not live support.",
-    "Local-mainline support is claimable only when release_readiness_check.py returns no P0 blockers.",
+    "Local-mainline support is claimable only when aggregate ./rtw release-check --include-fixtures returns no blockers.",
     "Only live_passed host/provider evidence may be claimed as live support."
   ]
 }
