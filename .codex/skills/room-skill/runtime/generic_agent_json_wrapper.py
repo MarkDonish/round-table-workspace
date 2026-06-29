@@ -36,7 +36,7 @@ def main() -> int:
     args = parser.parse_args()
     try:
         payload = run_wrapped_agent(args)
-    except JsonWrapperError as exc:
+    except (JsonWrapperError, ValueError) as exc:
         error = {
             "ok": False,
             "action": "generic-agent-json-wrapper",
@@ -91,7 +91,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 def run_wrapped_agent(args: argparse.Namespace) -> dict[str, Any]:
     task_prompt = read_task_prompt()
-    final_output_path = resolve_optional_path(os.environ.get("ROUND_TABLE_OUTPUT_JSON", ""))
+    final_output_path = resolve_optional_output_path(os.environ.get("ROUND_TABLE_OUTPUT_JSON", ""))
     prompt_file = resolve_optional_path(os.environ.get("ROUND_TABLE_PROMPT_FILE", ""))
     input_file = resolve_optional_path(os.environ.get("ROUND_TABLE_INPUT_JSON", ""))
     repo_root = Path(os.environ.get("ROUND_TABLE_REPO_ROOT", str(REPO_ROOT))).expanduser().resolve()
@@ -279,6 +279,13 @@ def resolve_optional_path(value: str) -> Path | None:
     if not stripped:
         return None
     return Path(stripped).expanduser().resolve()
+
+
+def resolve_optional_output_path(value: str) -> Path | None:
+    stripped = value.strip()
+    if not stripped:
+        return None
+    return resolve_checked_path(stripped)
 
 
 def ensure_text(value: Any) -> str:

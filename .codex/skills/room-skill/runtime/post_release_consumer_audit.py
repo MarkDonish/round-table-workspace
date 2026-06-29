@@ -100,8 +100,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     state_root = resolve_user_path(args.state_root, include_leaf=True)
     run_id = validate_path_segment(args.run_id or f"post-release-consumer-audit-{uuid.uuid4().hex[:8]}", "run_id")
     audit_dir = state_root / run_id
+    assert_no_symlink_components(audit_dir, include_leaf=True)
     evidence_dir = audit_dir / "evidence"
     checkout_dir = audit_dir / "checkout"
+    assert_no_symlink_components(evidence_dir, include_leaf=True)
+    assert_no_symlink_components(checkout_dir, include_leaf=True)
     evidence_dir.mkdir(parents=True, exist_ok=True)
 
     if checkout_dir.exists():
@@ -189,6 +192,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     )
 
     if ok and not args.keep_worktree:
+        assert_no_symlink_components(checkout_dir, include_leaf=True)
         shutil.rmtree(checkout_dir)
         checkout_state = "removed_after_success"
     else:
@@ -241,6 +245,7 @@ def build_error_report(args: argparse.Namespace, error: str) -> dict[str, Any]:
     state_root = resolve_user_path(args.state_root, include_leaf=True)
     run_id = validate_path_segment(args.run_id or f"post-release-consumer-audit-{uuid.uuid4().hex[:8]}", "run_id")
     audit_dir = state_root / run_id
+    assert_no_symlink_components(audit_dir, include_leaf=True)
     audit_dir.mkdir(parents=True, exist_ok=True)
     return {
         "ok": False,

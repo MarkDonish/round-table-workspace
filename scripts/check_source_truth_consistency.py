@@ -160,6 +160,7 @@ def check_claim_dashboard_freshness(readme: str) -> dict[str, Any]:
     source_commit = extract_markdown_metadata(report_text, "source_commit")
     source_commit_is_ancestor: bool | None = None
     source_commit_ahead_count: int | None = None
+    source_commit_changed_paths: list[str] | None = None
     if stale_after and stale_after_dt is None:
         problems.append("claim_dashboard_stale_after_unparseable")
     if stale_after_dt and stale_after_dt <= datetime.now(timezone.utc):
@@ -180,8 +181,12 @@ def check_claim_dashboard_freshness(readme: str) -> dict[str, Any]:
             source_commit_ahead_count = git_commit_ahead_count(source_commit)
             if source_commit_ahead_count is None:
                 problems.append("claim_dashboard_source_commit_distance_unverifiable")
-            elif source_commit_ahead_count > 1:
-                problems.append("claim_dashboard_source_commit_stale")
+            elif source_commit_ahead_count > 0:
+                source_commit_changed_paths = git_changed_paths_since(source_commit)
+                if source_commit_changed_paths is None:
+                    problems.append("claim_dashboard_source_commit_diff_unverifiable")
+                elif not claim_dashboard_diff_only(source_commit_changed_paths):
+                    problems.append("claim_dashboard_source_commit_stale")
     return {
         "ok": report_path.is_file() and not problems,
         "report": "reports/claim-boundary-dashboard.md",
@@ -189,6 +194,7 @@ def check_claim_dashboard_freshness(readme: str) -> dict[str, Any]:
         "source_commit": source_commit,
         "source_commit_is_ancestor": source_commit_is_ancestor,
         "source_commit_ahead_count": source_commit_ahead_count,
+        "source_commit_changed_paths": source_commit_changed_paths,
         "warnings": warnings,
         "problems": problems,
     }
@@ -242,6 +248,24 @@ def git_commit_ahead_count(commit: str) -> int | None:
         return int(completed.stdout.strip())
     except ValueError:
         return None
+
+
+def git_changed_paths_since(commit: str) -> list[str] | None:
+    completed = subprocess.run(
+        ["git", "diff", "--name-only", f"{commit}..HEAD"],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return None
+    return [line.strip() for line in completed.stdout.splitlines() if line.strip()]
+
+
+def claim_dashboard_diff_only(paths: list[str]) -> bool:
+    allowed = {"reports/claim-boundary-dashboard.md", "reports/claim-boundary-dashboard.json"}
+    return bool(paths) and all(path in allowed for path in paths)
 
 
 def check_protocol_versioning(readme: str, launch: str) -> dict[str, Any]:

@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from .evidence import build_evidence_metadata
 from .paths import assert_no_symlink_components, utc_timestamp, validate_path_segment
+from .redaction import redact_sensitive_value
 
 
 STATE_SCHEMA_VERSION = "0.1.0"
@@ -118,5 +119,5 @@ def stable_hash(data: Any) -> str:
 def write_json(path: Path, data: dict[str, Any]) -> Path:
     assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(data), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return path

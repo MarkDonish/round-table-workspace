@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import os
 import re
 import subprocess
 import sys
@@ -154,6 +156,68 @@ class JsonSuccessGateTest(unittest.TestCase):
 
             self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
 
+    def test_runtime_projection_writer_refuses_symlink_output(self) -> None:
+        from roundtable_core.commands import runtime
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            victim = Path(temp_dir) / "victim.json"
+            victim.write_text("keep", encoding="utf-8")
+            output_json = Path(temp_dir) / "out.json"
+            output_json.symlink_to(victim)
+
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                runtime.write_json_file(output_json, {"ok": True})
+
+            self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
+
+    def test_runtime_artifact_copy_refuses_symlink_destination(self) -> None:
+        from roundtable_core.commands import runtime
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            source = Path(temp_dir) / "source.json"
+            source.write_text('{"ok": true}\n', encoding="utf-8")
+            victim = Path(temp_dir) / "victim.json"
+            victim.write_text("keep", encoding="utf-8")
+            destination = Path(temp_dir) / "copied.json"
+            destination.symlink_to(victim)
+
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                runtime.copy_runtime_artifact(source, destination)
+
+            self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
+
+    def test_runtime_command_result_redacts_sensitive_output(self) -> None:
+        from roundtable_core.commands import runtime
+
+        secret = "sk-proj-runtime-secret-123456"
+
+        def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess(
+                command,
+                0,
+                stdout=json.dumps({"ok": True, "api_key": secret}),
+                stderr=f"Authorization: Bearer {secret}",
+            )
+
+        with patch("roundtable_core.commands.runtime.subprocess.run", side_effect=fake_run):
+            result = runtime.run_json_command(["tool", "--token", secret])
+
+        result_text = json.dumps(result, ensure_ascii=False)
+        self.assertNotIn(secret, result_text)
+        self.assertIn("[REDACTED]", result_text)
+
+    def test_state_store_redacts_sensitive_json_before_write(self) -> None:
+        from roundtable_core.runtime.state_store import write_json
+
+        secret = "sk-proj-state-secret-123456"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_json = Path(temp_dir) / "state.json"
+            write_json(output_json, {"ok": True, "nested": {"access_token": secret}})
+
+            text = output_json.read_text(encoding="utf-8")
+            self.assertNotIn(secret, text)
+            self.assertIn("[REDACTED]", text)
+
     def test_runtime_state_root_helpers_refuse_symlink_roots(self) -> None:
         from scripts import claim_boundary_dashboard
 
@@ -242,6 +306,70 @@ class JsonSuccessGateTest(unittest.TestCase):
             run_link.symlink_to(victim, target_is_directory=True)
             with self.assertRaisesRegex(ValueError, "symlink component"):
                 create_run_dir(state_root, "room", run_id="demo-run")
+
+    def test_post_release_consumer_audit_refuses_symlink_run_dir(self) -> None:
+        module = load_module(
+            "post_release_consumer_audit_symlink_run_dir_test",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "post_release_consumer_audit.py",
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            state_root = Path(temp_dir) / "state"
+            state_root.mkdir()
+            victim = Path(temp_dir) / "victim"
+            victim.mkdir()
+            run_link = state_root / "post-release-safe"
+            run_link.symlink_to(victim, target_is_directory=True)
+            args = SimpleNamespace(
+                state_root=str(state_root),
+                run_id="post-release-safe",
+                source=str(REPO_ROOT),
+                ref="HEAD",
+                quick=True,
+                timeout_seconds=1,
+                keep_worktree=False,
+            )
+
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                module.build_report(args)
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                module.build_error_report(args, "boom")
+
+            self.assertFalse((victim / "evidence").exists())
+            self.assertFalse((victim / "checkout").exists())
+
+    def test_generic_json_wrapper_refuses_final_output_symlink_before_spawn(self) -> None:
+        module = load_module(
+            "generic_agent_json_wrapper_final_output_guard_test",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "generic_agent_json_wrapper.py",
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            victim = Path(temp_dir) / "victim.json"
+            victim.write_text("keep", encoding="utf-8")
+            output_json = Path(temp_dir) / "final.json"
+            output_json.symlink_to(victim)
+            args = SimpleNamespace(
+                agent_command="python3 -c 'print({})'",
+                timeout_seconds=1,
+                no_stdin=True,
+                raw_output_file=None,
+            )
+
+            with patch.dict(
+                os.environ,
+                {
+                    "ROUND_TABLE_OUTPUT_JSON": str(output_json),
+                    "ROUND_TABLE_REPO_ROOT": str(REPO_ROOT),
+                },
+            ):
+                with patch.object(module, "read_task_prompt", return_value=""):
+                    with patch.object(module.subprocess, "run") as fake_run:
+                        with self.assertRaisesRegex(ValueError, "symlink component"):
+                            module.run_wrapped_agent(args)
+                        fake_run.assert_not_called()
+
+            self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
 
     def test_resolve_checked_path_refuses_symlink_leaf(self) -> None:
         from roundtable_core.runtime.paths import resolve_checked_path
@@ -424,6 +552,68 @@ class JsonSuccessGateTest(unittest.TestCase):
         self.assertFalse(metadata["claimable"])
         self.assertEqual(metadata["evidence_status"], "historical_only")
         self.assertFalse(metadata["has_structured_provenance"])
+
+    def test_release_candidate_excludes_unclaimable_checked_in_host_live_evidence(self) -> None:
+        module = load_module(
+            "release_candidate_unclaimable_host_evidence_test",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "release_candidate_report.py",
+        )
+        checked_evidence = [
+            {
+                "host_id": "claude_code",
+                "claimable": False,
+                "evidence_status": "historical_only",
+                "report": "reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md",
+            }
+        ]
+
+        with patch.object(module, "collect_checked_in_host_live_evidence", return_value=checked_evidence):
+            support = module.build_support_scope(
+                {"release_scope": {"ready_to_claim": [], "not_claimed": []}},
+                {"summary": {"live_passed_hosts": []}},
+                {"pass_criteria": {}},
+            )
+
+        self.assertEqual(support["real_host_live_passed"], [])
+        self.assertEqual(support["checked_in_host_live_evidence"], checked_evidence)
+
+    def test_decision_eval_blocks_unsupported_live_claim_without_case_must_not(self) -> None:
+        from evals.decision_quality.rubric_engine import evaluate_case
+
+        result = evaluate_case(
+            {
+                "id": "unsafe_live_claim",
+                "workflow": "debate",
+                "fixture_output": (
+                    "Reframed decision: whether to ship after evidence, not whether to rush. "
+                    "Key variables: release quality, channel, cost. "
+                    "Fact: no live production data yet. Assumption: users will retain. "
+                    "Opposition: false validation may hide risk. "
+                    "Risk-to-action: stop if release-check fails. "
+                    "Next testable step: run release-check. "
+                    "Uncertainty: provider status is unknown. "
+                    "Provider-live passed and host-live support is guaranteed."
+                ),
+                "must_identify": ["release quality", "channel"],
+                "must_not": [],
+                "expected_next_testable_step": "release-check",
+                "uncertainty_requirements": ["unknown"],
+                "expected_scores_min": {
+                    "next_testable_step": 1,
+                    "uncertainty_disclosure": 1,
+                },
+                "blocking_rules": [
+                    "next_testable_step",
+                    "uncertainty_disclosure",
+                ],
+                "minimum_total": 8,
+                "expected_pass": False,
+            }
+        )
+
+        self.assertFalse(result.quality_pass)
+        self.assertIn("global_forbidden:unsupported_provider_live_claim", result.blocking_dimensions)
+        self.assertIn("global_forbidden:unsupported_host_live_guarantee", result.blocking_dimensions)
 
     def test_secret_redaction_covers_common_sensitive_key_names(self) -> None:
         module = load_module(

@@ -44,7 +44,43 @@
     "evidence_records": {
       "type": "array",
       "items": {
-        "type": "object"
+        "type": "object",
+        "required": [
+          "evidence_kind",
+          "evidence_source",
+          "generated_at",
+          "source_commit",
+          "claimable",
+          "artifact_paths"
+        ],
+        "properties": {
+          "evidence_kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "source_commit": {
+            "type": "string",
+            "minLength": 1
+          },
+          "claimable": {
+            "type": "boolean"
+          },
+          "artifact_paths": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
       }
     }
   },

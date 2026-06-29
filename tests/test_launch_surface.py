@@ -258,6 +258,80 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertNotIn(token, result_text)
         self.assertIn("[REDACTED]", result_text)
 
+    def test_github_release_push_success_is_dry_run_evidence(self) -> None:
+        publication_check = self.load_module(
+            "github_release_publication_push_dry_run",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "github_release_publication_check.py",
+        )
+
+        summary = publication_check.build_summary(
+            api_check={"status_code": 404, "request_completed": True, "authenticated": True},
+            gh_release={"status": "not_found", "published": False, "authenticated": True},
+            gh_state={"authenticated": True},
+            token_state={"present": True},
+            local_tag={"exists": True},
+            release_draft={"exists": True},
+            release_workflow=release_workflow_fixture(),
+            workflow_runs={
+                "authenticated": True,
+                "latest_run": {
+                    "status": "completed",
+                    "conclusion": "success",
+                    "event": "push",
+                    "updatedAt": "2026-06-29T09:10:24Z",
+                },
+            },
+            repository="MarkDonish/round-table-workspace",
+            tag="v0.2.2-pages-launch-kit",
+        )
+
+        self.assertEqual(summary["release_workflow_run_status"], "latest_push_dry_run_success")
+        self.assertEqual(
+            summary["publication_decision"],
+            "release_workflow_push_dry_run_succeeded_release_page_requires_authenticated_confirmation",
+        )
+
+    def test_github_release_page_currentness_flags_newer_workflow_run(self) -> None:
+        publication_check = self.load_module(
+            "github_release_publication_currentness",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "github_release_publication_check.py",
+        )
+
+        summary = publication_check.build_summary(
+            api_check={
+                "status_code": 200,
+                "request_completed": True,
+                "authenticated": True,
+                "payload": {"published_at": "2026-06-02T00:00:00Z"},
+            },
+            gh_release={
+                "status": "published",
+                "published": True,
+                "authenticated": True,
+                "published_at": "2026-06-02T00:00:00Z",
+            },
+            gh_state={"authenticated": True},
+            token_state={"present": True},
+            local_tag={"exists": True},
+            release_draft={"exists": True},
+            release_workflow=release_workflow_fixture(),
+            workflow_runs={
+                "authenticated": True,
+                "latest_run": {
+                    "status": "completed",
+                    "conclusion": "success",
+                    "event": "push",
+                    "updatedAt": "2026-06-29T09:10:24Z",
+                },
+            },
+            repository="MarkDonish/round-table-workspace",
+            tag="v0.2.2-pages-launch-kit",
+        )
+
+        self.assertEqual(summary["release_page_status"], "published")
+        self.assertEqual(summary["release_page_current_status"], "published_but_older_than_latest_workflow_run")
+        self.assertEqual(summary["publication_decision"], "published_but_currentness_requires_review")
+
     def test_publish_release_workflow_dry_run_does_not_swallow_gh_errors(self) -> None:
         workflow = (REPO_ROOT / ".github" / "workflows" / "publish-github-release.yml").read_text(encoding="utf-8")
 
@@ -319,6 +393,23 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIsNotNone(freshness["source_commit_ahead_count"])
         self.assertLessEqual(freshness["source_commit_ahead_count"], 1, freshness)
 
+    def test_source_truth_rejects_dashboard_source_commit_behind_non_dashboard_change(self) -> None:
+        from scripts import check_source_truth_consistency
+
+        with patch.object(check_source_truth_consistency, "git_commit_is_ancestor", return_value=True):
+            with patch.object(check_source_truth_consistency, "git_commit_ahead_count", return_value=1):
+                with patch.object(
+                    check_source_truth_consistency,
+                    "git_changed_paths_since",
+                    return_value=["scripts/release_check.py"],
+                ):
+                    freshness = check_source_truth_consistency.check_claim_dashboard_freshness("")
+
+        self.assertFalse(freshness["ok"], freshness)
+        self.assertEqual(freshness["source_commit_ahead_count"], 1)
+        self.assertEqual(freshness["source_commit_changed_paths"], ["scripts/release_check.py"])
+        self.assertIn("claim_dashboard_source_commit_stale", freshness["problems"])
+
     @staticmethod
     def load_module(name: str, path: Path) -> object:
         spec = importlib.util.spec_from_file_location(name, path)
@@ -327,3 +418,18 @@ class LaunchSurfaceTest(unittest.TestCase):
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         return module
+
+
+def release_workflow_fixture() -> dict[str, object]:
+    return {
+        "usable": True,
+        "defaults_match_requested_release": True,
+        "publication_safe": True,
+        "default_tag": "v0.2.2-pages-launch-kit",
+        "default_release_draft": "docs/releases/v0.2.2-pages-launch-kit-github-release.md",
+        "default_dry_run": "false",
+        "push_trigger_can_publish": False,
+        "exists": True,
+        "has_tag_checkout_guard": True,
+        "watches_gate_scripts": True,
+    }

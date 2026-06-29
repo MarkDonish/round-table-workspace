@@ -230,11 +230,24 @@ def build_summary(
     workflow_publication_safe = release_workflow["publication_safe"]
     repo_automation_available = release_workflow["usable"] and workflow_defaults_match and workflow_publication_safe
     workflow_run_status = summarize_workflow_run_status(workflow_runs)
+    latest_workflow_run = workflow_runs.get("latest_run")
+    release_page_published_at = release_published_at(api_check=api_check, gh_release=gh_release)
+    release_page_current_status = classify_release_page_currentness(
+        release_page_status=release_page_status,
+        release_page_published_at=release_page_published_at,
+        latest_workflow_run=latest_workflow_run,
+    )
     can_publish = bool(token_present or gh_state.get("authenticated"))
-    if release_page_status == "published":
+    if release_page_status == "published" and release_page_current_status == "published_no_newer_workflow_run_detected":
         publication_decision = "published"
-    elif workflow_run_status == "latest_success":
-        publication_decision = "release_workflow_succeeded_release_page_requires_authenticated_confirmation"
+    elif release_page_status == "published":
+        publication_decision = "published_but_currentness_requires_review"
+    elif workflow_run_status == "latest_dispatch_success":
+        publication_decision = "release_workflow_dispatch_succeeded_release_page_requires_authenticated_confirmation"
+    elif workflow_run_status == "latest_push_dry_run_success":
+        publication_decision = "release_workflow_push_dry_run_succeeded_release_page_requires_authenticated_confirmation"
+    elif workflow_run_status == "latest_non_dispatch_success":
+        publication_decision = "release_workflow_non_dispatch_succeeded_release_page_requires_authenticated_confirmation"
     elif workflow_run_status in {"latest_failure", "latest_cancelled", "latest_timed_out"}:
         publication_decision = "release_workflow_failed"
     elif workflow_run_status == "latest_in_progress":
@@ -260,12 +273,15 @@ def build_summary(
         "release_workflow_default_dry_run": release_workflow["default_dry_run"],
         "release_workflow_defaults_match_requested_release": workflow_defaults_match,
         "release_workflow_publication_safe": workflow_publication_safe,
+        "workflow_capability_status": "safe_to_publish" if repo_automation_available else "not_safe_to_publish",
         "release_workflow_push_trigger_can_publish": release_workflow["push_trigger_can_publish"],
         "release_workflow_has_tag_checkout_guard": release_workflow["has_tag_checkout_guard"],
         "release_workflow_watches_gate_scripts": release_workflow["watches_gate_scripts"],
         "repo_automation_available": repo_automation_available,
         "release_workflow_run_status": workflow_run_status,
-        "release_workflow_latest_run": workflow_runs.get("latest_run"),
+        "release_workflow_latest_run": latest_workflow_run,
+        "release_page_published_at": release_page_published_at,
+        "release_page_current_status": release_page_current_status,
         "can_check_workflow_runs_from_this_host": workflow_runs.get("authenticated") is True,
         "can_attempt_automated_publication_from_this_host": can_publish,
         "gh_installed": gh_state.get("installed") is True,
@@ -323,12 +339,24 @@ def build_next_actions(
             }
         ]
     workflow_status = summary.get("release_workflow_run_status")
-    if workflow_status == "latest_success":
+    if workflow_status in {"latest_dispatch_success", "latest_push_dry_run_success", "latest_non_dispatch_success"}:
+        if workflow_status == "latest_push_dry_run_success":
+            why = (
+                "The latest push-triggered release workflow succeeded in the dry-run/guard lane; "
+                "strict publication still requires release-page confirmation."
+            )
+        elif workflow_status == "latest_dispatch_success":
+            why = (
+                "The latest manually dispatched release workflow succeeded, but strict publication still requires "
+                "release-page confirmation."
+            )
+        else:
+            why = "The latest release workflow succeeded, but strict publication still requires release-page confirmation."
         return [
             {
                 "priority": "P1",
                 "task": f"Confirm GitHub Release `{tag}` page with authenticated release access",
-                "why": "The latest release workflow run appears successful, but strict publication still requires release-page confirmation.",
+                "why": why,
             },
             {
                 "priority": "P2",
@@ -838,6 +866,52 @@ def normalize_workflow_run(run: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def release_published_at(*, api_check: dict[str, Any], gh_release: dict[str, Any]) -> str | None:
+    if isinstance(gh_release.get("published_at"), str) and gh_release.get("published_at"):
+        return str(gh_release["published_at"])
+    payload = api_check.get("payload") if isinstance(api_check.get("payload"), dict) else {}
+    value = payload.get("published_at") if isinstance(payload, dict) else None
+    return str(value) if value else None
+
+
+def classify_release_page_currentness(
+    *,
+    release_page_status: str,
+    release_page_published_at: str | None,
+    latest_workflow_run: dict[str, Any] | None,
+) -> str:
+    if release_page_status != "published":
+        return "not_published"
+    published_at = parse_iso_datetime(release_page_published_at)
+    if published_at is None:
+        return "published_currentness_unknown"
+    if not latest_workflow_run:
+        return "published_currentness_unknown"
+    latest_updated_at = parse_iso_datetime(
+        latest_workflow_run.get("updatedAt") or latest_workflow_run.get("createdAt")
+    )
+    if latest_updated_at is None:
+        return "published_currentness_unknown"
+    if latest_updated_at > published_at:
+        if latest_workflow_run.get("event") == "workflow_dispatch":
+            return "published_but_older_than_latest_dispatch"
+        return "published_but_older_than_latest_workflow_run"
+    return "published_no_newer_workflow_run_detected"
+
+
+def parse_iso_datetime(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value:
+        return None
+    normalized = value[:-1] + "+00:00" if value.endswith("Z") else value
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
 def summarize_workflow_run_status(workflow_runs: dict[str, Any]) -> str:
     if workflow_runs.get("authenticated") is not True:
         return "unknown_auth_required"
@@ -849,7 +923,12 @@ def summarize_workflow_run_status(workflow_runs: dict[str, Any]) -> str:
     if status in {"queued", "in_progress", "requested", "waiting", "pending"}:
         return "latest_in_progress"
     if status == "completed" and conclusion == "success":
-        return "latest_success"
+        event = latest_run.get("event")
+        if event == "workflow_dispatch":
+            return "latest_dispatch_success"
+        if event == "push":
+            return "latest_push_dry_run_success"
+        return "latest_non_dispatch_success"
     if status == "completed" and conclusion == "failure":
         return "latest_failure"
     if status == "completed" and conclusion == "cancelled":
@@ -908,12 +987,15 @@ def render_markdown(report: dict[str, Any]) -> str:
             str(summary["release_workflow_defaults_match_requested_release"]).lower(),
         ),
         row("Release workflow publication safe", str(summary["release_workflow_publication_safe"]).lower()),
+        row("Workflow capability status", summary["workflow_capability_status"]),
         row(
             "Release workflow push trigger can publish",
             str(summary["release_workflow_push_trigger_can_publish"]).lower(),
         ),
         row("Repo automation available", str(summary["repo_automation_available"]).lower()),
         row("Release workflow run status", summary["release_workflow_run_status"]),
+        row("Release page published at", summary["release_page_published_at"] or "unknown"),
+        row("Release page currentness", summary["release_page_current_status"]),
         row("Can check workflow runs from this host", str(summary["can_check_workflow_runs_from_this_host"]).lower()),
         row("gh release check authenticated", str(summary["gh_release_check_authenticated"]).lower()),
         row("gh release check status", summary["gh_release_check_status"]),

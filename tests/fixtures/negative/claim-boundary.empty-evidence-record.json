@@ -1,0 +1,7 @@
+{
+  "local_first": true,
+  "host_live": "live_passed",
+  "provider_live": "not_claimed",
+  "notes": ["Negative fixture should fail because live evidence records need provenance fields."],
+  "evidence_records": [{}]
+}

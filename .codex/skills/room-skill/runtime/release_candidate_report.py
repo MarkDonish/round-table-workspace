@@ -131,9 +131,12 @@ def build_support_scope(
     provider_criteria = provider.get("pass_criteria", {}) if isinstance(provider, dict) else {}
     host_summary = host_matrix.get("summary", {}) if isinstance(host_matrix, dict) else {}
     checked_live_evidence = collect_checked_in_host_live_evidence()
+    claimable_checked_live_evidence = [
+        item for item in checked_live_evidence if item.get("claimable") is True
+    ]
     matrix_live_hosts = host_summary.get("live_passed_hosts", [])
     real_host_live_passed = sorted(
-        set([*matrix_live_hosts, *[item["host_id"] for item in checked_live_evidence]])
+        set([*matrix_live_hosts, *[item["host_id"] for item in claimable_checked_live_evidence]])
     )
     return {
         "ready_to_claim": release_report.get("release_scope", {}).get("ready_to_claim", []),
@@ -184,7 +187,9 @@ def build_next_actions(
             }
         )
     host_summary = host_matrix.get("summary", {}) if isinstance(host_matrix, dict) else {}
-    live_evidence = collect_checked_in_host_live_evidence()
+    live_evidence = [
+        item for item in collect_checked_in_host_live_evidence() if item.get("claimable") is True
+    ]
     if not host_summary.get("live_passed_hosts") and not live_evidence:
         actions.append(
             {

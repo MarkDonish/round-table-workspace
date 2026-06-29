@@ -12,6 +12,8 @@ from typing import Any
 from roundtable_core.protocol.debate_result_builder import build_debate_result_from_artifacts
 from roundtable_core.protocol.projections import project_debate_artifacts_to_session, project_room_state_to_session
 from roundtable_core.runtime import create_run_dir, resolve_state_root, write_evidence, write_input, write_output, write_summary
+from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.redaction import redact_sensitive_value
 from roundtable_core.runtime.state_store import build_run_evidence
 from roundtable_core.validation import validate_file
 
@@ -262,11 +264,11 @@ def run_golden_demo(*, demo_name: str, state_root: str | Path) -> dict[str, Any]
         ]
     )
     if room_run["ok"]:
-        shutil.copyfile(room_run["outputs"]["room_session"], run.run_dir / "room-session.json")
-        shutil.copyfile(room_run["outputs"]["portable_handoff_packet"], run.run_dir / "handoff-packet.json")
+        copy_runtime_artifact(room_run["outputs"]["room_session"], run.run_dir / "room-session.json")
+        copy_runtime_artifact(room_run["outputs"]["portable_handoff_packet"], run.run_dir / "handoff-packet.json")
     if debate_run["ok"]:
-        shutil.copyfile(debate_run["outputs"]["debate_session"], run.run_dir / "debate-session.json")
-        shutil.copyfile(debate_run["outputs"]["debate_result"], run.run_dir / "debate-result.json")
+        copy_runtime_artifact(debate_run["outputs"]["debate_session"], run.run_dir / "debate-session.json")
+        copy_runtime_artifact(debate_run["outputs"]["debate_result"], run.run_dir / "debate-result.json")
 
     ok = bool(room_run["ok"] and debate_run["ok"] and quality_run["ok"])
     outputs = {
@@ -359,14 +361,14 @@ def run_json_command(command: list[str]) -> dict[str, Any]:
     completed = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True, check=False)
     payload = parse_json_output(completed.stdout)
     parsed_payload = isinstance(payload, dict)
-    return {
+    return redact_sensitive_value({
         "ok": completed.returncode == 0 and parsed_payload and payload.get("ok") is True,
         "command": command,
         "returncode": completed.returncode,
         "payload": payload,
         "stdout": "" if parsed_payload else completed.stdout.strip(),
         "stderr": completed.stderr.strip(),
-    }
+    })
 
 
 def parse_json_output(text: str) -> object | None:
@@ -426,9 +428,19 @@ def build_stub_payload(action: str, question: str, state_root: str | None) -> di
 
 
 def write_json_file(path: Path, payload: object) -> Path:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return path
+
+
+def copy_runtime_artifact(source: str | Path, destination: Path) -> Path:
+    source_path = Path(source).expanduser()
+    assert_no_symlink_components(source_path, include_leaf=True)
+    assert_no_symlink_components(destination, include_leaf=True)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source_path, destination)
+    return destination
 
 
 def claim_boundary_text() -> list[str]:

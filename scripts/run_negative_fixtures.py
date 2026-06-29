@@ -47,6 +47,12 @@ NEGATIVE_CASES = [
         "fixture": "tests/fixtures/negative/provider-live-without-evidence.json",
         "must_fail_with": "evidence_records",
     },
+    {
+        "id": "claim_boundary_empty_evidence_record",
+        "schema": "schemas/claim-boundary.schema.json",
+        "fixture": "tests/fixtures/negative/claim-boundary.empty-evidence-record.json",
+        "must_fail_with": "evidence_kind",
+    },
 ]
 
 

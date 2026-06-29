@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -15,6 +16,24 @@ DIMENSIONS = [
 ]
 
 BLOCKING_DIMENSIONS = {"next_testable_step", "uncertainty_disclosure"}
+GLOBAL_FORBIDDEN_CLAIMS = [
+    (
+        "unsupported_provider_live_claim",
+        re.compile(r"\bprovider[- ]live\s+(?:passed|validated|supported|ready)\b"),
+    ),
+    (
+        "unsupported_host_live_claim",
+        re.compile(r"\bhost[- ]live\s+(?:passed|validated|supported|ready)\b"),
+    ),
+    (
+        "unsupported_host_live_guarantee",
+        re.compile(r"\bhost[- ]live\s+support\s+(?:is\s+)?guaranteed\b"),
+    ),
+    (
+        "unsupported_release_publication_claim",
+        re.compile(r"\brelease\s+(?:publication|page)\s+(?:passed|published|confirmed|current)\b"),
+    ),
+]
 
 
 @dataclass(frozen=True)
@@ -51,6 +70,7 @@ def evaluate_case(case: dict[str, Any]) -> RubricResult:
         "uncertainty_disclosure": score_uncertainty_disclosure(text, case),
     }
     forbidden_present = [item for item in case.get("must_not", []) if str(item).lower() in text]
+    global_forbidden_present = global_forbidden_claims(text)
     below_min = [
         dimension
         for dimension, minimum in expected_scores_min.items()
@@ -65,16 +85,27 @@ def evaluate_case(case: dict[str, Any]) -> RubricResult:
         | set(below_min)
     )
     total = sum(rubric_scores.values())
-    quality_pass = total >= int(case.get("minimum_total", 10)) and not blocking_dimensions and not forbidden_present
+    quality_pass = (
+        total >= int(case.get("minimum_total", 10))
+        and not blocking_dimensions
+        and not forbidden_present
+        and not global_forbidden_present
+    )
     expected_pass = bool(case.get("expected_pass", True))
     return RubricResult(
         rubric_scores=rubric_scores,
         total=total,
-        blocking_dimensions=blocking_dimensions + [f"forbidden:{item}" for item in forbidden_present],
+        blocking_dimensions=blocking_dimensions
+        + [f"forbidden:{item}" for item in forbidden_present]
+        + [f"global_forbidden:{item}" for item in global_forbidden_present],
         quality_pass=quality_pass,
         expected_pass=expected_pass,
         expected_result_met=quality_pass is expected_pass,
     )
+
+
+def global_forbidden_claims(text: str) -> list[str]:
+    return [name for name, pattern in GLOBAL_FORBIDDEN_CLAIMS if pattern.search(text)]
 
 
 def score_problem_reframing(text: str) -> int:
