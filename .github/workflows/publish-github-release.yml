@@ -6,11 +6,11 @@ on:
       tag:
         description: "Release tag to publish or update."
         required: false
-        default: "v0.2.0-alpha"
+        default: "v0.2.2-pages-launch-kit"
       release_draft:
         description: "Repo-relative release draft containing the GitHub Release body."
         required: false
-        default: "docs/releases/v0.2.0-alpha-github-release.md"
+        default: "docs/releases/v0.2.2-pages-launch-kit-github-release.md"
       prerelease:
         description: "Publish as a prerelease."
         required: false
@@ -32,13 +32,13 @@ on:
     paths:
       - ".github/workflows/publish-github-release.yml"
       - ".codex/skills/room-skill/runtime/extract_github_release_body.py"
-      - "docs/releases/v0.2.0-alpha-github-release.md"
+      - "docs/releases/v0.2.2-pages-launch-kit-github-release.md"
 
 permissions:
   contents: write
 
 concurrency:
-  group: publish-github-release-${{ github.event.inputs.tag || 'v0.2.0-alpha' }}
+  group: publish-github-release-${{ github.event.inputs.tag || 'v0.2.2-pages-launch-kit' }}
   cancel-in-progress: false
 
 jobs:
@@ -60,11 +60,11 @@ jobs:
       - name: Normalize inputs
         shell: bash
         run: |
-          tag="${TAG_INPUT:-v0.2.0-alpha}"
-          release_draft="${RELEASE_DRAFT_INPUT:-docs/releases/v0.2.0-alpha-github-release.md}"
+          tag="${TAG_INPUT:-v0.2.2-pages-launch-kit}"
+          release_draft="${RELEASE_DRAFT_INPUT:-docs/releases/v0.2.2-pages-launch-kit-github-release.md}"
           prerelease="${PRERELEASE_INPUT:-true}"
           make_latest="${MAKE_LATEST_INPUT:-false}"
-          dry_run="${DRY_RUN_INPUT:-false}"
+          dry_run="${DRY_RUN_INPUT:-true}"
           echo "TAG=${tag}" >> "$GITHUB_ENV"
           echo "RELEASE_DRAFT=${release_draft}" >> "$GITHUB_ENV"
           echo "PRERELEASE=${prerelease}" >> "$GITHUB_ENV"
