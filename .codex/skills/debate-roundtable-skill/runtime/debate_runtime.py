@@ -18,6 +18,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from roundtable_core.protocol.handoff import portable_handoff_to_runtime_packet
+from roundtable_core.runtime.paths import validate_path_segment
 
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "debates"
 ROOM_UPGRADE_FIXTURE = (
@@ -2079,6 +2080,10 @@ def materialize_placeholders(value: Any, replacements: dict[str, str]) -> Any:
 
 
 def get_debate_dir(state_root: Path, debate_id: str) -> Path:
+    try:
+        validate_path_segment(debate_id, "debate_id")
+    except ValueError as exc:
+        raise DebateRuntimeError(str(exc)) from exc
     return state_root / debate_id
 
 

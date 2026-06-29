@@ -8,7 +8,7 @@ from typing import Any
 from uuid import uuid4
 
 from .evidence import build_evidence_metadata
-from .paths import utc_timestamp
+from .paths import assert_no_symlink_components, utc_timestamp, validate_path_segment
 
 
 STATE_SCHEMA_VERSION = "0.1.0"
@@ -41,8 +41,12 @@ def create_run_dir(
     created_at: str | None = None,
 ) -> RunRecord:
     created_at = created_at or utc_timestamp()
+    validate_path_segment(workflow, "workflow")
     run_id = run_id or f"{workflow}-{created_at}-{uuid4().hex[:8]}"
-    root = Path(state_root).expanduser().resolve()
+    validate_path_segment(run_id, "run_id")
+    raw_root = Path(state_root).expanduser()
+    assert_no_symlink_components(raw_root, include_leaf=True)
+    root = raw_root.resolve()
     run_dir = root / "runs" / run_id
     (run_dir / "logs").mkdir(parents=True, exist_ok=True)
     record = RunRecord(

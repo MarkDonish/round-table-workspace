@@ -213,6 +213,16 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertFalse(release_defaults["workflow_push_trigger_can_publish"])
         self.assertEqual(release_defaults["problems"], [])
 
+    def test_source_truth_requires_fresh_claim_dashboard(self) -> None:
+        from scripts import check_source_truth_consistency
+
+        report = check_source_truth_consistency.build_report()
+
+        freshness = report["checks"]["claim_dashboard_freshness"]
+        self.assertTrue(freshness["ok"], freshness)
+        self.assertEqual(freshness["problems"], [])
+        self.assertIsNotNone(freshness["stale_after"])
+
     @staticmethod
     def load_module(name: str, path: Path) -> object:
         spec = importlib.util.spec_from_file_location(name, path)

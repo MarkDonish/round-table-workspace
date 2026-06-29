@@ -69,6 +69,30 @@ class ProtocolRuntimeClosureTest(unittest.TestCase):
             )
             self.assertTrue(validation.ok, validation.errors)
 
+    def test_room_runtime_rejects_unsafe_room_id_path_segment(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    ".codex/skills/room-skill/runtime/room_runtime.py",
+                    "validate-canonical",
+                    "--state-root",
+                    temp_dir,
+                    "--room-id",
+                    "../escape",
+                ],
+                cwd=REPO_ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 1)
+            payload = json.loads(completed.stdout)
+            self.assertFalse(payload["ok"])
+            self.assertIn("room_id must not contain path traversal", payload["error"])
+            self.assertFalse((Path(temp_dir).parent / "escape").exists())
+
     def test_debate_runtime_projects_to_portable_schemas(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             completed = subprocess.run(
@@ -119,6 +143,41 @@ class ProtocolRuntimeClosureTest(unittest.TestCase):
             )
             self.assertTrue(session_validation.ok, session_validation.errors)
             self.assertTrue(result_validation.ok, result_validation.errors)
+
+    def test_debate_runtime_rejects_unsafe_debate_id_path_segment(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    ".codex/skills/debate-roundtable-skill/runtime/debate_runtime.py",
+                    "build-launch-bundle",
+                    "--packet-json",
+                    str(
+                        REPO_ROOT
+                        / ".codex"
+                        / "skills"
+                        / "room-skill"
+                        / "runtime"
+                        / "fixtures"
+                        / "canonical"
+                        / "upgrade.json"
+                    ),
+                    "--state-root",
+                    temp_dir,
+                    "--debate-id",
+                    "../escape",
+                ],
+                cwd=REPO_ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 1)
+            payload = json.loads(completed.stdout)
+            self.assertFalse(payload["ok"])
+            self.assertIn("debate_id must not contain path traversal", payload["error"])
+            self.assertFalse((Path(temp_dir).parent / "escape").exists())
 
 
 if __name__ == "__main__":

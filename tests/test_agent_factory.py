@@ -127,10 +127,24 @@ class AgentFactoryTest(unittest.TestCase):
     def test_rtw_agent_subcommand_output_flags(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             output_json = Path(temp_dir) / "agent-list.json"
+            registry = Path(temp_dir) / "agent-registry.json"
+            shutil.copyfile(REPO_ROOT / "config" / "agent-registry.json", registry)
 
             code, output = self.invoke_cli(["agent", "list", "--json"])
             self.assertEqual(code, 0)
             self.assertEqual(json.loads(output)["action"], "agent-registry-list")
+
+            code, output = self.invoke_cli(["agent", "list", "--registry", str(registry), "--json"])
+            self.assertEqual(code, 0)
+            payload = json.loads(output)
+            self.assertEqual(payload["action"], "agent-registry-list")
+            self.assertTrue(payload["ok"])
+
+            code, output = self.invoke_cli(["agent", "validate", "--registry", str(registry), "--json"])
+            self.assertEqual(code, 0)
+            payload = json.loads(output)
+            self.assertEqual(payload["action"], "agent-registry-validate")
+            self.assertTrue(payload["ok"])
 
             code, output = self.invoke_cli(["agent", "list", "--quiet", "--output-json", str(output_json)])
             self.assertEqual(code, 0)
@@ -188,6 +202,60 @@ class AgentFactoryTest(unittest.TestCase):
             payload = json.loads(output)
             self.assertEqual(payload["action"], "agent-register")
             self.assertIn("Refusing to write registry through symlink", payload["errors"][0])
+
+    def test_rtw_agent_register_refuses_symlink_registry_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            real_dir = Path(temp_dir) / "real"
+            real_dir.mkdir()
+            registry = real_dir / "agent-registry.json"
+            shutil.copyfile(REPO_ROOT / "config" / "agent-registry.json", registry)
+            link_dir = Path(temp_dir) / "link"
+            link_dir.symlink_to(real_dir, target_is_directory=True)
+            manifest = REPO_ROOT / "examples" / "agent-factory" / "duan-yongping.agent.manifest.json"
+
+            code, output = self.invoke_cli(
+                [
+                    "agent",
+                    "--registry",
+                    str(link_dir / "agent-registry.json"),
+                    "register",
+                    str(manifest),
+                    "--replace",
+                ]
+            )
+
+            self.assertEqual(code, 1)
+            payload = json.loads(output)
+            self.assertEqual(payload["action"], "agent-register")
+            self.assertIn("symlink component", payload["errors"][0])
+
+    def test_rtw_agent_register_refuses_relative_symlink_registry_parent(self) -> None:
+        with tempfile.TemporaryDirectory(dir=REPO_ROOT) as temp_dir:
+            workspace = Path(temp_dir)
+            real_dir = workspace / "real"
+            real_dir.mkdir()
+            registry = real_dir / "agent-registry.json"
+            shutil.copyfile(REPO_ROOT / "config" / "agent-registry.json", registry)
+            link_dir = workspace / "link"
+            link_dir.symlink_to(real_dir, target_is_directory=True)
+            relative_registry = (link_dir / "agent-registry.json").relative_to(REPO_ROOT)
+            manifest = REPO_ROOT / "examples" / "agent-factory" / "duan-yongping.agent.manifest.json"
+
+            code, output = self.invoke_cli(
+                [
+                    "agent",
+                    "--registry",
+                    str(relative_registry),
+                    "register",
+                    str(manifest),
+                    "--replace",
+                ]
+            )
+
+            self.assertEqual(code, 1)
+            payload = json.loads(output)
+            self.assertEqual(payload["action"], "agent-register")
+            self.assertIn("symlink component", payload["errors"][0])
 
     def test_rtw_agent_missing_paths_return_structured_errors(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

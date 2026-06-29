@@ -101,6 +101,27 @@ class CliOutputModesTest(unittest.TestCase):
             self.assertIn("refusing to write output through symlink", stdout)
             self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
 
+    def test_output_json_refuses_symlink_ancestor(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            real_dir = Path(temp_dir) / "real"
+            real_dir.mkdir()
+            link_dir = Path(temp_dir) / "link"
+            link_dir.symlink_to(real_dir, target_is_directory=True)
+            output_json = link_dir / "out.json"
+
+            code, stdout = self.invoke(
+                [
+                    "ship-check",
+                    "Should we merge this AI-generated feature?",
+                    "--output-json",
+                    str(output_json),
+                ]
+            )
+
+            self.assertEqual(code, 2)
+            self.assertIn("refusing path through symlink component", stdout)
+            self.assertFalse((real_dir / "out.json").exists())
+
     def test_output_markdown_refuses_symlink_target(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             victim = Path(temp_dir) / "victim.md"
@@ -189,6 +210,7 @@ class CliOutputModesTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             missing_fixture = Path(temp_dir) / "missing.json"
             output_json = Path(temp_dir) / "missing-fixture.json"
+            output_markdown = Path(temp_dir) / "missing-fixture.md"
 
             code, output = self.invoke(
                 [
@@ -200,6 +222,8 @@ class CliOutputModesTest(unittest.TestCase):
                     "--quiet",
                     "--output-json",
                     str(output_json),
+                    "--output-markdown",
+                    str(output_markdown),
                 ]
             )
 
@@ -209,6 +233,9 @@ class CliOutputModesTest(unittest.TestCase):
             self.assertFalse(payload["ok"])
             self.assertEqual(payload["action"], "schema-validation")
             self.assertIn("file does not exist", payload["results"][0]["errors"][0])
+            markdown = output_markdown.read_text(encoding="utf-8")
+            self.assertIn("## Issues", markdown)
+            self.assertIn("file does not exist", markdown)
 
     def test_schema_validation_invalid_json_returns_structured_error(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

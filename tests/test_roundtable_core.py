@@ -115,6 +115,19 @@ class RoundtableCoreTest(unittest.TestCase):
         self.assertEqual(payload["action"], "schema-validation")
         self.assertEqual(payload["claim_boundary"]["host_live"], "not_claimed")
 
+    def test_state_store_rejects_unsafe_run_id_path_segments(self) -> None:
+        from roundtable_core.runtime.state_store import create_run_dir
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with self.assertRaisesRegex(ValueError, "run_id must"):
+                create_run_dir(temp_dir, "room", run_id="../escape")
+
+    def test_path_segment_validator_rejects_traversal(self) -> None:
+        from roundtable_core.runtime.paths import validate_path_segment
+
+        with self.assertRaisesRegex(ValueError, "path traversal"):
+            validate_path_segment("room\\escape", "room_id")
+
 
 if __name__ == "__main__":
     unittest.main()

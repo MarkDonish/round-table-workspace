@@ -5,6 +5,7 @@ import argparse
 import json
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -122,6 +123,7 @@ def check_required_docs() -> dict[str, Any]:
 
 def check_claim_dashboard_freshness(readme: str) -> dict[str, Any]:
     warnings = []
+    problems = []
     report_path = REPO_ROOT / "reports" / "claim-boundary-dashboard.md"
     report_text = report_path.read_text(encoding="utf-8") if report_path.exists() else ""
     if "reports/claim-boundary-dashboard.md" in readme and not any(
@@ -131,12 +133,36 @@ def check_claim_dashboard_freshness(readme: str) -> dict[str, Any]:
         warnings.append("readme_treats_claim_dashboard_report_as_current_authority")
     for marker in ["generated_at:", "source_commit:", "stale_after:"]:
         if marker not in report_text:
-            warnings.append(f"claim_dashboard_missing_{marker.rstrip(':')}")
+            problems.append(f"claim_dashboard_missing_{marker.rstrip(':')}")
+    stale_after = extract_markdown_metadata(report_text, "stale_after")
+    stale_after_dt = parse_iso_datetime(stale_after) if stale_after else None
+    if stale_after and stale_after_dt is None:
+        problems.append("claim_dashboard_stale_after_unparseable")
+    if stale_after_dt and stale_after_dt <= datetime.now(timezone.utc):
+        problems.append("claim_dashboard_stale")
     return {
-        "ok": True,
+        "ok": report_path.is_file() and not problems,
         "report": "reports/claim-boundary-dashboard.md",
+        "stale_after": stale_after,
         "warnings": warnings,
+        "problems": problems,
     }
+
+
+def extract_markdown_metadata(text: str, key: str) -> str | None:
+    match = re.search(rf"^> {re.escape(key)}:\s*`([^`]+)`", text, flags=re.MULTILINE)
+    return match.group(1) if match else None
+
+
+def parse_iso_datetime(value: str) -> datetime | None:
+    normalized = value[:-1] + "+00:00" if value.endswith("Z") else value
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def check_protocol_versioning(readme: str, launch: str) -> dict[str, Any]:

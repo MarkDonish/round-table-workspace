@@ -21,6 +21,7 @@ from roundtable_core.commands import (
     run_room_fixture,
     validate_schema_files,
 )
+from roundtable_core.runtime.paths import UnsafePathError, assert_no_symlink_components
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -45,6 +46,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         return dispatch(args, parser)
     except UnsafeOutputPathError as exc:
+        return handle_output_path_error(args, str(exc))
+    except UnsafePathError as exc:
         return handle_output_path_error(args, str(exc))
 
 
@@ -191,26 +194,31 @@ def build_parser() -> argparse.ArgumentParser:
     agent_subparsers = agent.add_subparsers(dest="agent_command", required=True)
 
     agent_list = agent_subparsers.add_parser("list", help="List Agent Factory registry entries.")
+    add_agent_registry_arg(agent_list)
     agent_list.add_argument("--status", help="Optional status filter.")
     add_output_args(agent_list, suppress_defaults=True)
 
     agent_validate = agent_subparsers.add_parser("validate", help="Validate registry or one manifest/bundle.")
+    add_agent_registry_arg(agent_validate)
     agent_validate.add_argument("target", nargs="?", help="Optional manifest path or registry agent_id.")
     agent_validate.add_argument("--profile", help="Profile path when validating a manifest bundle.")
     add_output_args(agent_validate, suppress_defaults=True)
 
     agent_register = agent_subparsers.add_parser("register", help="Register an agent manifest.")
+    add_agent_registry_arg(agent_register)
     agent_register.add_argument("manifest", help="Path to manifest JSON.")
     agent_register.add_argument("--replace", action="store_true", help="Replace existing agent_id.")
     agent_register.add_argument("--enable", action="store_true", help="Register directly as enabled.")
     add_output_args(agent_register, suppress_defaults=True)
 
     agent_enable = agent_subparsers.add_parser("enable", help="Enable a registered agent.")
+    add_agent_registry_arg(agent_enable)
     agent_enable.add_argument("agent_id")
     agent_enable.add_argument("--allow-missing-skill", action="store_true", help="Allow enable without local skill dir.")
     add_output_args(agent_enable, suppress_defaults=True)
 
     agent_disable = agent_subparsers.add_parser("disable", help="Disable a registered agent.")
+    add_agent_registry_arg(agent_disable)
     agent_disable.add_argument("agent_id")
     add_output_args(agent_disable, suppress_defaults=True)
 
@@ -241,6 +249,14 @@ def add_output_args(parser: argparse.ArgumentParser, *, suppress_defaults: bool 
         "--output-markdown",
         help="Write a Markdown summary to this file when available.",
         **value_kwargs,
+    )
+
+
+def add_agent_registry_arg(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--registry",
+        default=argparse.SUPPRESS,
+        help="Registry JSON path. Defaults to config/agent-registry.json.",
     )
 
 
@@ -498,17 +514,91 @@ def render_payload_summary(payload: dict[str, object]) -> str:
         "",
         f"- Result: `{'PASS' if payload.get('ok') is not False else 'FAIL'}`",
     ]
+    if "state_root" in payload:
+        lines.append(f"- State root: `{payload['state_root']}`")
     if "run_dir" in payload:
         lines.append(f"- Run dir: `{payload['run_dir']}`")
     if "release_blockers" in payload:
         blockers = payload.get("release_blockers")
         lines.append(f"- Release blockers: `{blockers}`")
+    if "blocked_items" in payload:
+        lines.append(f"- Blocked items: `{payload.get('blocked_items')}`")
+    append_payload_issues(lines, payload)
     outputs = payload.get("outputs")
     if isinstance(outputs, dict):
         lines.extend(["", "## Outputs", ""])
         for name, path in outputs.items():
             lines.append(f"- `{name}`: `{path}`")
     return "\n".join(lines).rstrip() + "\n"
+
+
+def append_payload_issues(lines: list[str], payload: dict[str, object]) -> None:
+    issues = collect_payload_issues(payload)
+    if not issues:
+        return
+    lines.extend(["", "## Issues", ""])
+    for issue in issues[:12]:
+        lines.append(f"- {issue}")
+
+
+def collect_payload_issues(payload: dict[str, object]) -> list[str]:
+    issues: list[str] = []
+    add_issue(issues, payload.get("error"))
+    add_list_issues(issues, payload.get("errors"))
+    add_list_issues(issues, payload.get("blocked_items"), prefix="blocked: ")
+    add_list_issues(issues, payload.get("release_blockers"), prefix="release blocker: ")
+    add_list_issues(issues, payload.get("warnings"), prefix="warning: ")
+    add_check_issues(issues, payload.get("results"))
+    add_check_issues(issues, payload.get("checks"))
+    add_check_issues(issues, payload.get("schema_validation"))
+    add_issue(issues, payload.get("stderr"), prefix="stderr: ")
+    return dedupe_preserving_order(issues)
+
+
+def add_check_issues(issues: list[str], value: object, *, prefix: str = "") -> None:
+    if isinstance(value, dict):
+        if value.get("ok") is False:
+            add_list_issues(issues, value.get("errors"), prefix=prefix)
+            add_issue(issues, value.get("error"), prefix=prefix)
+            add_issue(issues, value.get("stderr"), prefix=f"{prefix}stderr: ")
+        for name, child in value.items():
+            if isinstance(child, (dict, list)):
+                add_check_issues(issues, child, prefix=f"{prefix}{name}: ")
+        return
+    if isinstance(value, list):
+        for item in value:
+            if isinstance(item, (dict, list)):
+                add_check_issues(issues, item, prefix=prefix)
+            else:
+                add_issue(issues, item, prefix=prefix)
+
+
+def add_list_issues(issues: list[str], value: object, *, prefix: str = "") -> None:
+    if not isinstance(value, list):
+        return
+    for item in value:
+        add_issue(issues, item, prefix=prefix)
+
+
+def add_issue(issues: list[str], value: object, *, prefix: str = "") -> None:
+    if value in (None, "", []):
+        return
+    if isinstance(value, (dict, list)):
+        text = json.dumps(value, ensure_ascii=False, sort_keys=True)
+    else:
+        text = str(value)
+    issues.append(f"{prefix}{text}")
+
+
+def dedupe_preserving_order(items: list[str]) -> list[str]:
+    seen: set[str] = set()
+    unique: list[str] = []
+    for item in items:
+        if item in seen:
+            continue
+        seen.add(item)
+        unique.append(item)
+    return unique
 
 
 def build_ship_check_payload(question: str) -> dict[str, object]:
@@ -717,12 +807,10 @@ def write_text_file(path: Path, text: str) -> Path:
 def ensure_safe_output_path(path: Path) -> None:
     if path.exists() and path.is_symlink():
         raise UnsafeOutputPathError(f"refusing to write output through symlink: {path}")
-    if path.parent.exists() and path.parent.is_symlink() and path.parent not in allowed_system_symlink_dirs():
-        raise UnsafeOutputPathError(f"refusing to write output under symlink directory: {path.parent}")
-
-
-def allowed_system_symlink_dirs() -> set[Path]:
-    return {Path("/tmp"), Path("/var")}
+    try:
+        assert_no_symlink_components(path, include_leaf=False)
+    except ValueError as exc:
+        raise UnsafeOutputPathError(str(exc)) from exc
 
 
 def resolve_state_root(explicit_state_root: str | None, command: str) -> str:

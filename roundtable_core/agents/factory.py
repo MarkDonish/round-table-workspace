@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from roundtable_core.runtime.paths import UnsafePathError, assert_no_symlink_components
 from roundtable_core.validation import validate_file, validate_instance
 
 
@@ -36,7 +37,7 @@ def resolve_repo_path(path: str | Path) -> Path:
     candidate = Path(path).expanduser()
     if candidate.is_absolute():
         return candidate
-    return (REPO_ROOT / candidate).resolve()
+    return REPO_ROOT / candidate
 
 
 def load_manifest(path: Path) -> dict[str, Any]:
@@ -199,6 +200,10 @@ def load_factory_registry(path: Path) -> dict[str, Any]:
 def write_factory_registry(path: Path, payload: dict[str, Any]) -> None:
     if path.is_symlink():
         raise ValueError(f"Refusing to write registry through symlink: {path}")
+    try:
+        assert_no_symlink_components(path, include_leaf=False)
+    except UnsafePathError as exc:
+        raise ValueError(f"Refusing to write registry through symlink component: {exc}") from exc
     payload["updated_at"] = iso_now()
     path.parent.mkdir(parents=True, exist_ok=True)
     data = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"

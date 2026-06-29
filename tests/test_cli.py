@@ -125,6 +125,22 @@ class RoundtableCliTest(unittest.TestCase):
             self.assertTrue(Path(payload["outputs"]["room_session"]).exists())
             self.assertTrue(Path(payload["outputs"]["portable_handoff_packet"]).exists())
 
+    def test_room_refuses_symlink_state_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            real_dir = Path(temp_dir) / "real"
+            real_dir.mkdir()
+            link_dir = Path(temp_dir) / "link"
+            link_dir.symlink_to(real_dir, target_is_directory=True)
+
+            code, output = self.invoke(["room", "讨论一个大学生 AI 学习产品", "--state-root", str(link_dir)])
+
+            self.assertEqual(code, 2)
+            payload = json.loads(output)
+            self.assertFalse(payload["ok"])
+            self.assertEqual(payload["action"], "room")
+            self.assertIn("refusing path through symlink component", payload["error"])
+            self.assertFalse((real_dir / "runs").exists())
+
     def test_debate_runs_fixture_backed_runtime(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             code, output = self.invoke(["debate", "这个 MVP 值不值得做", "--state-root", temp_dir])

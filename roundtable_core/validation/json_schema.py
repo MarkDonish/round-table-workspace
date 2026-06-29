@@ -8,9 +8,10 @@ from pathlib import Path
 from typing import Any
 
 try:  # pragma: no cover - optional dependency path depends on local install.
-    from jsonschema import Draft202012Validator
+    from jsonschema import Draft202012Validator, FormatChecker
 except Exception:  # pragma: no cover - the repo keeps a no-dependency fallback.
     Draft202012Validator = None
+    FormatChecker = None
 
 
 @dataclass(frozen=True)
@@ -57,7 +58,7 @@ def validate_instance(*, instance: Any, schema: dict[str, Any]) -> list[str]:
 
 def validate_instance_details(*, instance: Any, schema: dict[str, Any]) -> tuple[list[str], str, str]:
     if Draft202012Validator is not None:
-        validator = Draft202012Validator(schema)
+        validator = Draft202012Validator(schema, format_checker=FormatChecker() if FormatChecker else None)
         errors = sorted(validator.iter_errors(instance), key=lambda item: list(item.path))
         return [format_jsonschema_error(error) for error in errors], "jsonschema.Draft202012Validator", "draft-2020-12"
 

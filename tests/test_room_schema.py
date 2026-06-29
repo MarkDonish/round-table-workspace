@@ -73,6 +73,36 @@ class RoomSessionSchemaTest(unittest.TestCase):
         self.assertEqual(supported_draft, "draft-2020-12-subset")
         self.assertTrue(any("panel" in error for error in invalid_errors), invalid_errors)
 
+    def test_jsonschema_validator_uses_format_checker(self) -> None:
+        from roundtable_core.validation.json_schema import validate_instance_details
+
+        class FakeError:
+            path = ["created_at"]
+            message = "is not a date-time"
+
+        class FakeFormatChecker:
+            pass
+
+        class FakeDraftValidator:
+            def __init__(self, schema: dict[str, object], *, format_checker: object | None = None) -> None:
+                self.format_checker = format_checker
+
+            def iter_errors(self, instance: dict[str, object]) -> list[FakeError]:
+                if self.format_checker is None:
+                    return []
+                return [FakeError()]
+
+        schema = {"type": "object", "properties": {"created_at": {"type": "string", "format": "date-time"}}}
+        instance = {"created_at": "not-a-date"}
+
+        with patch("roundtable_core.validation.json_schema.Draft202012Validator", FakeDraftValidator):
+            with patch("roundtable_core.validation.json_schema.FormatChecker", FakeFormatChecker):
+                errors, validator_name, supported_draft = validate_instance_details(instance=instance, schema=schema)
+
+        self.assertEqual(validator_name, "jsonschema.Draft202012Validator")
+        self.assertEqual(supported_draft, "draft-2020-12")
+        self.assertEqual(errors, ["$.created_at: is not a date-time"])
+
     def test_cli_can_validate_room_session_fixture(self) -> None:
         from roundtable import cli
 

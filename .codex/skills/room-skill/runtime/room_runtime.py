@@ -18,6 +18,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from roundtable_core.agents.registry import load_agent_registry
 from roundtable_core.protocol.handoff import runtime_packet_to_portable_handoff
+from roundtable_core.runtime.paths import validate_path_segment
 
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "rooms"
 REGISTRY_PATH = REPO_ROOT / "agents" / "registry.json"
@@ -1263,6 +1264,10 @@ def save_state(state_root: Path, state: dict[str, Any]) -> None:
 
 
 def get_room_dir(state_root: Path, room_id: str) -> Path:
+    try:
+        validate_path_segment(room_id, "room_id")
+    except ValueError as exc:
+        raise RoomRuntimeError(str(exc)) from exc
     return state_root / room_id
 
 
