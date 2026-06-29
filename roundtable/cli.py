@@ -4,7 +4,6 @@ import argparse
 import json
 import subprocess
 import sys
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Sequence
@@ -12,6 +11,11 @@ from typing import Sequence
 from roundtable_core.commands import (
     build_stub_payload as service_build_stub_payload,
     resolve_cli_state_root,
+    run_agent_disable,
+    run_agent_enable,
+    run_agent_list,
+    run_agent_register,
+    run_agent_validate,
     run_debate_fixture,
     run_golden_demo,
     run_room_fixture,
@@ -21,13 +25,9 @@ from roundtable_core.commands import (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 ROOM_SELF_CHECK = ".codex/skills/room-skill/runtime/agent_consumer_self_check.py"
-ROOM_RUNTIME = ".codex/skills/room-skill/runtime/room_runtime.py"
-DEBATE_RUNTIME = ".codex/skills/debate-roundtable-skill/runtime/debate_runtime.py"
 LIVE_LANE_EVIDENCE = ".codex/skills/room-skill/runtime/live_lane_evidence_report.py"
 LOCAL_CODEX_REGRESSION = ".codex/skills/room-skill/runtime/local_codex_regression.py"
 RELEASE_CHECK = "scripts/release_check.py"
-AGENT_REGISTRY_RUNTIME = ".codex/skills/agent-builder-skill/runtime/agent_registry.py"
-AGENT_BUNDLE_VALIDATOR = ".codex/skills/agent-builder-skill/runtime/validate_agent_bundle.py"
 EXIT_SUCCESS = 0
 EXIT_VALIDATION_FAILURE = 1
 EXIT_USAGE_OR_CONFIG = 2
@@ -180,31 +180,56 @@ def build_parser() -> argparse.ArgumentParser:
 
     agent_list = agent_subparsers.add_parser("list", help="List Agent Factory registry entries.")
     agent_list.add_argument("--status", help="Optional status filter.")
+    add_output_args(agent_list, suppress_defaults=True)
 
     agent_validate = agent_subparsers.add_parser("validate", help="Validate registry or one manifest/bundle.")
     agent_validate.add_argument("target", nargs="?", help="Optional manifest path or registry agent_id.")
     agent_validate.add_argument("--profile", help="Profile path when validating a manifest bundle.")
+    add_output_args(agent_validate, suppress_defaults=True)
 
     agent_register = agent_subparsers.add_parser("register", help="Register an agent manifest.")
     agent_register.add_argument("manifest", help="Path to manifest JSON.")
     agent_register.add_argument("--replace", action="store_true", help="Replace existing agent_id.")
     agent_register.add_argument("--enable", action="store_true", help="Register directly as enabled.")
+    add_output_args(agent_register, suppress_defaults=True)
 
     agent_enable = agent_subparsers.add_parser("enable", help="Enable a registered agent.")
     agent_enable.add_argument("agent_id")
     agent_enable.add_argument("--allow-missing-skill", action="store_true", help="Allow enable without local skill dir.")
+    add_output_args(agent_enable, suppress_defaults=True)
 
     agent_disable = agent_subparsers.add_parser("disable", help="Disable a registered agent.")
     agent_disable.add_argument("agent_id")
+    add_output_args(agent_disable, suppress_defaults=True)
 
     return parser
 
 
-def add_output_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--json", action="store_true", help="Emit stable JSON output when the command supports structured output.")
-    parser.add_argument("--quiet", action="store_true", help="Suppress human/stdout output; exit code remains authoritative.")
-    parser.add_argument("--output-json", help="Write structured command output to this JSON file when available.")
-    parser.add_argument("--output-markdown", help="Write a Markdown summary to this file when available.")
+def add_output_args(parser: argparse.ArgumentParser, *, suppress_defaults: bool = False) -> None:
+    bool_kwargs = {"default": argparse.SUPPRESS} if suppress_defaults else {}
+    value_kwargs = {"default": argparse.SUPPRESS} if suppress_defaults else {}
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit stable JSON output when the command supports structured output.",
+        **bool_kwargs,
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress human/stdout output; exit code remains authoritative.",
+        **bool_kwargs,
+    )
+    parser.add_argument(
+        "--output-json",
+        help="Write structured command output to this JSON file when available.",
+        **value_kwargs,
+    )
+    parser.add_argument(
+        "--output-markdown",
+        help="Write a Markdown summary to this file when available.",
+        **value_kwargs,
+    )
 
 
 def run_doctor(args: argparse.Namespace) -> int:
@@ -292,35 +317,29 @@ def run_evidence(args: argparse.Namespace) -> int:
 
 
 def run_agent(args: argparse.Namespace) -> int:
-    registry_args = ["--registry", args.registry] if args.registry else []
     if args.agent_command == "list":
-        command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "list"]
-        if args.status:
-            command.extend(["--status", args.status])
+        payload = run_agent_list(registry=args.registry, status=args.status)
     elif args.agent_command == "validate":
-        if args.target and looks_like_manifest_path(args.target):
-            command = [sys.executable, AGENT_BUNDLE_VALIDATOR, args.target]
-            if args.profile:
-                command.extend(["--profile", args.profile])
-        elif args.target:
-            command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "validate", "--agent-id", args.target]
-        else:
-            command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "validate"]
+        payload = run_agent_validate(registry=args.registry, target=args.target, profile=args.profile)
     elif args.agent_command == "register":
-        command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "register", args.manifest]
-        if args.replace:
-            command.append("--replace")
-        if args.enable:
-            command.append("--enable")
+        payload = run_agent_register(
+            registry=args.registry,
+            manifest=args.manifest,
+            replace=args.replace,
+            enable=args.enable,
+        )
     elif args.agent_command == "enable":
-        command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "enable", args.agent_id]
-        if args.allow_missing_skill:
-            command.append("--allow-missing-skill")
+        payload = run_agent_enable(
+            registry=args.registry,
+            agent_id=args.agent_id,
+            allow_missing_skill=args.allow_missing_skill,
+        )
     elif args.agent_command == "disable":
-        command = [sys.executable, AGENT_REGISTRY_RUNTIME, *registry_args, "disable", args.agent_id]
+        payload = run_agent_disable(registry=args.registry, agent_id=args.agent_id)
     else:
         return EXIT_USAGE_OR_CONFIG
-    return run_captured_command(command, args=args)
+    emit_payload(args, payload, markdown=render_payload_summary(payload))
+    return exit_code_for_payload(payload)
 
 
 def run_room(args: argparse.Namespace) -> int:
@@ -644,213 +663,6 @@ def exit_code_for_payload(payload: dict[str, object]) -> int:
     return EXIT_VALIDATION_FAILURE
 
 
-def looks_like_manifest_path(target: str) -> bool:
-    return target.endswith(".json") or "/" in target or "\\" in target
-
-
-def build_room_fixture_run(*, question: str, state_root: Path, run_id: str | None = None) -> dict[str, object]:
-    from roundtable_core.protocol.projections import project_room_state_to_session
-    from roundtable_core.runtime import create_run_dir, write_evidence, write_input, write_output, write_summary
-    from roundtable_core.runtime.state_store import build_run_evidence
-    from roundtable_core.validation import validate_file
-
-    run = create_run_dir(state_root, "room", run_id=run_id)
-    input_payload = {
-        "question": question,
-        "mode": "fixture_backed",
-        "host_live": "not_claimed",
-        "provider_live": "not_claimed",
-    }
-    write_input(run.run_dir, input_payload)
-    room_id = f"room-{uuid.uuid4().hex[:8]}"
-    legacy_root = run.run_dir / "legacy-runtime"
-    command_result = run_json_command(
-        [
-            sys.executable,
-            ROOM_RUNTIME,
-            "validate-canonical",
-            "--state-root",
-            str(legacy_root),
-            "--room-id",
-            room_id,
-        ]
-    )
-    if not command_result["ok"]:
-        return finalize_failed_run(run, input_payload, "room", command_result)
-
-    report = command_result["payload"]
-    state_path = Path(str(report["state_path"]))
-    state = json.loads(state_path.read_text(encoding="utf-8"))
-    artifacts = dict(report.get("artifacts", {}))
-    room_session = project_room_state_to_session(state, artifacts)
-    room_session_path = run.run_dir / "room-session.json"
-    write_json_file(room_session_path, room_session)
-    portable_handoff_path = run.run_dir / "portable-handoff-packet.json"
-    if room_session.get("handoff_packet") is not None:
-        write_json_file(portable_handoff_path, room_session["handoff_packet"])
-
-    validation = validate_file(
-        schema_path=REPO_ROOT / "schemas" / "room-session.schema.json",
-        instance_path=room_session_path,
-    )
-    outputs = {
-        "run_dir": str(run.run_dir),
-        "room_session": str(room_session_path),
-        "portable_handoff_packet": str(portable_handoff_path),
-        "legacy_runtime_report": str(Path(str(artifacts.get("room_dir", legacy_root))) / "validation-report.json"),
-        "legacy_state": str(state_path),
-    }
-    payload = {
-        "ok": validation.ok,
-        "action": "room",
-        "status": "fixture_backed",
-        "question": question,
-        "run_id": run.run_id,
-        "run_dir": str(run.run_dir),
-        "room_id": room_id,
-        "outputs": outputs,
-        "schema_validation": validation.to_dict(),
-        "runtime": command_result,
-        "claim_boundary": claim_boundary_text(),
-    }
-    write_output(run.run_dir, payload)
-    write_evidence(
-        run.run_dir,
-        build_run_evidence(
-            run=run,
-            action="room",
-            input_data=input_payload,
-            claim_boundary=claim_boundary_object(payload["claim_boundary"]),
-            artifact_paths=outputs,
-        ),
-    )
-    write_summary(run.run_dir, render_runtime_summary(payload))
-    return payload
-
-
-def build_debate_fixture_run(*, question: str, state_root: Path, run_id: str | None = None) -> dict[str, object]:
-    from roundtable_core.protocol.projections import project_debate_artifacts_to_result, project_debate_artifacts_to_session
-    from roundtable_core.runtime import create_run_dir, write_evidence, write_input, write_output, write_summary
-    from roundtable_core.runtime.state_store import build_run_evidence
-    from roundtable_core.validation import validate_file
-
-    run = create_run_dir(state_root, "debate", run_id=run_id)
-    input_payload = {
-        "question": question,
-        "mode": "fixture_backed",
-        "host_live": "not_claimed",
-        "provider_live": "not_claimed",
-    }
-    write_input(run.run_dir, input_payload)
-    legacy_root = run.run_dir / "legacy-runtime"
-    command_result = run_json_command(
-        [
-            sys.executable,
-            DEBATE_RUNTIME,
-            "validate-canonical-execution",
-            "--state-root",
-            str(legacy_root),
-        ]
-    )
-    if not command_result["ok"]:
-        return finalize_failed_run(run, input_payload, "debate", command_result)
-
-    report = command_result["payload"]
-    artifacts = dict(report.get("artifacts", {}))
-    debate_artifacts = {
-        "launch_bundle": artifacts["launch_bundle"],
-        "roundtable_record": artifacts["roundtable_record"],
-        "review_packet": artifacts["review_packet"],
-        "review_result": artifacts["review_result"],
-        "legacy_handoff_packet": str(REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "fixtures" / "canonical" / "upgrade.json"),
-    }
-    debate_session = project_debate_artifacts_to_session(debate_artifacts)
-    debate_result = project_debate_artifacts_to_result(debate_artifacts)
-    debate_session_path = run.run_dir / "debate-session.json"
-    debate_result_path = run.run_dir / "debate-result.json"
-    write_json_file(debate_session_path, debate_session)
-    write_json_file(debate_result_path, debate_result)
-
-    session_validation = validate_file(
-        schema_path=REPO_ROOT / "schemas" / "debate-session.schema.json",
-        instance_path=debate_session_path,
-    )
-    result_validation = validate_file(
-        schema_path=REPO_ROOT / "schemas" / "debate-result.schema.json",
-        instance_path=debate_result_path,
-    )
-    outputs = {
-        "run_dir": str(run.run_dir),
-        "debate_session": str(debate_session_path),
-        "debate_result": str(debate_result_path),
-        "legacy_runtime_report": str(Path(str(artifacts.get("debate_dir", legacy_root))) / "validation-report.json"),
-        "launch_bundle": artifacts["launch_bundle"],
-        "review_packet": artifacts["review_packet"],
-        "review_result": artifacts["review_result"],
-    }
-    payload = {
-        "ok": session_validation.ok and result_validation.ok,
-        "action": "debate",
-        "status": "fixture_backed",
-        "question": question,
-        "run_id": run.run_id,
-        "run_dir": str(run.run_dir),
-        "debate_id": report["debate_id"],
-        "outputs": outputs,
-        "schema_validation": {
-            "debate_session": session_validation.to_dict(),
-            "debate_result": result_validation.to_dict(),
-        },
-        "runtime": command_result,
-        "claim_boundary": claim_boundary_text(),
-    }
-    write_output(run.run_dir, payload)
-    write_evidence(
-        run.run_dir,
-        build_run_evidence(
-            run=run,
-            action="debate",
-            input_data=input_payload,
-            claim_boundary=claim_boundary_object(payload["claim_boundary"]),
-            artifact_paths=outputs,
-        ),
-    )
-    write_summary(run.run_dir, render_runtime_summary(payload))
-    return payload
-
-
-def finalize_failed_run(run: object, input_payload: dict[str, object], action: str, command_result: dict[str, object]) -> dict[str, object]:
-    from roundtable_core.runtime import write_output, write_summary
-
-    run_dir = getattr(run, "run_dir")
-    payload = {
-        "ok": False,
-        "action": action,
-        "status": "fixture_backed_failed",
-        "run_id": getattr(run, "run_id"),
-        "run_dir": str(run_dir),
-        "runtime": command_result,
-        "claim_boundary": claim_boundary_text(),
-    }
-    write_output(run_dir, payload)
-    write_summary(run_dir, render_runtime_summary(payload))
-    return payload
-
-
-def run_json_command(command: list[str]) -> dict[str, object]:
-    completed = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True, check=False)
-    payload = parse_json_output(completed.stdout)
-    parsed_payload = isinstance(payload, dict)
-    return {
-        "ok": completed.returncode == 0 and parsed_payload and payload.get("ok") is not False,
-        "command": command,
-        "returncode": completed.returncode,
-        "payload": payload,
-        "stdout": "" if parsed_payload else completed.stdout.strip(),
-        "stderr": completed.stderr.strip(),
-    }
-
-
 def parse_json_output(text: str) -> object | None:
     try:
         return json.loads(text)
@@ -869,48 +681,6 @@ def write_json_file(path: Path, payload: object) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return path
-
-
-def claim_boundary_text() -> list[str]:
-    return [
-        "This is fixture-backed local runtime output.",
-        "It is not host-live validation and not provider-live validation.",
-    ]
-
-
-def claim_boundary_object(notes: list[str]) -> dict[str, object]:
-    return {
-        "local_first": True,
-        "host_live": "not_claimed",
-        "provider_live": "not_claimed",
-        "notes": notes,
-    }
-
-
-def render_runtime_summary(payload: dict[str, object]) -> str:
-    lines = [
-        f"# {str(payload['action']).title()} Fixture Runtime Summary",
-        "",
-        f"- Result: `{'PASS' if payload.get('ok') else 'FAIL'}`",
-        "- Mode: `fixture_backed`",
-        "- Host-live: `not_claimed`",
-        "- Provider-live: `not_claimed`",
-        "",
-        "## Outputs",
-        "",
-    ]
-    outputs = payload.get("outputs", {})
-    if isinstance(outputs, dict):
-        for name, path in outputs.items():
-            lines.append(f"- `{name}`: `{path}`")
-    return "\n".join(lines).rstrip() + "\n"
-
-
-def resolve_repo_path(path_text: str) -> Path:
-    path = Path(path_text).expanduser()
-    if path.is_absolute():
-        return path
-    return REPO_ROOT / path
 
 
 def resolve_state_root(explicit_state_root: str | None, command: str) -> str:

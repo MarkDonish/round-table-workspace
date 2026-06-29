@@ -8,10 +8,13 @@ from pathlib import Path
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = Path(__file__).resolve().parents[4]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from agent_manifest import infer_profile_path, load_manifest, resolve_path, validate_manifest_file, validate_profile
+from roundtable_core.agents.factory import resolve_repo_path, validate_bundle
 
 
 def main() -> int:
@@ -25,31 +28,8 @@ def main() -> int:
     return 0 if report["ok"] else 1
 
 
-def validate_bundle(manifest_path: Path, profile_path: Path | None = None) -> dict[str, object]:
-    manifest_report = validate_manifest_file(manifest_path)
-    manifest = None
-    try:
-        manifest = load_manifest(manifest_path)
-    except Exception:
-        manifest = None
-    resolved_profile = profile_path or infer_profile_path(manifest_path, manifest)
-    profile_report = validate_profile(resolved_profile) if resolved_profile else {
-        "ok": False,
-        "errors": ["profile could not be inferred"],
-    }
-    return {
-        "ok": bool(manifest_report["ok"] and profile_report["ok"]),
-        "action": "agent-bundle-validate",
-        "manifest": str(manifest_path),
-        "profile": str(resolved_profile) if resolved_profile else None,
-        "agent_id": manifest_report.get("agent_id"),
-        "manifest_validation": manifest_report,
-        "profile_validation": profile_report,
-        "claim_boundary": [
-            "This validates local Agent Factory bundle structure only.",
-            "It does not claim live Nuwa execution, host-live execution, or provider-live execution.",
-        ],
-    }
+def resolve_path(path: str | Path) -> Path:
+    return resolve_repo_path(path)
 
 
 if __name__ == "__main__":

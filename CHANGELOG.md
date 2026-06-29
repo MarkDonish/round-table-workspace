@@ -35,6 +35,9 @@ live validation evidence.
 
 - `./rtw demo startup-idea` now generates output through the fixture-backed room
   and debate runtime paths instead of copying only static demo files.
+- Agent Factory registry and bundle validation now live in
+  `roundtable_core.agents.factory`, with `./rtw agent` calling the core service
+  directly and skill-local runtime scripts retained as compatibility wrappers.
 - JSON Schema validation fallback now supports the conditional and composition
   keywords used by current schemas and reports its validator boundary.
 - Default state roots now use `tempfile.gettempdir()`, with `python -m

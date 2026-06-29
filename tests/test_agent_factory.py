@@ -59,6 +59,22 @@ class AgentFactoryTest(unittest.TestCase):
         self.assertGreaterEqual(list_report["agent_count"], 1)
         self.assertTrue(validate_report["ok"], json.dumps(validate_report, ensure_ascii=False, indent=2))
 
+    def test_agent_factory_core_services_cover_registry_and_bundle(self) -> None:
+        from roundtable_core.commands import run_agent_list, run_agent_validate
+
+        list_report = run_agent_list()
+        registry_report = run_agent_validate()
+        bundle_report = run_agent_validate(
+            target="examples/agent-factory/duan-yongping.agent.manifest.json",
+            profile="examples/agent-factory/duan-yongping.roundtable-profile.md",
+        )
+
+        self.assertTrue(list_report["ok"])
+        self.assertEqual(list_report["action"], "agent-registry-list")
+        self.assertTrue(registry_report["ok"], json.dumps(registry_report, ensure_ascii=False, indent=2))
+        self.assertTrue(bundle_report["ok"], json.dumps(bundle_report, ensure_ascii=False, indent=2))
+        self.assertEqual(bundle_report["action"], "agent-bundle-validate")
+
     def test_agent_registry_register_duplicate_protection_with_temp_registry(self) -> None:
         from importlib.machinery import SourceFileLoader
 
@@ -98,6 +114,64 @@ class AgentFactoryTest(unittest.TestCase):
         payload = json.loads(output)
         self.assertEqual(payload["action"], "agent-registry-validate")
         self.assertTrue(payload["ok"])
+
+    def test_rtw_agent_subcommand_output_flags(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output_json = Path(temp_dir) / "agent-list.json"
+
+            code, output = self.invoke_cli(["agent", "list", "--json"])
+            self.assertEqual(code, 0)
+            self.assertEqual(json.loads(output)["action"], "agent-registry-list")
+
+            code, output = self.invoke_cli(["agent", "list", "--quiet", "--output-json", str(output_json)])
+            self.assertEqual(code, 0)
+            self.assertEqual(output, "")
+            payload = json.loads(output_json.read_text(encoding="utf-8"))
+            self.assertEqual(payload["action"], "agent-registry-list")
+
+            code, output = self.invoke_cli(["agent", "--quiet", "list"])
+            self.assertEqual(code, 0)
+            self.assertEqual(output, "")
+
+    def test_rtw_agent_register_uses_core_with_temp_registry(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            registry = Path(temp_dir) / "agent-registry.json"
+            shutil.copyfile(REPO_ROOT / "config" / "agent-registry.json", registry)
+            manifest = REPO_ROOT / "examples" / "agent-factory" / "duan-yongping.agent.manifest.json"
+
+            code, output = self.invoke_cli(
+                [
+                    "agent",
+                    "--registry",
+                    str(registry),
+                    "register",
+                    str(manifest),
+                    "--replace",
+                    "--json",
+                ]
+            )
+
+            self.assertEqual(code, 0)
+            payload = json.loads(output)
+            self.assertEqual(payload["action"], "agent-register")
+            self.assertTrue(payload["ok"])
+
+    def test_rtw_agent_missing_paths_return_structured_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            missing_registry = Path(temp_dir) / "missing-registry.json"
+            missing_manifest = Path(temp_dir) / "missing.agent.manifest.json"
+
+            code, output = self.invoke_cli(["agent", "--registry", str(missing_registry), "list"])
+            self.assertEqual(code, 1)
+            payload = json.loads(output)
+            self.assertEqual(payload["action"], "agent-registry-list")
+            self.assertIn("registry does not exist", payload["errors"][0])
+
+            code, output = self.invoke_cli(["agent", "validate", str(missing_manifest)])
+            self.assertEqual(code, 1)
+            payload = json.loads(output)
+            self.assertEqual(payload["action"], "agent-bundle-validate")
+            self.assertIn("manifest does not exist", payload["manifest_validation"]["errors"][0])
 
 
 if __name__ == "__main__":

@@ -60,10 +60,12 @@ only become `enabled` after explicit user or CLI action.
 
 ## Current Runtime Commands
 
+The recommended command surface is `./rtw agent`, backed by
+`roundtable_core.agents.factory` and `roundtable_core.commands.agent_factory`.
 Validate an agent bundle:
 
 ```bash
-python3 .codex/skills/agent-builder-skill/runtime/validate_agent_bundle.py \
+./rtw agent validate \
   examples/agent-factory/duan-yongping.agent.manifest.json \
   --profile examples/agent-factory/duan-yongping.roundtable-profile.md
 ```
@@ -71,17 +73,14 @@ python3 .codex/skills/agent-builder-skill/runtime/validate_agent_bundle.py \
 List and validate the Agent Factory registry:
 
 ```bash
-python3 .codex/skills/agent-builder-skill/runtime/agent_registry.py list
-python3 .codex/skills/agent-builder-skill/runtime/agent_registry.py validate
-```
-
-The unified CLI mirrors the same local metadata operations:
-
-```bash
 ./rtw agent list
 ./rtw agent validate
 ./rtw agent register examples/agent-factory/duan-yongping.agent.manifest.json --replace
 ```
+
+The `.codex/skills/agent-builder-skill/runtime/` scripts remain compatible
+host-local entrypoints, but they now delegate to the same core implementation
+instead of owning separate registry logic.
 
 ## MVP Boundary
 

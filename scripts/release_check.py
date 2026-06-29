@@ -173,20 +173,21 @@ def run_schema_validations(timeout: int) -> dict[str, Any]:
 def run_agent_factory_checks(timeout: int) -> dict[str, Any]:
     commands = {
         "bundle_validation": [
-            sys.executable,
-            ".codex/skills/agent-builder-skill/runtime/validate_agent_bundle.py",
+            "./rtw",
+            "agent",
+            "validate",
             "examples/agent-factory/duan-yongping.agent.manifest.json",
             "--profile",
             "examples/agent-factory/duan-yongping.roundtable-profile.md",
         ],
         "registry_list": [
-            sys.executable,
-            ".codex/skills/agent-builder-skill/runtime/agent_registry.py",
+            "./rtw",
+            "agent",
             "list",
         ],
         "registry_validate": [
-            sys.executable,
-            ".codex/skills/agent-builder-skill/runtime/agent_registry.py",
+            "./rtw",
+            "agent",
             "validate",
         ],
     }

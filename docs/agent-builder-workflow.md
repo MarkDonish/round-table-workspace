@@ -12,6 +12,23 @@ This document describes the Agent Factory backend workflow.
 
 ## Commands
 
+Recommended CLI path:
+
+```bash
+./rtw agent validate \
+  examples/agent-factory/duan-yongping.agent.manifest.json \
+  --profile examples/agent-factory/duan-yongping.roundtable-profile.md
+
+./rtw agent list
+./rtw agent validate
+./rtw agent register examples/agent-factory/duan-yongping.agent.manifest.json --replace
+```
+
+The Agent Factory logic lives in `roundtable_core.agents.factory` and
+`roundtable_core.commands.agent_factory`. The `.codex/skills/agent-builder-skill/runtime/`
+scripts remain compatibility/debug entrypoints for hosts that still call the
+skill-local runtime directly:
+
 ```bash
 python3 .codex/skills/agent-builder-skill/runtime/validate_agent_bundle.py \
   examples/agent-factory/duan-yongping.agent.manifest.json \
@@ -19,14 +36,6 @@ python3 .codex/skills/agent-builder-skill/runtime/validate_agent_bundle.py \
 
 python3 .codex/skills/agent-builder-skill/runtime/agent_registry.py list
 python3 .codex/skills/agent-builder-skill/runtime/agent_registry.py validate
-```
-
-Equivalent CLI wrappers:
-
-```bash
-./rtw agent list
-./rtw agent validate
-./rtw agent register examples/agent-factory/duan-yongping.agent.manifest.json --replace
 ```
 
 ## Next Phase

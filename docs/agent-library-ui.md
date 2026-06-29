@@ -17,7 +17,12 @@ The UI should call local APIs or CLI wrappers that ultimately use:
 - `schemas/agent-manifest.schema.json`
 - `schemas/agent-registry.schema.json`
 - `schemas/agent-selection-request.schema.json`
-- `.codex/skills/agent-builder-skill/runtime/agent_registry.py`
+- `roundtable_core.agents.factory`
+- `roundtable_core.commands.agent_factory`
+- `./rtw agent list|validate|register|enable|disable`
+
+The `.codex/skills/agent-builder-skill/runtime/` scripts are compatibility
+entrypoints, not the preferred UI/backend integration surface.
 
 UI state should map to selection semantics:
 
