@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -140,14 +141,30 @@ def check_claim_dashboard_freshness(readme: str) -> dict[str, Any]:
             problems.append(f"claim_dashboard_missing_{marker.rstrip(':')}")
     stale_after = extract_markdown_metadata(report_text, "stale_after")
     stale_after_dt = parse_iso_datetime(stale_after) if stale_after else None
+    source_commit = extract_markdown_metadata(report_text, "source_commit")
+    source_commit_is_ancestor: bool | None = None
     if stale_after and stale_after_dt is None:
         problems.append("claim_dashboard_stale_after_unparseable")
     if stale_after_dt and stale_after_dt <= datetime.now(timezone.utc):
         problems.append("claim_dashboard_stale")
+    if not source_commit:
+        problems.append("claim_dashboard_source_commit_missing")
+    elif source_commit.endswith("+dirty"):
+        problems.append("claim_dashboard_source_commit_dirty")
+    elif not re.fullmatch(r"[0-9a-f]{40}", source_commit):
+        problems.append("claim_dashboard_source_commit_unparseable")
+    else:
+        source_commit_is_ancestor = git_commit_is_ancestor(source_commit)
+        if source_commit_is_ancestor is False:
+            problems.append("claim_dashboard_source_commit_not_ancestor")
+        elif source_commit_is_ancestor is None:
+            problems.append("claim_dashboard_source_commit_unverifiable")
     return {
         "ok": report_path.is_file() and not problems,
         "report": "reports/claim-boundary-dashboard.md",
         "stale_after": stale_after,
+        "source_commit": source_commit,
+        "source_commit_is_ancestor": source_commit_is_ancestor,
         "warnings": warnings,
         "problems": problems,
     }
@@ -167,6 +184,24 @@ def parse_iso_datetime(value: str) -> datetime | None:
     if parsed.tzinfo is None:
         return parsed.replace(tzinfo=timezone.utc)
     return parsed.astimezone(timezone.utc)
+
+
+def git_commit_is_ancestor(commit: str) -> bool | None:
+    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT, text=True, capture_output=True, check=False)
+    if head.returncode != 0:
+        return None
+    completed = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", commit, head.stdout.strip()],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode == 0:
+        return True
+    if completed.returncode == 1:
+        return False
+    return None
 
 
 def check_protocol_versioning(readme: str, launch: str) -> dict[str, Any]:

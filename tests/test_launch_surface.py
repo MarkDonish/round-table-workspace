@@ -282,6 +282,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertTrue(freshness["ok"], freshness)
         self.assertEqual(freshness["problems"], [])
         self.assertIsNotNone(freshness["stale_after"])
+        self.assertRegex(freshness["source_commit"], r"^[0-9a-f]{40}$")
+        self.assertTrue(freshness["source_commit_is_ancestor"], freshness)
 
     @staticmethod
     def load_module(name: str, path: Path) -> object:
