@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from chat_completions_executor import parse_json_from_text
+from secret_redaction import redact_sensitive_text, redact_sensitive_value
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parents[3]
@@ -798,7 +799,7 @@ def run_local_codex_prompt(
         }
 
         if prompt_path is not None:
-            prompt_path.write_text(task_prompt, encoding="utf-8")
+            prompt_path.write_text(redact_sensitive_text(task_prompt), encoding="utf-8")
         write_trace_manifest(trace_manifest_path, trace_manifest)
         attempts: list[dict[str, Any]] = []
         last_timeout_error: LocalCodexExecutorError | None = None
@@ -964,7 +965,7 @@ def run_local_codex_prompt(
                         )
                     existing_output = output_path.read_text(encoding="utf-8") if output_path.exists() else None
                     if existing_output != response_text:
-                        output_path.write_text(response_text, encoding="utf-8")
+                        output_path.write_text(redact_sensitive_text(response_text), encoding="utf-8")
                     trace_manifest["final_model"] = candidate_model
                     trace_manifest["response_source"] = response_source
                     set_trace_manifest_finished(
@@ -976,9 +977,10 @@ def run_local_codex_prompt(
                     return response_text
 
                 failure_info = classify_command_failure(stdout=completed.stdout, stderr=completed.stderr, returncode=completed.returncode)
+                safe_summary = redact_sensitive_text(str(failure_info["summary"]))
                 last_failure_message = (
                     "local codex exec failed: "
-                    + failure_info["summary"]
+                    + safe_summary
                     + build_trace_hint(trace_base)
                 )
                 last_failure_details = build_local_codex_error_details(
@@ -996,7 +998,7 @@ def run_local_codex_prompt(
                         "status": "failed",
                         "returncode": completed.returncode,
                         "failure_category": failure_info["failure_category"],
-                        "summary": failure_info["summary"],
+                        "summary": safe_summary,
                         "retryable": failure_info["retryable"],
                         "try_next_model": failure_info["try_next_model"],
                         "finished_at": utc_now_iso(),
@@ -1051,7 +1053,7 @@ def summarize_command_failure(stdout: str, stderr: str, returncode: int) -> str:
     condensed = " ".join(combined.split())
     if len(condensed) > 400:
         condensed = condensed[:400] + "..."
-    return f"exit={returncode}; output={condensed or '信息缺失'}"
+    return redact_sensitive_text(f"exit={returncode}; output={condensed or '信息缺失'}")
 
 
 def read_child_response_text(*, output_path: Path, stdout_jsonl: str) -> tuple[str | None, str | None]:
@@ -1310,7 +1312,7 @@ def write_trace_manifest(path: Path | None, payload: dict[str, Any]) -> None:
     if path is None:
         return
     payload["updated_at"] = utc_now_iso()
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def set_trace_manifest_finished(
@@ -1363,10 +1365,10 @@ def build_local_codex_error_details(
     if response_source is not None:
         details["response_source"] = response_source
     if summary is not None:
-        details["summary"] = summary
+        details["summary"] = redact_sensitive_text(summary)
     if response_excerpt is not None:
-        details["response_excerpt"] = response_excerpt
-    return details
+        details["response_excerpt"] = redact_sensitive_text(response_excerpt)
+    return redact_sensitive_value(details)
 
 
 _CODEX_EXEC_FLAG_SUPPORT_CACHE: dict[tuple[str, str], bool] = {}
@@ -1395,7 +1397,7 @@ def codex_exec_supports_flag(codex_path: str, flag: str) -> bool:
 
 def serialize_local_codex_error(exc: Exception, *, trace_base: Path | None = None) -> dict[str, Any]:
     payload = {
-        "error": str(exc),
+        "error": redact_sensitive_text(str(exc)),
         "error_type": type(exc).__name__,
     }
     if trace_base is not None:
@@ -1406,7 +1408,7 @@ def serialize_local_codex_error(exc: Exception, *, trace_base: Path | None = Non
         payload["local_codex"] = exc.details
         payload["trace_base"] = exc.details.get("trace_base", payload.get("trace_base"))
         payload["trace_manifest"] = exc.details.get("trace_manifest", payload.get("trace_manifest"))
-    return payload
+    return redact_sensitive_value(payload)
 
 
 def classify_command_failure(*, stdout: str, stderr: str, returncode: int) -> dict[str, Any]:
@@ -2342,7 +2344,7 @@ def write_trace_text(path: Path | None, payload: str | bytes | None) -> None:
         text = payload.decode("utf-8", errors="replace")
     else:
         text = payload
-    path.write_text(text, encoding="utf-8")
+    path.write_text(redact_sensitive_text(text), encoding="utf-8")
 
 
 def build_trace_hint(trace_base: Path | None) -> str:

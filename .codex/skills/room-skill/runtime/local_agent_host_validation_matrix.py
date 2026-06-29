@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import agent_host_inventory
+from secret_redaction import redact_sensitive_text, redact_sensitive_value
 
 
 RUNTIME_DIR = Path(__file__).resolve().parent
@@ -34,7 +35,7 @@ def main() -> int:
     report["artifacts"]["json"] = str(output_json)
     report["artifacts"]["markdown"] = str(output_markdown)
     write_json(output_json, report)
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    print(json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2))
     return 0 if report["ok"] else 1
 
 
@@ -194,9 +195,9 @@ def build_host_row(
         "inventory_blocker": host.get("blocker"),
         "adapter_command": host.get("adapter_command"),
         "json_wrapper_command": host.get("json_wrapper_command"),
-        "selected_agent_command": command,
-        "recommended_validation_command": validation_command,
-        "recommended_validation_argv": validation_argv,
+        "selected_agent_command": redact_sensitive_text(command) if command else None,
+        "recommended_validation_command": redact_sensitive_value(validation_command),
+        "recommended_validation_argv": redact_sensitive_value(validation_argv),
         "recommended_validation_context": build_validation_context(validation_argv),
         "matrix_status": "pending",
         "severity": "P1",
@@ -495,12 +496,12 @@ def read_json_if_exists(path: Path) -> Any:
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
+    path.write_text(redact_sensitive_text(text), encoding="utf-8")
 
 
 def utc_now_iso() -> str:

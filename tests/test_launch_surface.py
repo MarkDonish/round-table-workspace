@@ -197,6 +197,64 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertEqual(workflow_check["default_dry_run"], "false")
         self.assertTrue(workflow_check["publication_safe"])
         self.assertFalse(workflow_check["push_trigger_can_publish"])
+        self.assertTrue(workflow_check["has_tag_checkout_guard"])
+        self.assertTrue(workflow_check["watches_gate_scripts"])
+
+    def test_release_publication_paths_are_repo_bounded(self) -> None:
+        publication_check = self.load_module(
+            "github_release_publication_check_paths",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "github_release_publication_check.py",
+        )
+        release_extractor = self.load_module(
+            "extract_github_release_body_paths",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "extract_github_release_body.py",
+        )
+
+        extraction = release_extractor.build_report(
+            SimpleNamespace(release_draft="../README.md", output="/tmp/rtw-test-release-body.md", output_json=None)
+        )
+        self.assertFalse(extraction["ok"])
+        self.assertEqual(extraction["error"], "release_draft_outside_repo")
+
+        absolute_extraction = release_extractor.build_report(
+            SimpleNamespace(release_draft="/tmp/README.md", output="/tmp/rtw-test-release-body.md", output_json=None)
+        )
+        self.assertFalse(absolute_extraction["ok"])
+        self.assertEqual(absolute_extraction["error"], "release_draft_must_be_repo_relative")
+
+        draft_check = publication_check.check_release_draft("../README.md")
+        self.assertFalse(draft_check["exists"])
+        self.assertFalse(draft_check["within_repo"])
+        self.assertEqual(draft_check["error"], "release_draft_outside_repo")
+
+        workflow_check = publication_check.check_release_workflow("../publish.yml")
+        self.assertFalse(workflow_check["usable"])
+        self.assertFalse(workflow_check["within_repo"])
+        self.assertEqual(workflow_check["error"], "release_workflow_outside_repo")
+
+    def test_publish_release_workflow_dry_run_does_not_swallow_gh_errors(self) -> None:
+        workflow = (REPO_ROOT / ".github" / "workflows" / "publish-github-release.yml").read_text(encoding="utf-8")
+
+        self.assertNotIn("gh release view \"$TAG\" --repo \"$GITHUB_REPOSITORY\" \\\n            --json tagName,name,isDraft,isPrerelease,publishedAt,targetCommitish,url || true", workflow)
+        self.assertIn('release_view_status=$?', workflow)
+        self.assertIn('release_view_status":"not_found"', workflow)
+        self.assertIn('exit "$release_view_status"', workflow)
+        self.assertIn("Verify checkout matches release tag", workflow)
+        self.assertIn('tag_commit="$(git rev-list -n 1 "$TAG")"', workflow)
+        self.assertIn("release checkout does not match tag", workflow)
+        for path in [
+            ".codex/skills/room-skill/runtime/github_release_publication_check.py",
+            "scripts/check_source_truth_consistency.py",
+            "scripts/release_check.py",
+        ]:
+            self.assertIn(path, workflow)
+
+    def test_ci_release_check_uses_strict_clean_gate_and_read_permissions(self) -> None:
+        workflow = (REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+
+        self.assertIn("permissions:\n  contents: read", workflow)
+        self.assertIn("fetch-depth: 0", workflow)
+        self.assertIn("./rtw release-check --include-fixtures --strict-git-clean", workflow)
 
     def test_source_truth_accepts_safe_release_workflow_defaults(self) -> None:
         from scripts import check_source_truth_consistency
@@ -211,6 +269,8 @@ class LaunchSurfaceTest(unittest.TestCase):
             "docs/releases/v0.2.2-pages-launch-kit-github-release.md",
         )
         self.assertFalse(release_defaults["workflow_push_trigger_can_publish"])
+        self.assertTrue(release_defaults["workflow_has_tag_checkout_guard"])
+        self.assertTrue(release_defaults["workflow_watches_gate_scripts"])
         self.assertEqual(release_defaults["problems"], [])
 
     def test_source_truth_requires_fresh_claim_dashboard(self) -> None:

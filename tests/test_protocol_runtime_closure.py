@@ -93,6 +93,35 @@ class ProtocolRuntimeClosureTest(unittest.TestCase):
             self.assertIn("room_id must not contain path traversal", payload["error"])
             self.assertFalse((Path(temp_dir).parent / "escape").exists())
 
+    def test_room_runtime_refuses_symlink_state_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            real_dir = base / "real"
+            real_dir.mkdir()
+            link_dir = base / "link"
+            link_dir.symlink_to(real_dir, target_is_directory=True)
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    ".codex/skills/room-skill/runtime/room_runtime.py",
+                    "validate-canonical",
+                    "--state-root",
+                    str(base / "missing" / ".." / "link"),
+                    "--room-id",
+                    "room-symlink-test",
+                ],
+                cwd=REPO_ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 1)
+            payload = json.loads(completed.stdout)
+            self.assertFalse(payload["ok"])
+            self.assertIn("symlink component", payload["error"])
+            self.assertFalse((real_dir / "room-symlink-test").exists())
+
     def test_debate_runtime_projects_to_portable_schemas(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             completed = subprocess.run(
@@ -178,6 +207,33 @@ class ProtocolRuntimeClosureTest(unittest.TestCase):
             self.assertFalse(payload["ok"])
             self.assertIn("debate_id must not contain path traversal", payload["error"])
             self.assertFalse((Path(temp_dir).parent / "escape").exists())
+
+    def test_debate_runtime_refuses_symlink_state_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            real_dir = base / "real"
+            real_dir.mkdir()
+            link_dir = base / "link"
+            link_dir.symlink_to(real_dir, target_is_directory=True)
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    ".codex/skills/debate-roundtable-skill/runtime/debate_runtime.py",
+                    "validate-canonical-execution",
+                    "--state-root",
+                    str(base / "missing" / ".." / "link"),
+                ],
+                cwd=REPO_ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertEqual(completed.returncode, 1)
+            payload = json.loads(completed.stdout)
+            self.assertFalse(payload["ok"])
+            self.assertIn("symlink component", payload["error"])
+            self.assertFalse((real_dir / "debate-canonical-execution").exists())
 
 
 if __name__ == "__main__":

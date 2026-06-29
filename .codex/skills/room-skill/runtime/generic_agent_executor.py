@@ -15,6 +15,7 @@ from typing import Any
 
 from chat_completions_executor import parse_json_from_text
 import local_codex_executor as local_executor
+from secret_redaction import redact_sensitive_text, redact_sensitive_value
 
 
 RUNTIME_DIR = Path(__file__).resolve().parent
@@ -127,7 +128,7 @@ def describe_agent_executor(*, executor_name: str, command: str | None, timeout_
     return {
         "mode": executor_name,
         "host_adapter": "local_agent_cli",
-        "command": resolved_command,
+        "command": redact_sensitive_text(resolved_command),
         "timeout_seconds": timeout_seconds or DEFAULT_TIMEOUT_SECONDS,
         "stdin_contract": "round-table task prompt",
         "stdout_contract": "one JSON object, or write one JSON object to {output_file}",
@@ -174,7 +175,7 @@ def check_agent_exec(*, repo_root: Path, command: str, host_name: str, timeout_s
         "ready": True,
         "mode": "generic_agent_exec",
         "host_name": host_name,
-        "command": command,
+        "command": redact_sensitive_text(command),
         "response": payload,
     }
 
@@ -246,6 +247,8 @@ def run_generic_agent_prompt(
         output_file = require_path(paths["output_file"])
         prompt_file.write_text(task_prompt, encoding="utf-8")
         input_file.write_text(json.dumps(prompt_input, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        write_text_file(paths["trace_prompt_file"], task_prompt)
+        write_json_file(paths["trace_input_file"], prompt_input)
 
         command_tokens = prepare_command_tokens(
             command=command,
@@ -365,8 +368,9 @@ def run_generic_agent_prompt(
             trace_payload["returncode"] = completed.returncode
             trace_payload["failure_category"] = failure["failure_category"]
             write_trace_manifest(paths["trace_manifest"], trace_payload)
+            safe_summary = redact_sensitive_text(str(failure["summary"]))
             raise GenericAgentExecutorError(
-                f"agent CLI exited with code {completed.returncode}: {failure['summary']}"
+                f"agent CLI exited with code {completed.returncode}: {safe_summary}"
                 + build_trace_hint(trace_base),
                 details=build_generic_agent_error_details(
                     failure_category=failure["failure_category"],
@@ -382,6 +386,7 @@ def run_generic_agent_prompt(
             )
 
         response, response_source = read_agent_response(stdout=stdout, output_file=output_file)
+        write_text_file(paths["trace_output_file"], output_file.read_text(encoding="utf-8", errors="replace") if output_file.exists() else response)
         write_text_file(paths["last_message"], response)
         if not response.strip():
             set_trace_manifest_finished(trace_payload, final_status="empty_response", started_monotonic=started_monotonic)
@@ -452,9 +457,12 @@ def build_trace_paths(*, trace_base: Path | None, temp_dir: Path) -> dict[str, P
     if trace_base is not None:
         trace_base.parent.mkdir(parents=True, exist_ok=True)
         return {
-            "prompt_file": Path(f"{trace_base}.agent-task-prompt.md"),
-            "input_file": Path(f"{trace_base}.agent-input.json"),
-            "output_file": Path(f"{trace_base}.agent-output.json"),
+            "prompt_file": temp_dir / "task-prompt.md",
+            "input_file": temp_dir / "input.json",
+            "output_file": temp_dir / "output.json",
+            "trace_prompt_file": Path(f"{trace_base}.agent-task-prompt.md"),
+            "trace_input_file": Path(f"{trace_base}.agent-input.json"),
+            "trace_output_file": Path(f"{trace_base}.agent-output.json"),
             "stdout": Path(f"{trace_base}.agent-stdout.txt"),
             "stderr": Path(f"{trace_base}.agent-stderr.txt"),
             "last_message": Path(f"{trace_base}.agent-last-message.txt"),
@@ -465,6 +473,9 @@ def build_trace_paths(*, trace_base: Path | None, temp_dir: Path) -> dict[str, P
         "prompt_file": temp_dir / "task-prompt.md",
         "input_file": temp_dir / "input.json",
         "output_file": temp_dir / "output.json",
+        "trace_prompt_file": None,
+        "trace_input_file": None,
+        "trace_output_file": None,
         "stdout": None,
         "stderr": None,
         "last_message": temp_dir / "last-message.txt",
@@ -503,7 +514,7 @@ def build_generic_agent_error_details(
         "host_name": host_name,
     }
     if command is not None:
-        details["command"] = command
+        details["command"] = redact_sensitive_text(command)
     if trace_base is not None:
         details["trace_base"] = str(trace_base)
         details["trace_manifest"] = str(Path(f"{trace_base}{TRACE_MANIFEST_SUFFIX}"))
@@ -514,20 +525,20 @@ def build_generic_agent_error_details(
     if response_source is not None:
         details["response_source"] = response_source
     if summary is not None:
-        details["summary"] = summary
+        details["summary"] = redact_sensitive_text(summary)
     if response_excerpt is not None:
-        details["response_excerpt"] = response_excerpt
+        details["response_excerpt"] = redact_sensitive_text(response_excerpt)
     if stdout_excerpt is not None:
-        details["stdout_excerpt"] = stdout_excerpt
+        details["stdout_excerpt"] = redact_sensitive_text(stdout_excerpt)
     if stderr_excerpt is not None:
-        details["stderr_excerpt"] = stderr_excerpt
-    return details
+        details["stderr_excerpt"] = redact_sensitive_text(stderr_excerpt)
+    return redact_sensitive_value(details)
 
 
 def serialize_prompt_executor_error(exc: Exception, *, trace_base: Path | None = None) -> dict[str, Any]:
     if isinstance(exc, GenericAgentExecutorError):
         payload = {
-            "error": str(exc),
+            "error": redact_sensitive_text(str(exc)),
             "error_type": type(exc).__name__,
         }
         if trace_base is not None:
@@ -538,8 +549,8 @@ def serialize_prompt_executor_error(exc: Exception, *, trace_base: Path | None =
             payload["generic_agent"] = exc.details
             payload["trace_base"] = exc.details.get("trace_base", payload.get("trace_base"))
             payload["trace_manifest"] = exc.details.get("trace_manifest", payload.get("trace_manifest"))
-        return payload
-    return local_executor.serialize_local_codex_error(exc, trace_base=trace_base)
+        return redact_sensitive_value(payload)
+    return redact_sensitive_value(local_executor.serialize_local_codex_error(exc, trace_base=trace_base))
 
 
 def build_trace_hint(trace_base: Path | None) -> str:
@@ -552,7 +563,7 @@ def write_trace_manifest(path: Path | None, payload: dict[str, Any]) -> None:
     if path is None:
         return
     payload["updated_at"] = utc_now_iso()
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def set_trace_manifest_finished(
@@ -570,14 +581,14 @@ def write_json_file(path: Path | None, payload: dict[str, Any]) -> None:
     if path is None:
         return
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def write_text_file(path: Path | None, text: str) -> None:
     if path is None:
         return
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
+    path.write_text(redact_sensitive_text(text), encoding="utf-8")
 
 
 def ensure_text(value: Any) -> str:

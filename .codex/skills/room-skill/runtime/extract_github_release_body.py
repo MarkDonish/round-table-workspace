@@ -60,7 +60,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
-    draft_path = (REPO_ROOT / args.release_draft).resolve()
+    draft_path, draft_error = resolve_repo_relative_path(args.release_draft)
     report: dict[str, Any] = {
         "ok": False,
         "action": "extract-github-release-body",
@@ -73,6 +73,9 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "json": None,
         },
     }
+    if draft_error:
+        report["error"] = draft_error
+        return report
     if not draft_path.is_file():
         report["error"] = "release_draft_not_found"
         return report
@@ -104,6 +107,18 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         }
     )
     return report
+
+
+def resolve_repo_relative_path(path_text: str) -> tuple[Path, str | None]:
+    candidate = Path(path_text).expanduser()
+    if candidate.is_absolute():
+        return candidate.resolve(), "release_draft_must_be_repo_relative"
+    resolved = (REPO_ROOT / candidate).resolve()
+    try:
+        resolved.relative_to(REPO_ROOT)
+    except ValueError:
+        return resolved, "release_draft_outside_repo"
+    return resolved, None
 
 
 def extract_release_body(text: str) -> dict[str, Any]:

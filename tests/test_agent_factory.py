@@ -201,7 +201,7 @@ class AgentFactoryTest(unittest.TestCase):
             self.assertEqual(code, 1)
             payload = json.loads(output)
             self.assertEqual(payload["action"], "agent-register")
-            self.assertIn("Refusing to write registry through symlink", payload["errors"][0])
+            self.assertIn("symlink component", payload["errors"][0])
 
     def test_rtw_agent_register_refuses_symlink_registry_parent(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -246,6 +246,33 @@ class AgentFactoryTest(unittest.TestCase):
                     "agent",
                     "--registry",
                     str(relative_registry),
+                    "register",
+                    str(manifest),
+                    "--replace",
+                ]
+            )
+
+            self.assertEqual(code, 1)
+            payload = json.loads(output)
+            self.assertEqual(payload["action"], "agent-register")
+            self.assertIn("symlink component", payload["errors"][0])
+
+    def test_rtw_agent_register_refuses_hidden_symlink_registry_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            real_dir = base / "real"
+            real_dir.mkdir()
+            registry = real_dir / "agent-registry.json"
+            shutil.copyfile(REPO_ROOT / "config" / "agent-registry.json", registry)
+            link_dir = base / "link"
+            link_dir.symlink_to(real_dir, target_is_directory=True)
+            manifest = REPO_ROOT / "examples" / "agent-factory" / "duan-yongping.agent.manifest.json"
+
+            code, output = self.invoke_cli(
+                [
+                    "agent",
+                    "--registry",
+                    str(base / "missing" / ".." / "link" / "agent-registry.json"),
                     "register",
                     str(manifest),
                     "--replace",

@@ -32,6 +32,9 @@ on:
     paths:
       - ".github/workflows/publish-github-release.yml"
       - ".codex/skills/room-skill/runtime/extract_github_release_body.py"
+      - ".codex/skills/room-skill/runtime/github_release_publication_check.py"
+      - "scripts/check_source_truth_consistency.py"
+      - "scripts/release_check.py"
       - "docs/releases/v0.2.2-pages-launch-kit-github-release.md"
 
 permissions:
@@ -77,6 +80,17 @@ jobs:
           git fetch --tags --force
           git rev-parse --verify "refs/tags/${TAG}"
 
+      - name: Verify checkout matches release tag
+        if: env.DRY_RUN != 'true'
+        shell: bash
+        run: |
+          tag_commit="$(git rev-list -n 1 "$TAG")"
+          head_commit="$(git rev-parse HEAD)"
+          if [ "$tag_commit" != "$head_commit" ]; then
+            echo "release checkout does not match tag: HEAD=$head_commit TAG=$TAG tag_commit=$tag_commit" >&2
+            exit 1
+          fi
+
       - name: Extract release body
         shell: bash
         run: |
@@ -90,8 +104,20 @@ jobs:
         shell: bash
         run: |
           cat /tmp/github-release-body.json
+          set +e
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
-            --json tagName,name,isDraft,isPrerelease,publishedAt,targetCommitish,url || true
+            --json tagName,name,isDraft,isPrerelease,publishedAt,targetCommitish,url \
+            > /tmp/github-release-view.json 2> /tmp/github-release-view.err
+          release_view_status=$?
+          set -e
+          if [ "$release_view_status" -eq 0 ]; then
+            cat /tmp/github-release-view.json
+          elif grep -Eiq "(not found|HTTP 404|release not found)" /tmp/github-release-view.err; then
+            printf '{"release_view_status":"not_found","tag":"%s"}\n' "$TAG"
+          else
+            cat /tmp/github-release-view.err >&2
+            exit "$release_view_status"
+          fi
 
       - name: Publish or update release
         if: env.DRY_RUN != 'true'

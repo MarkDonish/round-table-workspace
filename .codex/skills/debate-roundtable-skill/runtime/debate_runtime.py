@@ -18,7 +18,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from roundtable_core.protocol.handoff import portable_handoff_to_runtime_packet
-from roundtable_core.runtime.paths import validate_path_segment
+from roundtable_core.runtime.paths import assert_no_symlink_components, validate_path_segment
 
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "debates"
 ROOM_UPGRADE_FIXTURE = (
@@ -256,7 +256,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def command_build_launch_bundle(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_runtime_state_root(args.state_root)
     payload = load_json(Path(args.packet_json))
     packet = unwrap_packet(payload)
     packet_acceptance = validate_packet_payload(payload)
@@ -421,7 +421,7 @@ def command_build_rereview_packet(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def command_validate_canonical(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_runtime_state_root(args.state_root)
     debate_id = "debate-canonical-bridge"
     room_id = "room-canonical-debate"
 
@@ -481,7 +481,7 @@ def command_validate_canonical(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def command_validate_canonical_execution(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_runtime_state_root(args.state_root)
     debate_id = "debate-canonical-execution"
     room_id = "room-canonical-debate"
 
@@ -568,7 +568,7 @@ def command_validate_canonical_execution(args: argparse.Namespace) -> dict[str, 
 
 
 def command_validate_canonical_followup(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_runtime_state_root(args.state_root)
     debate_id = "debate-canonical-followup"
     room_id = "room-canonical-debate"
 
@@ -2085,6 +2085,15 @@ def get_debate_dir(state_root: Path, debate_id: str) -> Path:
     except ValueError as exc:
         raise DebateRuntimeError(str(exc)) from exc
     return state_root / debate_id
+
+
+def resolve_runtime_state_root(path_text: str) -> Path:
+    raw_root = Path(path_text).expanduser()
+    try:
+        assert_no_symlink_components(raw_root, include_leaf=True)
+    except ValueError as exc:
+        raise DebateRuntimeError(str(exc)) from exc
+    return raw_root.resolve()
 
 
 def ensure_directory(path: Path) -> None:

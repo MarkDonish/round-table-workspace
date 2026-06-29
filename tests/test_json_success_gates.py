@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -56,6 +57,37 @@ class JsonSuccessGateTest(unittest.TestCase):
         self.assertFalse(summary["local_first_mainline_ready"])
         self.assertIn("source_truth_consistency_failed", summary["p0_blockers"])
         self.assertFalse(summary["source_truth_consistency_ok"])
+
+    def test_agent_consumer_self_check_refuses_symlink_output_json(self) -> None:
+        module = load_module(
+            "agent_consumer_self_check_output_guard_test",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "agent_consumer_self_check.py",
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            victim = Path(temp_dir) / "victim.json"
+            victim.write_text("keep", encoding="utf-8")
+            output_json = Path(temp_dir) / "out.json"
+            output_json.symlink_to(victim)
+
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                module.write_json(output_json, {"ok": True})
+
+            self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
+
+    def test_source_truth_refuses_symlink_output_json(self) -> None:
+        from scripts import check_source_truth_consistency
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            victim = Path(temp_dir) / "victim.json"
+            victim.write_text("keep", encoding="utf-8")
+            output_json = Path(temp_dir) / "out.json"
+            output_json.symlink_to(victim)
+
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                check_source_truth_consistency.write_json(output_json, {"ok": True})
+
+            self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
 
     def test_development_checkpoint_rejects_empty_json_success(self) -> None:
         module = load_module(

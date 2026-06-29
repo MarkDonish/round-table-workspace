@@ -251,6 +251,8 @@ def build_summary(
         "release_workflow_defaults_match_requested_release": workflow_defaults_match,
         "release_workflow_publication_safe": workflow_publication_safe,
         "release_workflow_push_trigger_can_publish": release_workflow["push_trigger_can_publish"],
+        "release_workflow_has_tag_checkout_guard": release_workflow["has_tag_checkout_guard"],
+        "release_workflow_watches_gate_scripts": release_workflow["watches_gate_scripts"],
         "repo_automation_available": repo_automation_available,
         "release_workflow_run_status": workflow_run_status,
         "release_workflow_latest_run": workflow_runs.get("latest_run"),
@@ -400,12 +402,14 @@ def check_local_tag(tag: str, timeout_seconds: int) -> dict[str, Any]:
 
 
 def check_release_draft(release_draft: str) -> dict[str, Any]:
-    path = REPO_ROOT / release_draft
+    path, path_error = resolve_repo_relative_path(release_draft, "release_draft")
     return {
-        "exists": path.is_file(),
+        "exists": path_error is None and path.is_file(),
         "path": release_draft,
         "absolute_path": str(path),
-        "size_bytes": path.stat().st_size if path.is_file() else None,
+        "within_repo": path_error is None,
+        "error": path_error,
+        "size_bytes": path.stat().st_size if path_error is None and path.is_file() else None,
     }
 
 
@@ -415,12 +419,53 @@ def check_release_workflow(
     expected_tag: str | None = None,
     expected_release_draft: str | None = None,
 ) -> dict[str, Any]:
-    path = REPO_ROOT / release_workflow
+    path, path_error = resolve_repo_relative_path(release_workflow, "release_workflow")
+    if path_error:
+        return {
+            "exists": False,
+            "path": release_workflow,
+            "absolute_path": str(path),
+            "within_repo": False,
+            "error": path_error,
+            "size_bytes": None,
+            "usable": False,
+            "default_tag": None,
+            "default_release_draft": None,
+            "default_dry_run": None,
+            "expected_tag": expected_tag,
+            "expected_release_draft": expected_release_draft,
+            "defaults_match_requested_release": False,
+            "publication_safe": False,
+            "push_trigger_can_publish": False,
+            "has_tag_checkout_guard": False,
+            "watches_gate_scripts": False,
+            "uses_github_token": False,
+            "has_workflow_dispatch": False,
+            "has_push_trigger": False,
+            "publishes_release": False,
+        }
     text = path.read_text(encoding="utf-8") if path.is_file() else ""
     uses_github_token = "GH_TOKEN: ${{ github.token }}" in text
     has_workflow_dispatch = "workflow_dispatch:" in text
     has_push_trigger = "push:" in text
     publishes_release = "gh release create" in text or "gh release edit" in text
+    has_tag_checkout_guard = all(
+        marker in text
+        for marker in [
+            "Verify checkout matches release tag",
+            'tag_commit="$(git rev-list -n 1 "$TAG")"',
+            'head_commit="$(git rev-parse HEAD)"',
+            "release checkout does not match tag",
+        ]
+    )
+    watches_gate_scripts = all(
+        path in text
+        for path in [
+            ".codex/skills/room-skill/runtime/github_release_publication_check.py",
+            "scripts/check_source_truth_consistency.py",
+            "scripts/release_check.py",
+        ]
+    )
     default_tag = extract_workflow_default(text, "tag")
     default_release_draft = extract_workflow_default(text, "release_draft")
     default_dry_run = extract_workflow_default(text, "dry_run")
@@ -435,12 +480,16 @@ def check_release_workflow(
         and has_workflow_dispatch
         and has_push_trigger
         and publishes_release
+        and has_tag_checkout_guard
+        and watches_gate_scripts
         and not push_trigger_can_publish
     )
     return {
         "exists": path.is_file(),
         "path": release_workflow,
         "absolute_path": str(path),
+        "within_repo": True,
+        "error": None,
         "size_bytes": path.stat().st_size if path.is_file() else None,
         "usable": bool(path.is_file() and uses_github_token and has_workflow_dispatch and has_push_trigger and publishes_release),
         "default_tag": default_tag,
@@ -451,11 +500,25 @@ def check_release_workflow(
         "defaults_match_requested_release": defaults_match_requested_release,
         "publication_safe": publication_safe,
         "push_trigger_can_publish": push_trigger_can_publish,
+        "has_tag_checkout_guard": has_tag_checkout_guard,
+        "watches_gate_scripts": watches_gate_scripts,
         "uses_github_token": uses_github_token,
         "has_workflow_dispatch": has_workflow_dispatch,
         "has_push_trigger": has_push_trigger,
         "publishes_release": publishes_release,
     }
+
+
+def resolve_repo_relative_path(path_text: str, name: str) -> tuple[Path, str | None]:
+    candidate = Path(path_text).expanduser()
+    if candidate.is_absolute():
+        return candidate.resolve(), f"{name}_must_be_repo_relative"
+    resolved = (REPO_ROOT / candidate).resolve()
+    try:
+        resolved.relative_to(REPO_ROOT)
+    except ValueError:
+        return resolved, f"{name}_outside_repo"
+    return resolved, None
 
 
 def extract_workflow_default(text: str, input_name: str) -> str | None:

@@ -11,6 +11,10 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components
 
 
 def main() -> int:
@@ -192,6 +196,23 @@ def check_release_publication_defaults(version_check: dict[str, Any]) -> dict[st
     workflow_tag = extract_workflow_default(workflow, "tag")
     workflow_draft = extract_workflow_default(workflow, "release_draft")
     workflow_push_can_publish = workflow_push_trigger_can_publish(workflow)
+    workflow_has_tag_checkout_guard = all(
+        marker in workflow
+        for marker in [
+            "Verify checkout matches release tag",
+            'tag_commit="$(git rev-list -n 1 "$TAG")"',
+            'head_commit="$(git rev-parse HEAD)"',
+            "release checkout does not match tag",
+        ]
+    )
+    workflow_watches_gate_scripts = all(
+        path in workflow
+        for path in [
+            ".codex/skills/room-skill/runtime/github_release_publication_check.py",
+            "scripts/check_source_truth_consistency.py",
+            "scripts/release_check.py",
+        ]
+    )
     problems = []
     warnings = []
     if current_release and helper_tag != current_release:
@@ -206,6 +227,10 @@ def check_release_publication_defaults(version_check: dict[str, Any]) -> dict[st
         problems.append("publish_github_release_workflow_default_draft_mismatch")
     if workflow_push_can_publish:
         problems.append("publish_github_release_workflow_push_publication_risk")
+    if not workflow_has_tag_checkout_guard:
+        problems.append("publish_github_release_workflow_missing_tag_checkout_guard")
+    if not workflow_watches_gate_scripts:
+        problems.append("publish_github_release_workflow_missing_gate_script_paths")
     return {
         "ok": not problems,
         "current_release": current_release,
@@ -216,6 +241,8 @@ def check_release_publication_defaults(version_check: dict[str, Any]) -> dict[st
         "workflow_default_tag": workflow_tag,
         "workflow_default_release_draft": workflow_draft,
         "workflow_push_trigger_can_publish": workflow_push_can_publish,
+        "workflow_has_tag_checkout_guard": workflow_has_tag_checkout_guard,
+        "workflow_watches_gate_scripts": workflow_watches_gate_scripts,
         "problems": problems,
         "warnings": warnings,
     }
@@ -293,11 +320,13 @@ def render_markdown(report: dict[str, Any]) -> str:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def write_text(path: Path, text: str) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
 

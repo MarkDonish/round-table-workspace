@@ -33,16 +33,34 @@ def assert_no_symlink_components(path: str | Path, *, include_leaf: bool = True)
     candidate = Path(path).expanduser()
     if not candidate.is_absolute():
         candidate = Path.cwd() / candidate
-    scan_path = candidate if include_leaf else candidate.parent
+    scan_path = normalize_path_without_resolving_symlinks(candidate if include_leaf else candidate.parent)
     current = Path(scan_path.anchor) if scan_path.is_absolute() else Path(".")
     parts = scan_path.parts[1:] if scan_path.is_absolute() else scan_path.parts
     for part in parts:
         current = current / part
         if not current.exists():
-            break
+            continue
         if current.is_symlink() and current not in ALLOWED_SYSTEM_SYMLINK_DIRS:
             raise UnsafePathError(f"refusing path through symlink component: {current}")
     return candidate
+
+
+def normalize_path_without_resolving_symlinks(path: Path) -> Path:
+    anchor = path.anchor
+    normalized_parts: list[str] = []
+    parts = path.parts[1:] if anchor else path.parts
+    for part in parts:
+        if part in {"", "."}:
+            continue
+        if part == "..":
+            if normalized_parts:
+                normalized_parts.pop()
+            continue
+        normalized_parts.append(part)
+    result = Path(anchor) if anchor else Path(".")
+    for part in normalized_parts:
+        result = result / part
+    return result
 
 
 def validate_path_segment(value: str, name: str = "path segment") -> str:

@@ -5,12 +5,17 @@ on:
     branches: ["main"]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   core-validation:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -33,7 +38,7 @@ jobs:
         run: ./rtw doctor --quick --quiet
 
       - name: Run release check
-        run: ./rtw release-check --include-fixtures --state-root "$RUNNER_TEMP/rtw-release-check" --quiet
+        run: ./rtw release-check --include-fixtures --strict-git-clean --state-root "$RUNNER_TEMP/rtw-release-check" --quiet
 
       - name: Upload release-check artifacts
         if: always()

@@ -12,6 +12,7 @@ from typing import Any
 import generic_agent_executor as generic_executor
 import room_debate_e2e_validation as integration_validation
 import room_e2e_validation as room_validation
+from secret_redaction import redact_sensitive_text, redact_sensitive_value
 
 
 RUNTIME_DIR = Path(__file__).resolve().parent
@@ -36,15 +37,15 @@ def main() -> int:
         report = {
             "ok": False,
             "action": "generic-agent-adapter-validation",
-            "error": str(exc),
+            "error": redact_sensitive_text(str(exc)),
             "error_type": type(exc).__name__,
         }
         if args.output_json:
             write_json(Path(args.output_json).expanduser().resolve(), report)
-        print(json.dumps(report, ensure_ascii=False, indent=2))
+        print(json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2))
         return 1
 
-    output_text = json.dumps(report, ensure_ascii=False, indent=2) + "\n"
+    output_text = json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2) + "\n"
     if args.output_json:
         write_json(Path(args.output_json).expanduser().resolve(), report)
     else:
@@ -152,7 +153,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
         "ok": all(pass_criteria.values()),
         "action": "generic-agent-adapter-validation",
         "agent_label": args.agent_label,
-        "agent_command": command,
+        "agent_command": redact_sensitive_text(command),
         "state_root": str(state_root),
         "started_at": started_at,
         "finished_at": utc_now_iso(),
@@ -170,7 +171,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def utc_now_iso() -> str:

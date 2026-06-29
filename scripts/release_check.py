@@ -114,6 +114,21 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     if args.strict_git_clean:
         claim_dashboard_command.append("--strict-git-clean")
     checks["claim_boundary_dashboard"] = run_json(claim_dashboard_command, timeout=args.timeout_seconds + 100)
+    checks["github_release_publication"] = run_json(
+        [
+            sys.executable,
+            ".codex/skills/room-skill/runtime/github_release_publication_check.py",
+            "--state-root",
+            str(state_root / "github-release-publication"),
+            "--output-json",
+            str(state_root / "github-release-publication.json"),
+            "--output-markdown",
+            str(state_root / "github-release-publication.md"),
+            "--timeout-seconds",
+            str(args.timeout_seconds),
+        ],
+        timeout=args.timeout_seconds + 60,
+    )
     checks["legacy_release_readiness"] = run_legacy_release_readiness(args)
     if args.include_fixtures:
         checks["decision_quality_evals"] = run_json(

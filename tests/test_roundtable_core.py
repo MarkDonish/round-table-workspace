@@ -122,6 +122,20 @@ class RoundtableCoreTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "run_id must"):
                 create_run_dir(temp_dir, "room", run_id="../escape")
 
+    def test_state_store_refuses_hidden_symlink_state_root(self) -> None:
+        from roundtable_core.runtime.state_store import create_run_dir
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            real_dir = base / "real"
+            real_dir.mkdir()
+            link_dir = base / "link"
+            link_dir.symlink_to(real_dir, target_is_directory=True)
+
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                create_run_dir(base / "missing" / ".." / "link", "room")
+            self.assertFalse((real_dir / "runs").exists())
+
     def test_path_segment_validator_rejects_traversal(self) -> None:
         from roundtable_core.runtime.paths import validate_path_segment
 

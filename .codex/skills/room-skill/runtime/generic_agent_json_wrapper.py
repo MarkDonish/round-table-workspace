@@ -14,6 +14,7 @@ from typing import Any
 
 from chat_completions_executor import parse_json_from_text
 import local_codex_executor as local_executor
+from secret_redaction import redact_sensitive_text
 
 
 RUNTIME_DIR = Path(__file__).resolve().parent
@@ -34,7 +35,7 @@ def main() -> int:
         error = {
             "ok": False,
             "action": "generic-agent-json-wrapper",
-            "error": str(exc),
+            "error": redact_sensitive_text(str(exc)),
             "generated_at": utc_now_iso(),
         }
         print(json.dumps(error, ensure_ascii=False, indent=2), file=sys.stderr)
@@ -130,8 +131,8 @@ def run_wrapped_agent(args: argparse.Namespace) -> dict[str, Any]:
         except subprocess.TimeoutExpired as exc:
             raise JsonWrapperError(
                 "wrapped agent timed out after "
-                f"{args.timeout_seconds} seconds. stdout={local_executor.build_text_excerpt(ensure_text(exc.stdout))} "
-                f"stderr={local_executor.build_text_excerpt(ensure_text(exc.stderr))}"
+                f"{args.timeout_seconds} seconds. stdout={redact_sensitive_text(local_executor.build_text_excerpt(ensure_text(exc.stdout)))} "
+                f"stderr={redact_sensitive_text(local_executor.build_text_excerpt(ensure_text(exc.stderr)))}"
             ) from exc
         except OSError as exc:
             raise JsonWrapperError(f"wrapped agent could not be launched: {exc}") from exc
@@ -141,8 +142,8 @@ def run_wrapped_agent(args: argparse.Namespace) -> dict[str, Any]:
         if completed.returncode != 0:
             raise JsonWrapperError(
                 "wrapped agent exited with code "
-                f"{completed.returncode}. stdout={local_executor.build_text_excerpt(stdout)} "
-                f"stderr={local_executor.build_text_excerpt(stderr)}"
+                f"{completed.returncode}. stdout={redact_sensitive_text(local_executor.build_text_excerpt(stdout))} "
+                f"stderr={redact_sensitive_text(local_executor.build_text_excerpt(stderr))}"
             )
 
         candidates = build_response_candidates(

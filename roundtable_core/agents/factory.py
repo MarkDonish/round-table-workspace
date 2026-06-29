@@ -226,7 +226,24 @@ def write_factory_registry(path: Path, payload: dict[str, Any]) -> None:
             temp_path.unlink()
 
 
+def unsafe_registry_path_report(action: str, path: Path) -> dict[str, Any] | None:
+    try:
+        assert_no_symlink_components(path, include_leaf=True)
+    except UnsafePathError as exc:
+        return {
+            "ok": False,
+            "action": action,
+            "registry": str(path),
+            "errors": [f"Refusing registry path through symlink component: {exc}"],
+            "claim_boundary": agent_factory_claim_boundary(),
+        }
+    return None
+
+
 def list_factory_agents(path: Path, status: str | None = None) -> dict[str, Any]:
+    unsafe_report = unsafe_registry_path_report("agent-registry-list", path)
+    if unsafe_report:
+        return unsafe_report
     if not path.exists():
         return missing_registry_report("agent-registry-list", path)
     registry = load_factory_registry(path)
@@ -253,6 +270,11 @@ def list_factory_agents(path: Path, status: str | None = None) -> dict[str, Any]
 
 
 def validate_factory_registry(path: Path, agent_id: str | None = None) -> dict[str, Any]:
+    unsafe_report = unsafe_registry_path_report("agent-registry-validate", path)
+    if unsafe_report:
+        if agent_id:
+            unsafe_report["agent_id"] = agent_id
+        return unsafe_report
     if not path.exists():
         report = missing_registry_report("agent-registry-validate", path)
         report["agent_id"] = agent_id
@@ -299,6 +321,10 @@ def validate_factory_registry(path: Path, agent_id: str | None = None) -> dict[s
 
 
 def register_factory_agent(*, registry_path: Path, manifest_path: Path, replace: bool, enable: bool) -> dict[str, Any]:
+    unsafe_report = unsafe_registry_path_report("agent-register", registry_path)
+    if unsafe_report:
+        unsafe_report["manifest"] = str(manifest_path)
+        return unsafe_report
     if not registry_path.exists():
         return missing_registry_report("agent-register", registry_path)
     try:
@@ -369,6 +395,10 @@ def set_factory_agent_status(
     status: str,
     allow_missing_skill: bool,
 ) -> dict[str, Any]:
+    unsafe_report = unsafe_registry_path_report(f"agent-{status}", registry_path)
+    if unsafe_report:
+        unsafe_report["agent_id"] = agent_id
+        return unsafe_report
     if not registry_path.exists():
         return missing_registry_report(f"agent-{status}", registry_path)
     try:

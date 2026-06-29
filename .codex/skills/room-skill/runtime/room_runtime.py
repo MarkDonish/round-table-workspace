@@ -18,7 +18,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from roundtable_core.agents.registry import load_agent_registry
 from roundtable_core.protocol.handoff import runtime_packet_to_portable_handoff
-from roundtable_core.runtime.paths import validate_path_segment
+from roundtable_core.runtime.paths import assert_no_symlink_components, validate_path_segment
 
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "rooms"
 REGISTRY_PATH = REPO_ROOT / "agents" / "registry.json"
@@ -183,7 +183,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def command_start_room(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_runtime_state_root(args.state_root)
     registry = load_registry()
     room_full = load_json(Path(args.selection_json))
     topic = normalize_room_topic(args.topic)
@@ -229,7 +229,7 @@ def command_start_room(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def command_run_turn(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_runtime_state_root(args.state_root)
     state = load_state(state_root, args.room_id)
     selection_output = load_json(Path(args.selection_json))
     chat_output = load_json(Path(args.chat_json))
@@ -249,7 +249,7 @@ def command_run_turn(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def command_run_summary(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_runtime_state_root(args.state_root)
     state = load_state(state_root, args.room_id)
     summary_output = load_json(Path(args.summary_json))
     updated_state, result = apply_summary(
@@ -267,7 +267,7 @@ def command_run_summary(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def command_run_upgrade(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_runtime_state_root(args.state_root)
     state = load_state(state_root, args.room_id)
     upgrade_output = load_json(Path(args.upgrade_json))
     updated_state, result = apply_upgrade(
@@ -285,7 +285,7 @@ def command_run_upgrade(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def command_patch_roster(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_runtime_state_root(args.state_root)
     state = load_state(state_root, args.room_id)
     selection_output = load_json(Path(args.selection_json))
     updated_state, result = apply_roster_patch(
@@ -304,7 +304,7 @@ def command_patch_roster(args: argparse.Namespace) -> dict[str, Any]:
 
 def command_validate_canonical(args: argparse.Namespace) -> dict[str, Any]:
     fixtures_dir = Path(args.fixtures_dir).expanduser().resolve()
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = resolve_runtime_state_root(args.state_root)
     registry = load_registry()
 
     room_id = args.room_id or f"room-canonical-{uuid.uuid4().hex[:8]}"
@@ -1261,6 +1261,15 @@ def save_state(state_root: Path, state: dict[str, Any]) -> None:
     room_dir = get_room_dir(state_root, state["room_id"])
     ensure_directory(room_dir)
     write_json(room_dir / "state.json", state)
+
+
+def resolve_runtime_state_root(path_text: str) -> Path:
+    raw_root = Path(path_text).expanduser()
+    try:
+        assert_no_symlink_components(raw_root, include_leaf=True)
+    except ValueError as exc:
+        raise RoomRuntimeError(str(exc)) from exc
+    return raw_root.resolve()
 
 
 def get_room_dir(state_root: Path, room_id: str) -> Path:
