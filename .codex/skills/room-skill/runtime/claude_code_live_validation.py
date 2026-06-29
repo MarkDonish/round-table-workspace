@@ -20,6 +20,7 @@ REPO_ROOT = RUNTIME_DIR.parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 from roundtable_core.runtime.paths import assert_no_symlink_components, validate_path_segment
+from secret_redaction import redact_sensitive_value
 
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "claude-code-live-validation"
 DEFAULT_CLAUDE_CODE_AGENT_COMMAND = (
@@ -36,7 +37,7 @@ def main() -> int:
         print(json.dumps({"ok": False, "blocked": True, "error": str(exc)}, ensure_ascii=False, indent=2))
         return 1
 
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    print(json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2))
     return 0 if report.get("ok") else 1
 
 
@@ -108,6 +109,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
     state_root = resolve_state_root(args.state_root)
     run_id = validate_path_segment(args.run_id or f"claude-code-live-{uuid.uuid4().hex[:8]}", "run_id")
     run_dir = state_root / run_id
+    assert_no_symlink_components(run_dir, include_leaf=True)
     run_dir.mkdir(parents=True, exist_ok=True)
 
     agent_command = generic_executor.resolve_agent_command(executor_name="claude_code", command=args.agent_command)
@@ -379,18 +381,18 @@ def run_command(command: list[str], *, timeout_seconds: int) -> dict[str, Any]:
         check=False,
         cwd=str(REPO_ROOT),
     )
-    return {
+    return redact_sensitive_value({
         "command": command,
         "returncode": completed.returncode,
         "stdout": completed.stdout or "",
         "stderr": completed.stderr or "",
-    }
+    })
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def resolve_state_root(value: str | Path) -> Path:

@@ -35,7 +35,7 @@ class ClaimBoundaryDashboardTest(unittest.TestCase):
 
         def fake_run_json(command: list[str], *, timeout_seconds: int) -> dict[str, object]:
             del timeout_seconds
-            if "live_lane_evidence_report.py" in command:
+            if any("live_lane_evidence_report.py" in part for part in command):
                 return {
                     "ok": True,
                     "command": command,
@@ -54,8 +54,8 @@ class ClaimBoundaryDashboardTest(unittest.TestCase):
                 "returncode": 1,
                 "payload": {
                     "ok": True,
-                    "release_scope": {"ship_decision": "blocked"},
-                    "p0_blockers": [{"id": "working_tree_dirty"}],
+                    "release_blockers": ["working_tree_dirty"],
+                    "artifacts": {"json": "/tmp/release-check.json", "markdown": "/tmp/release-check.md"},
                 },
                 "stderr": "",
             }
@@ -69,16 +69,16 @@ class ClaimBoundaryDashboardTest(unittest.TestCase):
         self.assertEqual(local_mainline["lane"], "local_mainline")
         self.assertEqual(local_mainline["status"], "blocked")
         self.assertFalse(local_mainline["evidence_record"]["claimable"])
-        self.assertEqual(report["release_gate"]["p0_blockers"], [{"id": "working_tree_dirty"}])
+        self.assertEqual(report["release_gate"]["release_blockers"], ["working_tree_dirty"])
 
-    def test_local_mainline_claimable_when_release_gate_has_no_p0_blockers(self) -> None:
+    def test_local_mainline_claimable_when_release_gate_has_no_blockers(self) -> None:
         from scripts import claim_boundary_dashboard
 
         args = SimpleNamespace(state_root="/tmp/rtw-claim-dashboard-test", timeout_seconds=1, strict_git_clean=False)
 
         def fake_run_json(command: list[str], *, timeout_seconds: int) -> dict[str, object]:
             del timeout_seconds
-            if "live_lane_evidence_report.py" in command:
+            if any("live_lane_evidence_report.py" in part for part in command):
                 return {
                     "ok": True,
                     "command": command,
@@ -97,8 +97,8 @@ class ClaimBoundaryDashboardTest(unittest.TestCase):
                 "returncode": 0,
                 "payload": {
                     "ok": True,
-                    "release_scope": {"ship_decision": "ready_for_codex_local_mainline_scope"},
-                    "p0_blockers": [],
+                    "release_blockers": [],
+                    "artifacts": {"json": "/tmp/release-check.json", "markdown": "/tmp/release-check.md"},
                 },
                 "stderr": "",
             }
@@ -111,6 +111,70 @@ class ClaimBoundaryDashboardTest(unittest.TestCase):
         self.assertTrue(report["ok"])
         self.assertEqual(local_mainline["status"], "supported")
         self.assertTrue(local_mainline["evidence_record"]["claimable"])
+        self.assertEqual(
+            local_mainline["evidence_record"]["artifact_paths"],
+            ["/tmp/release-check.json", "/tmp/release-check.md"],
+        )
+
+    def test_claimable_lanes_require_artifact_paths_and_historical_host_is_not_claimable(self) -> None:
+        from scripts import claim_boundary_dashboard
+
+        args = SimpleNamespace(state_root="/tmp/rtw-claim-dashboard-test", timeout_seconds=1, strict_git_clean=False)
+
+        def fake_run_json(command: list[str], *, timeout_seconds: int) -> dict[str, object]:
+            del timeout_seconds
+            if any("live_lane_evidence_report.py" in part for part in command):
+                return {
+                    "ok": True,
+                    "command": command,
+                    "returncode": 0,
+                    "payload": {
+                        "ok": True,
+                        "artifacts": {
+                            "json": "/tmp/live-lane-evidence-report.json",
+                            "markdown": "/tmp/live-lane-evidence-report.md",
+                        },
+                        "host_live_lanes": [
+                            {
+                                "host_id": "claude_code",
+                                "evidence_status": "historical_only",
+                                "claim": "historical_evidence_not_current_claim",
+                                "checked_in_evidence": {
+                                    "report": "reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md",
+                                    "claimable": False,
+                                    "evidence_status": "historical_only",
+                                },
+                            }
+                        ],
+                        "provider_live_lane": {"evidence_status": "not_configured", "claim": "not_claimed"},
+                        "summary": {},
+                    },
+                    "stderr": "",
+                }
+            return {
+                "ok": True,
+                "command": command,
+                "returncode": 0,
+                "payload": {
+                    "ok": True,
+                    "release_blockers": [],
+                    "artifacts": {"json": "/tmp/release-check.json", "markdown": "/tmp/release-check.md"},
+                },
+                "stderr": "",
+            }
+
+        with patch("scripts.claim_boundary_dashboard.run_json_command", side_effect=fake_run_json):
+            with patch("scripts.claim_boundary_dashboard.git_commit", return_value="test-commit"):
+                report = claim_boundary_dashboard.build_report(args)
+
+        for row in report["matrix"]:
+            record = row["evidence_record"]
+            if record["claimable"]:
+                self.assertTrue(record["artifact_paths"], row["lane"])
+
+        host_row = next(row for row in report["matrix"] if row["lane"] == "host:claude_code")
+        self.assertEqual(host_row["status"], "historical_only")
+        self.assertFalse(host_row["evidence_record"]["claimable"])
 
 
 if __name__ == "__main__":

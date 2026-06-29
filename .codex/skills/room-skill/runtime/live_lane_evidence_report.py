@@ -17,7 +17,7 @@ REPO_ROOT = RUNTIME_DIR.parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-live-lane-evidence"
 
@@ -27,9 +27,9 @@ def main() -> int:
     args = parser.parse_args()
     report = build_report(args)
 
-    output_json = Path(args.output_json).expanduser().resolve() if args.output_json else Path(report["artifacts"]["json"])
+    output_json = resolve_checked_path(args.output_json) if args.output_json else Path(report["artifacts"]["json"])
     output_markdown = (
-        Path(args.output_markdown).expanduser().resolve()
+        resolve_checked_path(args.output_markdown)
         if args.output_markdown
         else Path(report["artifacts"]["markdown"])
     )
@@ -196,7 +196,7 @@ def build_host_lanes(
 
 def derive_host_evidence_status(matrix_status: Any, checked_evidence: dict[str, str] | None) -> str:
     if checked_evidence:
-        return "live_passed_checked_in_evidence"
+        return str(checked_evidence.get("evidence_status") or "historical_only")
     if matrix_status == "live_passed":
         return "live_passed_current_matrix_run"
     if matrix_status == "live_failed":
@@ -217,6 +217,8 @@ def host_claim(evidence_status: str, checked_evidence: dict[str, str] | None) ->
         return f"claimable_for_scope:{checked_evidence.get('scope')}" if checked_evidence else "claimable"
     if evidence_status == "live_passed_current_matrix_run":
         return "claimable_for_current_command_and_machine"
+    if evidence_status == "historical_only":
+        return "historical_evidence_not_current_claim"
     return "not_claimed"
 
 
@@ -225,6 +227,8 @@ def host_next_action(evidence_status: str, row: dict[str, Any]) -> str:
         return "Keep the claim machine/account-scoped; rerun live validation on new machines."
     if evidence_status == "live_passed_current_matrix_run":
         return "Persist or cite the matrix artifact before making this host-live claim."
+    if evidence_status == "historical_only":
+        return "Rerun host-specific live validation before making a current host-live claim."
     if evidence_status == "missing_cli":
         return row.get("next_action") or "Install the host CLI or skip this host on this machine."
     if evidence_status == "explicitly_skipped":

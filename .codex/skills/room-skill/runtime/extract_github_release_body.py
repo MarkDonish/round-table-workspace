@@ -13,6 +13,11 @@ from typing import Any
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import resolve_checked_path
+
 DEFAULT_RELEASE_DRAFT = "docs/releases/v0.2.2-pages-launch-kit-github-release.md"
 DEFAULT_OUTPUT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-github-release-body.md"
 
@@ -21,14 +26,14 @@ def main() -> int:
     args = build_parser().parse_args()
     report = build_report(args)
     if report["ok"]:
-        output_path = Path(args.output).expanduser().resolve()
+        output_path = resolve_checked_path(args.output)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(report["release_body"] + "\n", encoding="utf-8")
         report["artifacts"]["release_body"] = str(output_path)
         report.pop("release_body")
 
     if args.output_json:
-        output_json = Path(args.output_json).expanduser().resolve()
+        output_json = resolve_checked_path(args.output_json)
         output_json.parent.mkdir(parents=True, exist_ok=True)
         output_json.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         report["artifacts"]["json"] = str(output_json)
@@ -69,7 +74,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "release_draft": args.release_draft,
         "release_draft_absolute_path": str(draft_path),
         "artifacts": {
-            "release_body": str(Path(args.output).expanduser().resolve()),
+            "release_body": str(resolve_checked_path(args.output)),
             "json": None,
         },
     }

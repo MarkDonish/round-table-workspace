@@ -110,6 +110,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
     state_root = resolve_state_root(args.state_root)
     run_id = validate_path_segment(args.run_id or f"chat-completions-live-{uuid.uuid4().hex[:8]}", "run_id")
     run_dir = state_root / run_id
+    assert_no_symlink_components(run_dir, include_leaf=True)
     run_dir.mkdir(parents=True, exist_ok=True)
 
     room_env_file = Path(args.room_env_file).expanduser().resolve()

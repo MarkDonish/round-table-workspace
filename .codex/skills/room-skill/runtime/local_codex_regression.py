@@ -142,6 +142,7 @@ def run_regression(args: argparse.Namespace) -> dict[str, Any]:
     state_root = resolve_state_root(args.state_root)
     run_id = validate_path_segment(args.run_id or f"local-codex-regression-{uuid.uuid4().hex[:8]}", "run_id")
     regression_dir = state_root / run_id
+    assert_no_symlink_components(regression_dir, include_leaf=True)
     regression_dir.mkdir(parents=True, exist_ok=True)
     settings = resolve_local_codex_settings(args)
 

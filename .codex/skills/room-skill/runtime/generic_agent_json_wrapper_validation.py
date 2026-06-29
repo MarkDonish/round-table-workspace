@@ -17,7 +17,7 @@ REPO_ROOT = RUNTIME_DIR.parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-generic-agent-json-wrapper-validation"
 MODES = ["markdown", "stdout_noise", "output_file"]
@@ -28,7 +28,7 @@ def main() -> int:
     args = parser.parse_args()
     report = run_validation(args)
     if args.output_json:
-        write_json(Path(args.output_json).expanduser().resolve(), report)
+        write_json(resolve_checked_path(args.output_json), report)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report["ok"] else 1
 

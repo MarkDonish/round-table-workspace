@@ -168,7 +168,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_validation(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    state_root = runtime.resolve_runtime_state_root(args.state_root)
     launch_bundle, packet_source = resolve_launch_bundle(args)
     debate_id = launch_bundle["debate_id"]
     room_id = launch_bundle["source_room_id"]

@@ -1290,11 +1290,13 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     ensure_directory(path.parent)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def ensure_directory(path: Path) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.mkdir(parents=True, exist_ok=True)
 
 

@@ -18,7 +18,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from roundtable_core.protocol.handoff import portable_handoff_to_runtime_packet
-from roundtable_core.runtime.paths import assert_no_symlink_components, validate_path_segment
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path, validate_path_segment
 
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "debates"
 ROOM_UPGRADE_FIXTURE = (
@@ -305,7 +305,7 @@ def command_build_review_template(args: argparse.Namespace) -> dict[str, Any]:
     template = build_review_template(launch_bundle, source_launch_bundle=str(launch_bundle_path))
 
     if args.output_json:
-        output_path = Path(args.output_json).expanduser().resolve()
+        output_path = resolve_checked_path(args.output_json)
     else:
         output_path = launch_bundle_path.parent.parent / "review" / "review-template.json"
     ensure_directory(output_path.parent)
@@ -338,7 +338,7 @@ def command_build_review_packet(args: argparse.Namespace) -> dict[str, Any]:
     review_packet_validation = validate_review_packet(review_packet)
 
     if args.output_json:
-        output_path = Path(args.output_json).expanduser().resolve()
+        output_path = resolve_checked_path(args.output_json)
     else:
         output_path = launch_bundle_path.parent.parent / "review" / "review-packet.json"
     ensure_directory(output_path.parent)
@@ -404,7 +404,7 @@ def command_build_rereview_packet(args: argparse.Namespace) -> dict[str, Any]:
     rereview_packet_validation = validate_review_packet(rereview_packet)
 
     if args.output_json:
-        output_path = Path(args.output_json).expanduser().resolve()
+        output_path = resolve_checked_path(args.output_json)
     else:
         output_path = review_packet_path.parent.parent / "followup" / "rereview-packet.json"
     ensure_directory(output_path.parent)
@@ -2097,6 +2097,7 @@ def resolve_runtime_state_root(path_text: str) -> Path:
 
 
 def ensure_directory(path: Path) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.mkdir(parents=True, exist_ok=True)
 
 
@@ -2110,6 +2111,7 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     ensure_directory(path.parent)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

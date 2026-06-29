@@ -30,6 +30,11 @@ def main() -> int:
     )
     parser.add_argument("--include-fixtures", action="store_true")
     parser.add_argument("--strict-git-clean", action="store_true")
+    parser.add_argument(
+        "--skip-claim-dashboard",
+        action="store_true",
+        help="Internal use: avoid recursive dashboard generation while claim_boundary_dashboard.py consumes release-check.",
+    )
     parser.add_argument("--timeout-seconds", type=int, default=30)
     args = parser.parse_args()
 
@@ -37,7 +42,7 @@ def main() -> int:
     state_root = Path(report["state_root"])
     write_json(state_root / "release-check.json", report)
     write_text(state_root / "release-check.md", render_markdown(report))
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    print(json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2))
     return 0 if report["ok"] else 1
 
 
@@ -113,21 +118,28 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ],
         timeout=args.timeout_seconds + 30,
     )
-    claim_dashboard_command = [
-        sys.executable,
-        "scripts/claim_boundary_dashboard.py",
-        "--state-root",
-        str(state_root / "claim-boundary-dashboard-state"),
-        "--output-json",
-        str(state_root / "claim-boundary-dashboard.json"),
-        "--output-markdown",
-        str(state_root / "claim-boundary-dashboard.md"),
-        "--timeout-seconds",
-        str(args.timeout_seconds),
-    ]
-    if args.strict_git_clean:
-        claim_dashboard_command.append("--strict-git-clean")
-    checks["claim_boundary_dashboard"] = run_json(claim_dashboard_command, timeout=args.timeout_seconds + 100)
+    if args.skip_claim_dashboard:
+        checks["claim_boundary_dashboard"] = {
+            "ok": True,
+            "skipped": True,
+            "reason": "skipped to avoid recursive release-check -> dashboard -> release-check execution",
+        }
+    else:
+        claim_dashboard_command = [
+            sys.executable,
+            "scripts/claim_boundary_dashboard.py",
+            "--state-root",
+            str(state_root / "claim-boundary-dashboard-state"),
+            "--output-json",
+            str(state_root / "claim-boundary-dashboard.json"),
+            "--output-markdown",
+            str(state_root / "claim-boundary-dashboard.md"),
+            "--timeout-seconds",
+            str(args.timeout_seconds),
+        ]
+        if args.strict_git_clean:
+            claim_dashboard_command.append("--strict-git-clean")
+        checks["claim_boundary_dashboard"] = run_json(claim_dashboard_command, timeout=args.timeout_seconds + 100)
     checks["github_release_publication"] = run_json(
         [
             sys.executable,
@@ -171,6 +183,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "state_root": str(state_root),
         "include_fixtures": args.include_fixtures,
         "strict_git_clean": args.strict_git_clean,
+        "skip_claim_dashboard": args.skip_claim_dashboard,
         "checks": checks,
         "release_blockers": blockers,
         "release_warnings": warnings,

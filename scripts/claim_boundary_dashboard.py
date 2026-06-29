@@ -16,7 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 
 RUNTIME_DIR = REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime"
 if str(RUNTIME_DIR) not in sys.path:
@@ -43,9 +43,9 @@ def main() -> int:
 
     report = build_report(args)
     markdown = render_markdown(report)
-    write_json(Path(args.output_json).expanduser().resolve(), report)
-    write_text(Path(args.output_markdown).expanduser().resolve(), markdown)
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    write_json(resolve_checked_path(args.output_json), report)
+    write_text(resolve_checked_path(args.output_markdown), markdown)
+    print(json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2))
     return 0 if report["ok"] else 1
 
 
@@ -68,25 +68,20 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     payload = live_report.get("payload") if isinstance(live_report.get("payload"), dict) else {}
     host_lanes = payload.get("host_live_lanes", []) if isinstance(payload, dict) else []
     provider_lane = payload.get("provider_live_lane", {}) if isinstance(payload, dict) else {}
-    release_readiness = run_release_readiness(args, state_root=state_root)
-    release_payload = release_readiness.get("payload") if isinstance(release_readiness.get("payload"), dict) else {}
-    release_scope = release_payload.get("release_scope", {}) if isinstance(release_payload, dict) else {}
-    p0_blockers = release_payload.get("p0_blockers", []) if isinstance(release_payload, dict) else []
-    local_mainline_claimable = (
-        release_readiness.get("ok") is True
-        and isinstance(release_scope, dict)
-        and release_scope.get("ship_decision") == "ready_for_codex_local_mainline_scope"
-        and isinstance(p0_blockers, list)
-        and not p0_blockers
-    )
+    release_check = run_release_check(args, state_root=state_root)
+    release_payload = release_check.get("payload") if isinstance(release_check.get("payload"), dict) else {}
+    release_blockers = release_payload.get("release_blockers", []) if isinstance(release_payload, dict) else []
+    local_mainline_claimable = release_check.get("ok") is True and isinstance(release_blockers, list) and not release_blockers
     local_mainline_status = "supported" if local_mainline_claimable else "blocked"
+    release_artifacts = artifact_paths_from_payload(release_payload)
+    live_artifacts = artifact_paths_from_payload(payload)
     rows = [
         {
             "lane": "local_mainline",
             "status": local_mainline_status,
-            "claim": "Codex local-first mainline when release readiness has no P0 blockers",
+            "claim": "Codex local-first mainline when aggregate release-check has no blockers",
             "evidence": {
-                "release_readiness": summarize_release_readiness(release_readiness),
+                "release_check": summarize_release_check(release_check),
             },
             "evidence_record": build_evidence_record(
                 lane="local_mainline",
@@ -95,7 +90,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 stale_after=stale_after,
                 source_commit=source_commit,
                 claimable=local_mainline_claimable,
-                claim_text="Local-first fixture/runtime mainline supported when release-check has no P0 blockers.",
+                claim_text="Local-first fixture/runtime mainline supported when release-check has no blockers.",
+                artifact_paths=release_artifacts,
             ),
         }
     ]
@@ -115,6 +111,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                     host_id=lane.get("host_id"),
                     claimable=normalize_status(lane.get("evidence_status")) == "live_passed",
                     claim_text=str(lane.get("claim") or "not_claimed"),
+                    artifact_paths=host_artifact_paths(lane, live_artifacts),
+                    source_evidence=sanitize(lane.get("checked_in_evidence")),
                 ),
             }
         )
@@ -133,11 +131,12 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 provider_id="chat_completions",
                 claimable=normalize_status(provider_lane.get("evidence_status")) == "live_passed",
                 claim_text=str(provider_lane.get("claim") or "not_claimed"),
+                artifact_paths=live_artifacts,
             ),
         }
     )
     return {
-        "ok": live_report.get("ok") is True and release_readiness.get("ok") is True,
+        "ok": live_report.get("ok") is True and release_check.get("ok") is True,
         "action": "claim-boundary-dashboard",
         "generated_at": generated_at,
         "source_commit": source_commit,
@@ -151,43 +150,44 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "summary": payload.get("summary") if isinstance(payload, dict) else None,
             "stderr": live_report.get("stderr"),
         },
-        "release_gate": summarize_release_readiness(release_readiness),
+        "release_gate": summarize_release_check(release_check),
         "matrix": rows,
         "claim_boundary": [
             "Fixture, mock-provider, wrapper, inventory, and config preflight evidence is not live support.",
-            "Local-mainline support is claimable only when release_readiness_check.py returns no P0 blockers.",
+            "Local-mainline support is claimable only when aggregate ./rtw release-check --include-fixtures returns no blockers.",
             "Only live_passed host/provider evidence may be claimed as live support.",
         ],
     }
 
 
-def run_release_readiness(args: argparse.Namespace, *, state_root: Path | None = None) -> dict[str, Any]:
+def run_release_check(args: argparse.Namespace, *, state_root: Path | None = None) -> dict[str, Any]:
     state_root = state_root or resolve_state_root(args.state_root)
     command = [
         sys.executable,
-        ".codex/skills/room-skill/runtime/release_readiness_check.py",
+        "scripts/release_check.py",
+        "--include-fixtures",
+        "--skip-claim-dashboard",
         "--state-root",
-        str(state_root / "release-readiness"),
-        "--output-json",
-        str(state_root / "release-readiness.json"),
+        str(state_root / "release-check"),
         "--timeout-seconds",
         str(args.timeout_seconds),
     ]
     if args.strict_git_clean:
         command.append("--strict-git-clean")
-    return run_json_command(command, timeout_seconds=args.timeout_seconds + 60)
+    return run_json_command(command, timeout_seconds=args.timeout_seconds + 240)
 
 
-def summarize_release_readiness(result: dict[str, Any]) -> dict[str, Any]:
+def summarize_release_check(result: dict[str, Any]) -> dict[str, Any]:
     payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
-    release_scope = payload.get("release_scope", {}) if isinstance(payload, dict) else {}
-    p0_blockers = payload.get("p0_blockers", []) if isinstance(payload, dict) else []
+    release_blockers = payload.get("release_blockers", []) if isinstance(payload, dict) else []
+    release_warnings = payload.get("release_warnings", []) if isinstance(payload, dict) else []
     return {
         "command": result.get("command"),
         "returncode": result.get("returncode"),
         "ok": result.get("ok"),
-        "ship_decision": release_scope.get("ship_decision") if isinstance(release_scope, dict) else None,
-        "p0_blockers": p0_blockers if isinstance(p0_blockers, list) else [],
+        "release_blockers": release_blockers if isinstance(release_blockers, list) else [],
+        "release_warnings": release_warnings if isinstance(release_warnings, list) else [],
+        "artifacts": payload.get("artifacts") if isinstance(payload, dict) else None,
         "stderr": result.get("stderr"),
     }
 
@@ -200,6 +200,8 @@ def normalize_status(status: Any) -> str:
         return "fixture_passed"
     if "blocked" in status_text or "failed" in status_text:
         return "blocked"
+    if "historical" in status_text:
+        return "historical_only"
     if "missing" in status_text or "not_configured" in status_text:
         return "not_configured"
     if "pending" in status_text or "ready" in status_text:
@@ -234,6 +236,8 @@ def build_evidence_record(
     claim_text: str,
     host_id: Any = None,
     provider_id: Any = None,
+    artifact_paths: list[str] | None = None,
+    source_evidence: Any = None,
 ) -> dict[str, Any]:
     return {
         "evidence_kind": "claim_boundary_lane",
@@ -248,10 +252,26 @@ def build_evidence_record(
         "generated_at": generated_at,
         "stale_after": stale_after,
         "source_commit": source_commit,
-        "artifact_paths": [],
+        "artifact_paths": artifact_paths or [],
+        "source_evidence": source_evidence,
         "claimable": claimable,
         "claim_text": claim_text,
     }
+
+
+def artifact_paths_from_payload(payload: dict[str, Any]) -> list[str]:
+    artifacts = payload.get("artifacts") if isinstance(payload, dict) else None
+    if not isinstance(artifacts, dict):
+        return []
+    return [str(value) for value in artifacts.values() if value]
+
+
+def host_artifact_paths(lane: dict[str, Any], live_artifacts: list[str]) -> list[str]:
+    paths = list(live_artifacts)
+    checked_in_evidence = lane.get("checked_in_evidence")
+    if isinstance(checked_in_evidence, dict) and checked_in_evidence.get("report"):
+        paths.append(str(checked_in_evidence["report"]))
+    return paths
 
 
 def render_markdown(report: dict[str, Any]) -> str:

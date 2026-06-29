@@ -26,7 +26,7 @@ from roundtable_core.runtime import (
     write_output,
     write_summary,
 )
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 
 
 def main() -> int:
@@ -35,12 +35,12 @@ def main() -> int:
     markdown = render_markdown(report)
 
     output_json = (
-        Path(args.output_json).expanduser().resolve()
+        resolve_checked_path(args.output_json)
         if args.output_json
         else Path(report["artifacts"]["json"])
     )
     output_markdown = (
-        Path(args.output_markdown).expanduser().resolve()
+        resolve_checked_path(args.output_markdown)
         if args.output_markdown
         else Path(report["artifacts"]["markdown"])
     )

@@ -18,7 +18,7 @@ REPO_ROOT = RUNTIME_DIR.parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from roundtable_core.runtime.paths import assert_no_symlink_components, validate_path_segment
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path, validate_path_segment
 from secret_redaction import redact_sensitive_text, redact_sensitive_value
 
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-post-release-consumer-audit"
@@ -36,9 +36,9 @@ def main() -> int:
     except AuditError as exc:
         report = build_error_report(args, str(exc))
 
-    output_json = Path(args.output_json).expanduser().resolve() if args.output_json else Path(report["artifacts"]["json"])
+    output_json = resolve_checked_path(args.output_json) if args.output_json else Path(report["artifacts"]["json"])
     output_markdown = (
-        Path(args.output_markdown).expanduser().resolve()
+        resolve_checked_path(args.output_markdown)
         if args.output_markdown
         else Path(report["artifacts"]["markdown"])
     )
@@ -48,7 +48,7 @@ def main() -> int:
     report["artifacts"]["markdown"] = str(output_markdown)
     write_json(output_json, report)
 
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    print(json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2))
     return 0 if report.get("ok") else 1
 
 

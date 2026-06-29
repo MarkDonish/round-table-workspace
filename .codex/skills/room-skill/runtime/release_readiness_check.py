@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -16,7 +17,7 @@ REPO_ROOT = RUNTIME_DIR.parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 from secret_redaction import redact_sensitive_value
 
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-release-readiness"
@@ -74,8 +75,8 @@ def main() -> int:
     args = parser.parse_args()
     report = build_release_report(args)
     if args.output_json:
-        write_json(Path(args.output_json).expanduser().resolve(), report)
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+        write_json(resolve_checked_path(args.output_json), report)
+    print(json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2))
     return 0 if not report["p0_blockers"] else 1
 
 
@@ -247,7 +248,7 @@ def build_release_report(args: argparse.Namespace) -> dict[str, Any]:
         "provider fallback readiness tooling and mock regression source",
         "source-truth boundary audit tooling",
     ]
-    if any(item["host_id"] == "claude_code" for item in checked_in_host_live_evidence):
+    if any(item["host_id"] == "claude_code" and item.get("claimable") is True for item in checked_in_host_live_evidence):
         ready_to_claim.append("default Claude Code host-live support on the validated Mac account")
 
     not_claimed = [
@@ -325,25 +326,77 @@ def check_runtime_files() -> dict[str, Any]:
     }
 
 
-def collect_checked_in_host_live_evidence() -> list[dict[str, str]]:
-    evidence: list[dict[str, str]] = []
+def collect_checked_in_host_live_evidence() -> list[dict[str, Any]]:
+    evidence: list[dict[str, Any]] = []
     report = latest_claude_code_live_evidence_report()
     if report is None:
         return evidence
     text = report.read_text(encoding="utf-8")
-    if (
+    marker_passed = (
         "Claimable as default Claude Code host live: `true`" in text
         and "Support claim: `real_claude_code_host_live_validated`" in text
         and "claude_code_live_validation.py" in text
-    ):
+    )
+    if marker_passed:
+        metadata = extract_checked_in_host_live_metadata(text, report)
         evidence.append(
             {
                 "host_id": "claude_code",
                 "scope": "default_claude_code_host_live_on_validated_mac_account",
                 "report": str(report.relative_to(REPO_ROOT)),
+                **metadata,
             }
         )
     return evidence
+
+
+def extract_checked_in_host_live_metadata(text: str, report: Path) -> dict[str, Any]:
+    source_commit = extract_markdown_metadata(text, "source_commit")
+    stale_after = extract_markdown_metadata(text, "stale_after")
+    stale_after_dt = parse_iso_datetime(stale_after) if stale_after else None
+    title_date = None
+    title_match = re.search(r"Host Live Validation\s*-\s*([0-9]{4}-[0-9]{2}-[0-9]{2})", text)
+    if title_match:
+        title_date = title_match.group(1)
+    has_structured_provenance = bool(source_commit and stale_after and stale_after_dt)
+    fresh = bool(stale_after_dt and stale_after_dt > datetime.now(timezone.utc))
+    claimable = has_structured_provenance and fresh
+    return {
+        "validated_at": title_date,
+        "source_commit": source_commit,
+        "stale_after": stale_after,
+        "has_structured_provenance": has_structured_provenance,
+        "claimable": claimable,
+        "evidence_status": "live_passed_checked_in_evidence" if claimable else "historical_only",
+        "historical_reason": None
+        if claimable
+        else (
+            "checked-in host-live report lacks fresh structured provenance; "
+            "rerun claude_code_live_validation.py before making a current host-live claim"
+        ),
+        "report_mtime": datetime.fromtimestamp(report.stat().st_mtime, tz=timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z"),
+    }
+
+
+def extract_markdown_metadata(text: str, key: str) -> str | None:
+    match = re.search(rf"^> {re.escape(key)}:\s*`([^`]+)`", text, flags=re.MULTILINE)
+    return match.group(1) if match else None
+
+
+def parse_iso_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    normalized = value[:-1] + "+00:00" if value.endswith("Z") else value
+    try:
+        parsed = datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def latest_claude_code_live_evidence_report() -> Path | None:
@@ -469,7 +522,7 @@ def build_non_blocking_gaps(
     matrix_payload = host_validation_matrix.get("json") or {}
     matrix_summary = matrix_payload.get("summary", {})
     matrix_live_hosts = set(matrix_summary.get("live_passed_hosts") or [])
-    checked_live_hosts = {item["host_id"] for item in checked_in_host_live_evidence}
+    checked_live_hosts = {item["host_id"] for item in checked_in_host_live_evidence if item.get("claimable") is True}
     live_passed_hosts = matrix_live_hosts | checked_live_hosts
     if command_ok(host_validation_matrix) and not live_passed_hosts:
         gaps.append(
@@ -571,6 +624,14 @@ def extract_json(text: str) -> Any:
 def command_ok(result: dict[str, Any] | None) -> bool:
     if not result:
         return False
+    if "json_parse_ok" in result:
+        payload = result.get("json")
+        return (
+            result.get("returncode") == 0
+            and result.get("json_parse_ok") is True
+            and isinstance(payload, dict)
+            and payload.get("ok") is True
+        )
     payload = result.get("json")
     if isinstance(payload, dict) and payload.get("ok") is not None:
         return result.get("returncode") == 0 and payload.get("ok") is True

@@ -23,7 +23,7 @@ REPO_ROOT = RUNTIME_DIR.parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 
 DEFAULT_TIMEOUT_SECONDS = 900
 DEFAULT_CLAUDE_CODE_COMMAND = "claude -p"
@@ -76,7 +76,7 @@ def main() -> int:
 
     output_json = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.output_json:
-        output_path = Path(args.output_json).expanduser().resolve()
+        output_path = resolve_checked_path(args.output_json)
         assert_no_symlink_components(output_path, include_leaf=True)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(redact_sensitive_text(output_json), encoding="utf-8")

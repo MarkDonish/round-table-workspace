@@ -12,6 +12,13 @@ import urllib.parse
 from pathlib import Path
 from typing import Any
 
+RUNTIME_DIR = Path(__file__).resolve().parent
+REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import resolve_checked_path
+
 
 class ProviderConfigError(Exception):
     pass
@@ -57,7 +64,7 @@ def main() -> int:
 
         output_json = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
         if args.output_json:
-            output_path = Path(args.output_json)
+            output_path = resolve_checked_path(args.output_json)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             output_path.write_text(output_json, encoding="utf-8")
         else:

@@ -8,7 +8,13 @@ import sys
 from pathlib import Path
 from typing import Any
 
+RUNTIME_DIR = Path(__file__).resolve().parent
+REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 import generic_fixture_agent
+from roundtable_core.runtime.paths import resolve_checked_path
 
 
 def main() -> int:
@@ -34,7 +40,7 @@ def main() -> int:
         if not output_path:
             print("ROUND_TABLE_OUTPUT_JSON is required for output_file mode.", file=sys.stderr)
             return 1
-        path = Path(output_path).expanduser().resolve()
+        path = resolve_checked_path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(output_text, encoding="utf-8")
         print("fixture wrote noisy JSON to output file")

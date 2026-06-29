@@ -13,7 +13,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from roundtable_core.validation import validate_file
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 
 
 FIXTURE_DIRS = [
@@ -30,7 +30,7 @@ def main() -> int:
 
     report = build_report()
     if args.output_json:
-        write_json(Path(args.output_json).expanduser().resolve(), report)
+        write_json(resolve_checked_path(args.output_json), report)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report["ok"] else 1
 

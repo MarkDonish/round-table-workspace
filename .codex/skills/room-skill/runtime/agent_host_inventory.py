@@ -17,7 +17,9 @@ REPO_ROOT = RUNTIME_DIR.parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
+
+from secret_redaction import redact_sensitive_value
 
 
 CANDIDATES: list[dict[str, Any]] = [
@@ -71,8 +73,8 @@ def main() -> int:
     args = parser.parse_args()
     report = build_inventory(timeout_seconds=args.timeout_seconds)
     if args.output_json:
-        write_json(Path(args.output_json).expanduser().resolve(), report)
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+        write_json(resolve_checked_path(args.output_json), report)
+    print(json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2))
     return 0
 
 
@@ -172,29 +174,29 @@ def run_command(command: list[str], *, timeout_seconds: int) -> dict[str, Any]:
             timeout=timeout_seconds,
             check=False,
         )
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": completed.returncode,
             "stdout": (completed.stdout or "").strip(),
             "stderr": (completed.stderr or "").strip(),
-        }
+        })
     except subprocess.TimeoutExpired as exc:
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": None,
             "timeout_seconds": timeout_seconds,
             "stdout": ensure_text(exc.stdout).strip(),
             "stderr": ensure_text(exc.stderr).strip(),
             "timed_out": True,
-        }
+        })
     except OSError as exc:
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": None,
             "stdout": "",
             "stderr": str(exc),
             "launch_failed": True,
-        }
+        })
 
 
 def parse_json(text: str) -> Any:
@@ -207,7 +209,7 @@ def parse_json(text: str) -> Any:
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def ensure_text(value: Any) -> str:

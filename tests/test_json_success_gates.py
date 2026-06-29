@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 import subprocess
 import sys
 import tempfile
@@ -207,6 +208,79 @@ class JsonSuccessGateTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "symlink component"):
                     helper(str(link_dir))
 
+    def test_runtime_child_dirs_refuse_symlink_leaves(self) -> None:
+        from roundtable_core.runtime.state_store import create_run_dir
+
+        room_runtime = load_module(
+            "room_runtime_child_dir_guard_test",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "room_runtime.py",
+        )
+        debate_runtime = load_module(
+            "debate_runtime_child_dir_guard_test",
+            REPO_ROOT / ".codex" / "skills" / "debate-roundtable-skill" / "runtime" / "debate_runtime.py",
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            state_root = Path(temp_dir) / "state"
+            state_root.mkdir()
+            victim = Path(temp_dir) / "victim"
+            victim.mkdir()
+
+            room_link = state_root / "room-safe-id"
+            room_link.symlink_to(victim, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                room_runtime.ensure_directory(room_runtime.get_room_dir(state_root, "room-safe-id"))
+
+            debate_link = state_root / "debate-safe-id"
+            debate_link.symlink_to(victim, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                debate_runtime.ensure_directory(debate_runtime.get_debate_dir(state_root, "debate-safe-id"))
+
+            runs_dir = state_root / "runs"
+            runs_dir.mkdir()
+            run_link = runs_dir / "demo-run"
+            run_link.symlink_to(victim, target_is_directory=True)
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                create_run_dir(state_root, "room", run_id="demo-run")
+
+    def test_resolve_checked_path_refuses_symlink_leaf(self) -> None:
+        from roundtable_core.runtime.paths import resolve_checked_path
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            victim = Path(temp_dir) / "victim.json"
+            victim.write_text("keep", encoding="utf-8")
+            output_json = Path(temp_dir) / "out.json"
+            output_json.symlink_to(victim)
+
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                resolve_checked_path(output_json)
+
+            self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
+
+    def test_user_output_paths_do_not_resolve_before_guard(self) -> None:
+        checked_paths = [
+            "scripts/check_agent_registry_sync.py",
+            "scripts/check_skill_drift.py",
+            "scripts/check_source_truth_consistency.py",
+            "scripts/claim_boundary_dashboard.py",
+            "scripts/run_regression_fixtures.py",
+            "scripts/run_negative_fixtures.py",
+            "evals/decision_quality/run_decision_evals.py",
+            ".codex/skills/room-skill/runtime/generic_fixture_agent.py",
+            ".codex/skills/room-skill/runtime/wrapper_fixture_agent.py",
+            ".codex/skills/room-skill/runtime/chat_completions_executor.py",
+            ".codex/skills/room-skill/runtime/generic_agent_json_wrapper.py",
+            ".codex/skills/room-skill/runtime/local_codex_executor.py",
+            ".codex/skills/debate-roundtable-skill/runtime/debate_runtime.py",
+        ]
+        forbidden = re.compile(
+            r"Path\(args\.(?:output_json|output_markdown|output)\)\.expanduser\(\)\.resolve\(\)"
+            r"|Path\(final_output\)\.expanduser\(\)\.resolve\(\)"
+        )
+        for rel_path in checked_paths:
+            text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
+            self.assertIsNone(forbidden.search(text), rel_path)
+
     def test_runtime_run_ids_refuse_path_traversal(self) -> None:
         runtime_dir = REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime"
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -321,6 +395,58 @@ class JsonSuccessGateTest(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertTrue(result["json_parse_ok"])
         self.assertEqual(result["payload"], {})
+
+    def test_release_readiness_command_ok_requires_json_ok_true(self) -> None:
+        module = load_module(
+            "release_readiness_command_ok_gate_test",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "release_readiness_check.py",
+        )
+
+        rejected = [
+            {"returncode": 0, "json_parse_ok": True, "json": {}},
+            {"returncode": 0, "json_parse_ok": True, "json": {"ok": False}},
+            {"returncode": 0, "json_parse_ok": False, "json": None},
+            {"returncode": 1, "json_parse_ok": True, "json": {"ok": True}},
+        ]
+        for result in rejected:
+            self.assertFalse(module.command_ok(result), result)
+
+        self.assertTrue(module.command_ok({"returncode": 0, "json_parse_ok": True, "json": {"ok": True}}))
+
+    def test_checked_in_host_live_evidence_defaults_to_historical_only(self) -> None:
+        module = load_module(
+            "release_readiness_historical_evidence_test",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "release_readiness_check.py",
+        )
+        report_path = REPO_ROOT / "reports" / "CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md"
+        metadata = module.extract_checked_in_host_live_metadata(report_path.read_text(encoding="utf-8"), report_path)
+
+        self.assertFalse(metadata["claimable"])
+        self.assertEqual(metadata["evidence_status"], "historical_only")
+        self.assertFalse(metadata["has_structured_provenance"])
+
+    def test_secret_redaction_covers_common_sensitive_key_names(self) -> None:
+        module = load_module(
+            "secret_redaction_key_coverage_test",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "secret_redaction.py",
+        )
+        secret = "plainsecretvalue12345"
+        payload = {
+            "auth_bearer": secret,
+            "authorization": secret,
+            "access_token": secret,
+            "refresh_token": secret,
+            "client_secret": secret,
+            "token_value": secret,
+            "GITHUB_TOKEN": secret,
+            "nested": [{"service_api_key": secret}],
+            "argv": ["tool", "--client-secret", secret],
+        }
+
+        redacted = module.redact_sensitive_value(payload)
+        text = str(redacted)
+        self.assertNotIn(secret, text)
+        self.assertIn("[REDACTED]", text)
 
 
 def load_module(name: str, path: Path) -> object:

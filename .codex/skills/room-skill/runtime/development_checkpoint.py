@@ -56,7 +56,7 @@ def main() -> int:
     report["artifacts"]["json"] = str(output_json)
     write_json(output_json, report)
 
-    print(json.dumps(report, ensure_ascii=False, indent=2))
+    print(json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2))
     return 0
 
 

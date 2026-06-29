@@ -15,7 +15,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from evals.decision_quality.rubric_engine import evaluate_case as evaluate_rubric_case
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 
 
 def main() -> int:
@@ -26,8 +26,8 @@ def main() -> int:
 
     report = build_report()
     markdown = render_markdown(report)
-    output_markdown = Path(args.output_markdown).expanduser().resolve() if args.output_markdown else default_report_path()
-    output_json = Path(args.output_json).expanduser().resolve() if args.output_json else output_markdown.with_suffix(".json")
+    output_markdown = resolve_checked_path(args.output_markdown) if args.output_markdown else default_report_path()
+    output_json = resolve_checked_path(args.output_json) if args.output_json else output_markdown.with_suffix(".json")
     write_text(output_markdown, markdown)
     write_json(output_json, report)
     report["artifacts"] = {"markdown": str(output_markdown), "json": str(output_json)}

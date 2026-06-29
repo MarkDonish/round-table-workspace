@@ -50,6 +50,12 @@ def assert_no_symlink_components(path: str | Path, *, include_leaf: bool = True)
     return candidate
 
 
+def resolve_checked_path(path: str | Path, *, include_leaf: bool = True) -> Path:
+    raw_path = Path(path).expanduser()
+    assert_no_symlink_components(raw_path, include_leaf=include_leaf)
+    return raw_path.resolve()
+
+
 def validate_path_segment(value: str, name: str = "path segment") -> str:
     if value in {".", ".."} or "/" in value or "\\" in value:
         raise UnsafePathError(f"{name} must not contain path traversal: {value!r}")

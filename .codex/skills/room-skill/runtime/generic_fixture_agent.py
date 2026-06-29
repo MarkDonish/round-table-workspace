@@ -13,9 +13,12 @@ REPO_ROOT = RUNTIME_DIR.parents[3]
 DEBATE_RUNTIME_DIR = REPO_ROOT / ".codex" / "skills" / "debate-roundtable-skill" / "runtime"
 if str(DEBATE_RUNTIME_DIR) not in sys.path:
     sys.path.insert(0, str(DEBATE_RUNTIME_DIR))
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 import debate_runtime
 import room_runtime
+from roundtable_core.runtime.paths import resolve_checked_path
 
 
 DEFAULT_ROOM_FIXTURES_DIR = RUNTIME_DIR / "fixtures" / "canonical"
@@ -38,7 +41,7 @@ def main() -> int:
     output_text = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
     output_path = os.environ.get("ROUND_TABLE_OUTPUT_JSON", "").strip()
     if output_path:
-        path = Path(output_path).expanduser()
+        path = resolve_checked_path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(output_text, encoding="utf-8")
     else:

@@ -110,6 +110,7 @@ class ReleaseCheckTest(unittest.TestCase):
                 state_root=temp_dir,
                 include_fixtures=False,
                 strict_git_clean=False,
+                skip_claim_dashboard=False,
                 timeout_seconds=1,
             )
             with patch("scripts.release_check.run_json", side_effect=fake_run_json):
@@ -143,6 +144,7 @@ class ReleaseCheckTest(unittest.TestCase):
                 state_root=str(link_dir),
                 include_fixtures=False,
                 strict_git_clean=False,
+                skip_claim_dashboard=False,
                 timeout_seconds=1,
             )
 

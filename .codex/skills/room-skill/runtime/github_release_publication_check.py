@@ -20,7 +20,7 @@ REPO_ROOT = RUNTIME_DIR.parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 from secret_redaction import redact_sensitive_text, redact_sensitive_value
 
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-github-release-publication"
@@ -34,9 +34,9 @@ DEFAULT_WORKFLOW_RUN_LIMIT = 5
 def main() -> int:
     args = build_parser().parse_args()
     report = build_report(args)
-    output_json = Path(args.output_json).expanduser().resolve() if args.output_json else Path(report["artifacts"]["json"])
+    output_json = resolve_checked_path(args.output_json) if args.output_json else Path(report["artifacts"]["json"])
     output_markdown = (
-        Path(args.output_markdown).expanduser().resolve()
+        resolve_checked_path(args.output_markdown)
         if args.output_markdown
         else Path(report["artifacts"]["markdown"])
     )

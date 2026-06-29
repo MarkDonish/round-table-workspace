@@ -18,6 +18,11 @@ from secret_redaction import redact_sensitive_text, redact_sensitive_value
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import resolve_checked_path
+
 CODEX_HOME = Path.home() / ".codex"
 DEFAULT_SANDBOX = "read-only"
 DEFAULT_TIMEOUT_SECONDS = 900
@@ -177,7 +182,7 @@ def main() -> int:
 
     output_json = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.output_json:
-        output_path = Path(args.output_json).expanduser().resolve()
+        output_path = resolve_checked_path(args.output_json)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(output_json, encoding="utf-8")
     else:

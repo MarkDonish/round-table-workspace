@@ -243,6 +243,7 @@ def run_validation(args: argparse.Namespace) -> dict[str, Any]:
     )
     debate_report = debate_validation.run_validation(debate_args)
 
+    assert_no_symlink_components(flow_dir, include_leaf=True)
     flow_dir.mkdir(parents=True, exist_ok=True)
     integration_report = {
         "ok": True,

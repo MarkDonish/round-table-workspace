@@ -19,7 +19,8 @@ RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-from roundtable_core.runtime.paths import assert_no_symlink_components, validate_path_segment
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path, validate_path_segment
+from secret_redaction import redact_sensitive_text, redact_sensitive_value
 
 DEFAULT_STATE_ROOT = REPO_ROOT / "artifacts" / "runtime" / "local-codex-cross-machine-validation"
 DEFAULT_TARGET_STATE_ROOT = "/tmp/round-table-local-codex-cross-machine"
@@ -44,7 +45,7 @@ def main() -> int:
         print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2))
         return 1
 
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(redact_sensitive_value(result), ensure_ascii=False, indent=2))
     return 0 if result.get("ok") else 1
 
 
@@ -171,7 +172,7 @@ def prepare_bundle(args: argparse.Namespace) -> dict[str, Any]:
     state_root = resolve_state_root(args.state_root)
     run_id = validate_path_segment(args.run_id or f"local-codex-cross-machine-{uuid.uuid4().hex[:8]}", "run_id")
     bundle_dir = state_root / run_id
-    bundle_dir.mkdir(parents=True, exist_ok=True)
+    ensure_directory(bundle_dir)
 
     manifest_path = bundle_dir / "cross-machine-validation-manifest.json"
     target_command_path = bundle_dir / "target-command.txt"
@@ -220,8 +221,8 @@ def prepare_bundle(args: argparse.Namespace) -> dict[str, Any]:
             "target_runbook_md": str(runbook_path),
         },
     }
-    target_command_path.write_text(manifest["expected_regression"]["target_command_text"] + "\n", encoding="utf-8")
-    runbook_path.write_text(build_runbook(manifest), encoding="utf-8")
+    write_text(target_command_path, manifest["expected_regression"]["target_command_text"] + "\n")
+    write_text(runbook_path, build_runbook(manifest))
     write_json(manifest_path, manifest)
     return manifest
 
@@ -235,17 +236,14 @@ def verify_bundle(args: argparse.Namespace) -> dict[str, Any]:
     runtime_profile = load_json_dict(runtime_profile_path) if runtime_profile_path is not None else None
 
     verification_dir = resolve_verification_dir(args=args, manifest_path=manifest_path)
-    verification_dir.mkdir(parents=True, exist_ok=True)
+    ensure_directory(verification_dir)
     imported_report_copy = verification_dir / "imported-local-codex-regression-report.json"
-    imported_report_copy.write_text(report_path.read_text(encoding="utf-8"), encoding="utf-8")
+    write_text(imported_report_copy, report_path.read_text(encoding="utf-8"))
 
     imported_runtime_profile_copy = None
     if runtime_profile_path is not None and runtime_profile is not None:
         imported_runtime_profile_copy = verification_dir / "imported-runtime-profile.json"
-        imported_runtime_profile_copy.write_text(
-            runtime_profile_path.read_text(encoding="utf-8"),
-            encoding="utf-8",
-        )
+        write_text(imported_runtime_profile_copy, runtime_profile_path.read_text(encoding="utf-8"))
 
     expected_regression = manifest.get("expected_regression", {})
     expected_provider_config = expected_regression.get("provider_config", {})
@@ -409,7 +407,7 @@ def resolve_verification_dir(
     manifest_path: Path,
 ) -> Path:
     if args.verification_dir:
-        return Path(args.verification_dir).expanduser().resolve()
+        return resolve_checked_path(args.verification_dir)
     return manifest_path.parent / f"verification-{uuid.uuid4().hex[:8]}"
 
 
@@ -463,7 +461,18 @@ def load_json_dict(path: Path) -> dict[str, Any]:
 def write_json(path: Path, payload: dict[str, Any]) -> None:
     assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def write_text(path: Path, text: str) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(redact_sensitive_text(text), encoding="utf-8")
+
+
+def ensure_directory(path: Path) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
+    path.mkdir(parents=True, exist_ok=True)
 
 
 def resolve_state_root(value: str | Path) -> Path:

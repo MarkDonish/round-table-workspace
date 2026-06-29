@@ -18,7 +18,7 @@ RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 
 DEFAULT_STATE_ROOT = Path("/tmp") / "round-table-local-agent-host-validation-matrix"
 VALIDATION_SCRIPT = ".codex/skills/room-skill/runtime/generic_agent_adapter_validation.py"
@@ -28,9 +28,9 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
     report = build_matrix(args)
-    output_json = Path(args.output_json).expanduser().resolve() if args.output_json else Path(report["artifacts"]["json"])
+    output_json = resolve_checked_path(args.output_json) if args.output_json else Path(report["artifacts"]["json"])
     output_markdown = (
-        Path(args.output_markdown).expanduser().resolve()
+        resolve_checked_path(args.output_markdown)
         if args.output_markdown
         else Path(report["artifacts"]["markdown"])
     )

@@ -10,6 +10,11 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components
+
 START = "<!-- rtw:generated-skill-summary:start -->"
 END = "<!-- rtw:generated-skill-summary:end -->"
 
@@ -40,11 +45,12 @@ def process_skill(skill: str, *, command: str) -> list[dict[str, Any]]:
     targets = [source["canonical_codex_path"], *source["adapter_paths"]]
     reports = []
     for rel_target in targets:
-        target = REPO_ROOT / rel_target
+        target = resolve_generated_target(rel_target)
         text = target.read_text(encoding="utf-8") if target.exists() else ""
         new_text = replace_section(text, section)
         changed = text != new_text
         if command == "generate" and target.exists() and changed:
+            assert_no_symlink_components(target, include_leaf=True)
             target.write_text(new_text, encoding="utf-8")
         report: dict[str, Any] = {
             "skill": skill,
@@ -66,6 +72,19 @@ def process_skill(skill: str, *, command: str) -> list[dict[str, Any]]:
             )
         reports.append(report)
     return reports
+
+
+def resolve_generated_target(rel_target: str) -> Path:
+    target = Path(rel_target)
+    if target.is_absolute() or ".." in target.parts:
+        raise SystemExit(f"generated skill target must stay under repo root: {rel_target}")
+    resolved = (REPO_ROOT / target).resolve()
+    try:
+        resolved.relative_to(REPO_ROOT)
+    except ValueError as exc:
+        raise SystemExit(f"generated skill target escapes repo root: {rel_target}") from exc
+    assert_no_symlink_components(REPO_ROOT / target, include_leaf=True)
+    return REPO_ROOT / target
 
 
 def render_section(source: dict[str, Any], shared: dict[str, Any]) -> str:

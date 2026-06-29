@@ -24,7 +24,7 @@ if str(DEBATE_RUNTIME_DIR) not in sys.path:
     sys.path.insert(0, str(DEBATE_RUNTIME_DIR))
 
 import debate_e2e_validation as debate_validation
-from roundtable_core.runtime.paths import assert_no_symlink_components
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
 
 
 DEFAULT_AGENT_COMMAND = "python3 .codex/skills/room-skill/runtime/generic_fixture_agent.py"
@@ -44,13 +44,13 @@ def main() -> int:
             "error_type": type(exc).__name__,
         }
         if args.output_json:
-            write_json(Path(args.output_json).expanduser().resolve(), report)
+            write_json(resolve_checked_path(args.output_json), report)
         print(json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2))
         return 1
 
     output_text = json.dumps(redact_sensitive_value(report), ensure_ascii=False, indent=2) + "\n"
     if args.output_json:
-        write_json(Path(args.output_json).expanduser().resolve(), report)
+        write_json(resolve_checked_path(args.output_json), report)
     else:
         sys.stdout.write(output_text)
     return 0 if report["ok"] else 1

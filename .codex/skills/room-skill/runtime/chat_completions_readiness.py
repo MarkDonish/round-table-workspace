@@ -13,6 +13,11 @@ import chat_completions_executor as provider_executor
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
+
 DEFAULT_ROOM_ENV_FILE = REPO_ROOT / ".env.room"
 DEFAULT_DEBATE_ENV_FILE = REPO_ROOT / ".env.debate"
 PROVIDER_LANE_DESCRIPTION = (
@@ -26,7 +31,7 @@ def main() -> int:
     args = parser.parse_args()
     report = build_readiness_report(args)
     if args.output_json:
-        write_json(Path(args.output_json).expanduser().resolve(), report)
+        write_json(resolve_checked_path(args.output_json), report)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     if args.strict:
         return 0 if report["pass_criteria"]["ready_for_live_run"] else 1

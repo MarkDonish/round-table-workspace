@@ -19,6 +19,11 @@ from secret_redaction import redact_sensitive_text
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components, resolve_checked_path
+
 DEFAULT_TIMEOUT_SECONDS = 900
 
 
@@ -44,7 +49,7 @@ def main() -> int:
     output_text = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
     final_output = os.environ.get("ROUND_TABLE_OUTPUT_JSON", "").strip()
     if final_output:
-        final_output_path = Path(final_output).expanduser().resolve()
+        final_output_path = resolve_checked_path(final_output)
         final_output_path.parent.mkdir(parents=True, exist_ok=True)
         final_output_path.write_text(output_text, encoding="utf-8")
     sys.stdout.write(output_text)
@@ -94,10 +99,11 @@ def run_wrapped_agent(args: argparse.Namespace) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="round-table-json-wrapper-") as temp_dir_raw:
         temp_dir = Path(temp_dir_raw)
         raw_output_path = (
-            Path(args.raw_output_file).expanduser().resolve()
+            resolve_checked_path(args.raw_output_file)
             if args.raw_output_file
             else temp_dir / "wrapped-agent-output.txt"
         )
+        assert_no_symlink_components(raw_output_path, include_leaf=True)
         raw_output_path.parent.mkdir(parents=True, exist_ok=True)
 
         command_tokens = prepare_wrapped_command_tokens(

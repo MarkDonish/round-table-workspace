@@ -48,6 +48,7 @@ def create_run_dir(
     assert_no_symlink_components(raw_root, include_leaf=True)
     root = raw_root.resolve()
     run_dir = root / "runs" / run_id
+    assert_no_symlink_components(run_dir, include_leaf=True)
     (run_dir / "logs").mkdir(parents=True, exist_ok=True)
     record = RunRecord(
         state_root=root,
@@ -74,6 +75,7 @@ def write_evidence(run_dir: str | Path, data: dict[str, Any]) -> Path:
 
 def write_summary(run_dir: str | Path, markdown: str) -> Path:
     path = Path(run_dir) / "summary.md"
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(markdown.rstrip() + "\n", encoding="utf-8")
     return path
@@ -114,6 +116,7 @@ def stable_hash(data: Any) -> str:
 
 
 def write_json(path: Path, data: dict[str, Any]) -> Path:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return path
