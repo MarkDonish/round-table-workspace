@@ -1,9 +1,9 @@
 {
   "ok": true,
   "action": "claim-boundary-dashboard",
-  "generated_at": "2026-06-29T09:08:07Z",
-  "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
-  "stale_after": "2026-07-06T09:08:07Z",
+  "generated_at": "2026-06-29T11:46:24Z",
+  "source_commit": "78bce72560a0e2ee18af1e564106382635aedcbd",
+  "stale_after": "2026-07-06T11:46:24Z",
   "machine_scope": "MarkDonishdeMacBook-Air-708.local",
   "account_scope": "not_collected",
   "source": {
@@ -11,7 +11,7 @@
       "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
       ".codex/skills/room-skill/runtime/live_lane_evidence_report.py",
       "--state-root",
-      "/private/tmp/rtw-claim-dashboard-refresh-final",
+      "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard",
       "--timeout-seconds",
       "30"
     ],
@@ -44,17 +44,18 @@
       "--include-fixtures",
       "--skip-claim-dashboard",
       "--state-root",
-      "/private/tmp/rtw-claim-dashboard-refresh-final/release-check",
+      "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/release-check",
       "--timeout-seconds",
-      "30"
+      "30",
+      "--strict-git-clean"
     ],
     "returncode": 0,
     "ok": true,
     "release_blockers": [],
     "release_warnings": [],
     "artifacts": {
-      "json": "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.json",
-      "markdown": "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.md"
+      "json": "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/release-check/release-check.json",
+      "markdown": "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/release-check/release-check.md"
     },
     "stderr": ""
   },
@@ -71,17 +72,18 @@
             "--include-fixtures",
             "--skip-claim-dashboard",
             "--state-root",
-            "/private/tmp/rtw-claim-dashboard-refresh-final/release-check",
+            "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/release-check",
             "--timeout-seconds",
-            "30"
+            "30",
+            "--strict-git-clean"
           ],
           "returncode": 0,
           "ok": true,
           "release_blockers": [],
           "release_warnings": [],
           "artifacts": {
-            "json": "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.json",
-            "markdown": "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.md"
+            "json": "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/release-check/release-check.json",
+            "markdown": "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/release-check/release-check.md"
           },
           "stderr": ""
         }
@@ -96,12 +98,12 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T09:08:07Z",
-        "stale_after": "2026-07-06T09:08:07Z",
-        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "generated_at": "2026-06-29T11:46:24Z",
+        "stale_after": "2026-07-06T11:46:24Z",
+        "source_commit": "78bce72560a0e2ee18af1e564106382635aedcbd",
         "artifact_paths": [
-          "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.json",
-          "/private/tmp/rtw-claim-dashboard-refresh-final/release-check/release-check.md"
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/release-check/release-check.json",
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/release-check/release-check.md"
         ],
         "source_evidence": null,
         "claimable": true,
@@ -135,12 +137,12 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T09:08:07Z",
-        "stale_after": "2026-07-06T09:08:07Z",
-        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "generated_at": "2026-06-29T11:46:24Z",
+        "stale_after": "2026-07-06T11:46:24Z",
+        "source_commit": "78bce72560a0e2ee18af1e564106382635aedcbd",
         "artifact_paths": [
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md",
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.json",
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.md",
           "reports/CLAUDE_CODE_HOST_LIVE_VALIDATION_2026-04-27.md"
         ],
         "source_evidence": {
@@ -175,12 +177,12 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T09:08:07Z",
-        "stale_after": "2026-07-06T09:08:07Z",
-        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "generated_at": "2026-06-29T11:46:24Z",
+        "stale_after": "2026-07-06T11:46:24Z",
+        "source_commit": "78bce72560a0e2ee18af1e564106382635aedcbd",
         "artifact_paths": [
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.json",
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.md"
         ],
         "source_evidence": null,
         "claimable": false,
@@ -202,12 +204,12 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T09:08:07Z",
-        "stale_after": "2026-07-06T09:08:07Z",
-        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "generated_at": "2026-06-29T11:46:24Z",
+        "stale_after": "2026-07-06T11:46:24Z",
+        "source_commit": "78bce72560a0e2ee18af1e564106382635aedcbd",
         "artifact_paths": [
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.json",
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.md"
         ],
         "source_evidence": null,
         "claimable": false,
@@ -229,12 +231,12 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T09:08:07Z",
-        "stale_after": "2026-07-06T09:08:07Z",
-        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "generated_at": "2026-06-29T11:46:24Z",
+        "stale_after": "2026-07-06T11:46:24Z",
+        "source_commit": "78bce72560a0e2ee18af1e564106382635aedcbd",
         "artifact_paths": [
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.json",
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.md"
         ],
         "source_evidence": null,
         "claimable": false,
@@ -256,12 +258,12 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T09:08:07Z",
-        "stale_after": "2026-07-06T09:08:07Z",
-        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "generated_at": "2026-06-29T11:46:24Z",
+        "stale_after": "2026-07-06T11:46:24Z",
+        "source_commit": "78bce72560a0e2ee18af1e564106382635aedcbd",
         "artifact_paths": [
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.json",
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.md"
         ],
         "source_evidence": null,
         "claimable": false,
@@ -283,12 +285,12 @@
         "provider_id": null,
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T09:08:07Z",
-        "stale_after": "2026-07-06T09:08:07Z",
-        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "generated_at": "2026-06-29T11:46:24Z",
+        "stale_after": "2026-07-06T11:46:24Z",
+        "source_commit": "78bce72560a0e2ee18af1e564106382635aedcbd",
         "artifact_paths": [
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.json",
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.md"
         ],
         "source_evidence": null,
         "claimable": false,
@@ -310,12 +312,12 @@
         "provider_id": "chat_completions",
         "machine_scope": "MarkDonishdeMacBook-Air-708.local",
         "account_scope": "not_collected",
-        "generated_at": "2026-06-29T09:08:07Z",
-        "stale_after": "2026-07-06T09:08:07Z",
-        "source_commit": "cbc47b509398f06f34c8954bf58de1c198fd7e22",
+        "generated_at": "2026-06-29T11:46:24Z",
+        "stale_after": "2026-07-06T11:46:24Z",
+        "source_commit": "78bce72560a0e2ee18af1e564106382635aedcbd",
         "artifact_paths": [
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.json",
-          "/private/tmp/rtw-claim-dashboard-refresh-final/live-lane-evidence-report.md"
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.json",
+          "/private/var/folders/40/__63k219511bdz6pwhfm3tvw0000gn/T/round-table-claim-boundary-dashboard/live-lane-evidence-report.md"
         ],
         "source_evidence": null,
         "claimable": false,
