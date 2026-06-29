@@ -4,6 +4,7 @@ import io
 import json
 import tempfile
 import unittest
+import uuid
 from contextlib import redirect_stdout
 from pathlib import Path
 
@@ -79,6 +80,66 @@ class CliOutputModesTest(unittest.TestCase):
             self.assertEqual(payload["action"], "ship-check")
             self.assertEqual(payload["decision"], "revise")
             self.assertIn("Ship Check", output_md.read_text(encoding="utf-8"))
+
+    def test_output_json_refuses_symlink_target(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            victim = Path(temp_dir) / "victim.json"
+            victim.write_text("keep", encoding="utf-8")
+            output_json = Path(temp_dir) / "out.json"
+            output_json.symlink_to(victim)
+
+            code, stdout = self.invoke(
+                [
+                    "ship-check",
+                    "Should we merge this AI-generated feature?",
+                    "--output-json",
+                    str(output_json),
+                ]
+            )
+
+            self.assertEqual(code, 2)
+            self.assertIn("refusing to write output through symlink", stdout)
+            self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
+
+    def test_output_markdown_refuses_symlink_target(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            victim = Path(temp_dir) / "victim.md"
+            victim.write_text("keep", encoding="utf-8")
+            output_md = Path(temp_dir) / "out.md"
+            output_md.symlink_to(victim)
+
+            code, stdout = self.invoke(
+                [
+                    "ship-check",
+                    "Should we merge this AI-generated feature?",
+                    "--output-markdown",
+                    str(output_md),
+                ]
+            )
+
+            self.assertEqual(code, 2)
+            self.assertIn("refusing to write output through symlink", stdout)
+            self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
+
+    def test_output_json_allows_system_tmp_parent(self) -> None:
+        output_json = Path("/tmp") / f"rtw-output-{uuid.uuid4().hex}.json"
+        try:
+            code, stdout = self.invoke(
+                [
+                    "ship-check",
+                    "Should we merge this AI-generated feature?",
+                    "--quiet",
+                    "--output-json",
+                    str(output_json),
+                ]
+            )
+
+            self.assertEqual(code, 0)
+            self.assertEqual(stdout, "")
+            payload = json.loads(output_json.read_text(encoding="utf-8"))
+            self.assertEqual(payload["action"], "ship-check")
+        finally:
+            output_json.unlink(missing_ok=True)
 
     def test_root_level_output_flags_are_accepted(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

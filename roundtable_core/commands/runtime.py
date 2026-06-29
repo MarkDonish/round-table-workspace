@@ -354,7 +354,7 @@ def run_json_command(command: list[str]) -> dict[str, Any]:
     payload = parse_json_output(completed.stdout)
     parsed_payload = isinstance(payload, dict)
     return {
-        "ok": completed.returncode == 0 and parsed_payload and payload.get("ok") is not False,
+        "ok": completed.returncode == 0 and parsed_payload and payload.get("ok") is True,
         "command": command,
         "returncode": completed.returncode,
         "payload": payload,

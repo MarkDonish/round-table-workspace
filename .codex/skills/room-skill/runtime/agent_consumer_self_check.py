@@ -168,6 +168,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     summary = build_summary(
         source_audit=source_audit,
         release_readiness=release_readiness,
+        source_consistency=source_consistency,
+        skill_drift=skill_drift,
         quick=args.quick,
     )
     ok = (
@@ -243,6 +245,8 @@ def build_summary(
     *,
     source_audit: dict[str, Any],
     release_readiness: dict[str, Any],
+    source_consistency: dict[str, Any],
+    skill_drift: dict[str, Any],
     quick: bool,
 ) -> dict[str, Any]:
     readiness_payload = release_readiness.get("payload") if isinstance(release_readiness.get("payload"), dict) else {}
@@ -250,7 +254,18 @@ def build_summary(
     release_scope = readiness_payload.get("release_scope") if isinstance(readiness_payload, dict) else {}
     p0_blockers = readiness_payload.get("p0_blockers") if isinstance(readiness_payload, dict) else []
     p0_blockers = p0_blockers if isinstance(p0_blockers, list) else ["release_readiness_p0_parse_error"]
+    blocking_checks = []
+    for name, result in [
+        ("source_boundary_audit", source_audit),
+        ("release_readiness", release_readiness),
+        ("source_truth_consistency", source_consistency),
+        ("skill_drift", skill_drift),
+    ]:
+        if result.get("ok") is not True:
+            blocking_checks.append(f"{name}_failed")
+    combined_blockers = list(p0_blockers) + [item for item in blocking_checks if item not in p0_blockers]
     non_blocking_gaps = readiness_payload.get("non_blocking_gaps") if isinstance(readiness_payload, dict) else []
+    non_blocking_gaps = non_blocking_gaps if isinstance(non_blocking_gaps, list) else []
     non_blocking_gap_ids = [
         gap.get("id")
         for gap in non_blocking_gaps
@@ -265,13 +280,15 @@ def build_summary(
 
     return {
         "ship_decision": release_scope.get("ship_decision"),
-        "local_first_mainline_ready": not p0_blockers,
+        "local_first_mainline_ready": not combined_blockers,
         "source_boundary_ok": source_audit.get("ok") is True,
         "release_readiness_ok": release_readiness.get("ok") is True,
+        "source_truth_consistency_ok": source_consistency.get("ok") is True,
+        "skill_drift_ok": skill_drift.get("ok") is True,
         "offline_fixture_runs_included": not quick,
         "provider_url_required": False,
         "paid_third_party_account_required": False,
-        "p0_blockers": p0_blockers,
+        "p0_blockers": combined_blockers,
         "non_blocking_gap_ids": non_blocking_gap_ids,
         "pass_criteria": pass_criteria,
         "host_summary": host_summary,
@@ -439,7 +456,7 @@ def run_json_command(command: list[str], *, timeout_seconds: int) -> dict[str, A
             "command": command,
             "returncode": completed.returncode,
             "json_parse_ok": isinstance(payload, dict),
-            "ok": completed.returncode == 0 and isinstance(payload, dict) and payload.get("ok") is not False,
+            "ok": completed.returncode == 0 and isinstance(payload, dict) and payload.get("ok") is True,
             "payload": payload,
             "stderr": completed.stderr.strip(),
         }

@@ -265,7 +265,7 @@ def run_json_command(command: list[str], *, timeout_seconds: int) -> dict[str, A
     return {
         "command": command,
         "returncode": completed.returncode,
-        "ok": completed.returncode == 0 and isinstance(payload, dict) and payload.get("ok") is not False,
+        "ok": completed.returncode == 0 and isinstance(payload, dict) and payload.get("ok") is True,
         "payload": payload,
         "stderr": completed.stderr.strip(),
     }

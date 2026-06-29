@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -64,6 +65,30 @@ class RoundtableCoreTest(unittest.TestCase):
         )
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["action"], "schema-validation")
+
+    def test_runtime_run_json_command_requires_explicit_ok_true(self) -> None:
+        from roundtable_core.commands import runtime
+
+        def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess(command, 0, stdout="{}\n", stderr="")
+
+        with patch("roundtable_core.commands.runtime.subprocess.run", side_effect=fake_run):
+            result = runtime.run_json_command(["fake-runtime"])
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["payload"], {})
+
+    def test_runtime_run_json_command_accepts_explicit_ok_true(self) -> None:
+        from roundtable_core.commands import runtime
+
+        def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess(command, 0, stdout='{"ok": true, "action": "fake"}\n', stderr="")
+
+        with patch("roundtable_core.commands.runtime.subprocess.run", side_effect=fake_run):
+            result = runtime.run_json_command(["fake-runtime"])
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["payload"]["action"], "fake")
 
     def test_claim_boundary_helper_is_claim_safe(self) -> None:
         from roundtable_core.protocol import ClaimStatus, local_first_claim_boundary

@@ -34,10 +34,21 @@ EXIT_USAGE_OR_CONFIG = 2
 EXIT_RUNTIME_ERROR = 3
 
 
+class UnsafeOutputPathError(ValueError):
+    pass
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
+    try:
+        return dispatch(args, parser)
+    except UnsafeOutputPathError as exc:
+        return handle_output_path_error(args, str(exc))
+
+
+def dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
     if args.command == "doctor":
         return run_doctor(args)
     if args.command == "validate":
@@ -462,11 +473,23 @@ def emit_payload(args: argparse.Namespace, payload: dict[str, object], *, markdo
         write_json_file(Path(args.output_json).expanduser(), payload)
     if getattr(args, "output_markdown", None):
         path = Path(args.output_markdown).expanduser()
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text((markdown or render_payload_summary(payload)).rstrip() + "\n", encoding="utf-8")
+        write_text_file(path, (markdown or render_payload_summary(payload)).rstrip() + "\n")
     if getattr(args, "quiet", False):
         return
     print(json.dumps(payload, ensure_ascii=False, indent=2))
+
+
+def handle_output_path_error(args: argparse.Namespace, message: str) -> int:
+    payload = {
+        "ok": False,
+        "action": str(getattr(args, "command", "rtw")),
+        "error": message,
+    }
+    if getattr(args, "quiet", False):
+        print(json.dumps(payload, ensure_ascii=False, indent=2), file=sys.stderr)
+    else:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return EXIT_USAGE_OR_CONFIG
 
 
 def render_payload_summary(payload: dict[str, object]) -> str:
@@ -681,9 +704,25 @@ def parse_json_output(text: str) -> object | None:
 
 
 def write_json_file(path: Path, payload: object) -> Path:
+    return write_text_file(path, json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
+
+
+def write_text_file(path: Path, text: str) -> Path:
+    ensure_safe_output_path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(text, encoding="utf-8")
     return path
+
+
+def ensure_safe_output_path(path: Path) -> None:
+    if path.exists() and path.is_symlink():
+        raise UnsafeOutputPathError(f"refusing to write output through symlink: {path}")
+    if path.parent.exists() and path.parent.is_symlink() and path.parent not in allowed_system_symlink_dirs():
+        raise UnsafeOutputPathError(f"refusing to write output under symlink directory: {path.parent}")
+
+
+def allowed_system_symlink_dirs() -> set[Path]:
+    return {Path("/tmp"), Path("/var")}
 
 
 def resolve_state_root(explicit_state_root: str | None, command: str) -> str:

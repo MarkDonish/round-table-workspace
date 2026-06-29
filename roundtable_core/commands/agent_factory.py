@@ -87,7 +87,7 @@ def looks_like_registry_path(target: str) -> bool:
     if not looks_like_manifest_path(target):
         return False
     path = resolve_repo_path(target)
-    if path.name.startswith("agent-registry"):
+    if "registry" in path.name:
         return True
     if not path.exists():
         return False

@@ -192,12 +192,19 @@ class AgentFactoryTest(unittest.TestCase):
     def test_rtw_agent_missing_paths_return_structured_errors(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             missing_registry = Path(temp_dir) / "missing-registry.json"
+            missing_custom_registry = Path(temp_dir) / "custom-registry.json"
             missing_manifest = Path(temp_dir) / "missing.agent.manifest.json"
 
             code, output = self.invoke_cli(["agent", "--registry", str(missing_registry), "list"])
             self.assertEqual(code, 1)
             payload = json.loads(output)
             self.assertEqual(payload["action"], "agent-registry-list")
+            self.assertIn("registry does not exist", payload["errors"][0])
+
+            code, output = self.invoke_cli(["agent", "validate", str(missing_custom_registry)])
+            self.assertEqual(code, 1)
+            payload = json.loads(output)
+            self.assertEqual(payload["action"], "agent-registry-validate")
             self.assertIn("registry does not exist", payload["errors"][0])
 
             code, output = self.invoke_cli(["agent", "validate", str(missing_manifest)])

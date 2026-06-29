@@ -175,11 +175,11 @@ def check_release_publication_defaults(version_check: dict[str, Any]) -> dict[st
     if expected_draft and extractor_draft != expected_draft:
         problems.append("extract_github_release_body_default_draft_mismatch")
     if current_release and workflow_tag != current_release:
-        warnings.append("publish_github_release_workflow_default_tag_mismatch")
+        problems.append("publish_github_release_workflow_default_tag_mismatch")
     if expected_draft and workflow_draft != expected_draft:
-        warnings.append("publish_github_release_workflow_default_draft_mismatch")
+        problems.append("publish_github_release_workflow_default_draft_mismatch")
     if workflow_push_can_publish:
-        warnings.append("publish_github_release_workflow_push_publication_risk")
+        problems.append("publish_github_release_workflow_push_publication_risk")
     return {
         "ok": not problems,
         "current_release": current_release,

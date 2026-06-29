@@ -194,6 +194,17 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertFalse(workflow_check["publication_safe"])
         self.assertTrue(workflow_check["push_trigger_can_publish"])
 
+    def test_source_truth_blocks_unsafe_release_workflow_defaults(self) -> None:
+        from scripts import check_source_truth_consistency
+
+        report = check_source_truth_consistency.build_report()
+
+        release_defaults = report["checks"]["release_publication_defaults"]
+        self.assertFalse(release_defaults["ok"])
+        self.assertIn("publish_github_release_workflow_default_tag_mismatch", release_defaults["problems"])
+        self.assertIn("publish_github_release_workflow_default_draft_mismatch", release_defaults["problems"])
+        self.assertIn("publish_github_release_workflow_push_publication_risk", release_defaults["problems"])
+
     @staticmethod
     def load_module(name: str, path: Path) -> object:
         spec = importlib.util.spec_from_file_location(name, path)

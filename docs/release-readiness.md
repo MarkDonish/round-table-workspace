@@ -131,6 +131,12 @@ validation, regression fixtures, live-lane evidence, and the claim boundary
 dashboard. It does not convert fixture/mock/config readiness into host-live or
 provider-live support.
 
+GitHub Release workflow drift is a release blocker, not a warning. If
+`.github/workflows/publish-github-release.yml` still defaults to an older tag,
+an older release draft, or allows push-triggered publication, `release-check`
+must fail until the workflow is updated or the release is published manually
+with fresh evidence.
+
 ## CI Coverage
 
 `.github/workflows/ci.yml` runs the core non-secret validation chain on push and
