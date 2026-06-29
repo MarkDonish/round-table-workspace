@@ -135,6 +135,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         checks["git_clean"] = {"ok": True, "skipped": True, "reason": "pass --strict-git-clean to enforce"}
 
     blockers = [name for name, check in checks.items() if not check.get("ok")]
+    warnings = collect_check_warnings(checks)
     return {
         "ok": not blockers,
         "action": "release-check",
@@ -143,6 +144,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "strict_git_clean": args.strict_git_clean,
         "checks": checks,
         "release_blockers": blockers,
+        "release_warnings": warnings,
         "claim_boundary": [
             "release-check aggregates local-first validation only.",
             "It does not convert fixture/mock/config readiness into live support.",
@@ -294,11 +296,22 @@ def run_git_clean() -> dict[str, Any]:
     return {"ok": completed.returncode == 0 and not dirty, "dirty_entries": dirty}
 
 
+def collect_check_warnings(checks: dict[str, Any]) -> list[dict[str, Any]]:
+    warnings: list[dict[str, Any]] = []
+    for name, check in checks.items():
+        payload = check.get("payload") if isinstance(check.get("payload"), dict) else check
+        if not isinstance(payload, dict):
+            continue
+        for item in payload.get("warnings", []) or []:
+            warnings.append({"check": name, "warning": item})
+    return warnings
+
+
 def run_json(command: list[str], *, timeout: int) -> dict[str, Any]:
     completed = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True, timeout=timeout, check=False)
     payload = extract_json(completed.stdout)
     json_parse_ok = isinstance(payload, dict)
-    payload_ok = payload.get("ok") is not False if json_parse_ok else False
+    payload_ok = payload.get("ok") is True if json_parse_ok else False
     ok = completed.returncode == 0 and json_parse_ok and payload_ok
     return {
         "ok": ok,
@@ -334,6 +347,12 @@ def render_markdown(report: dict[str, Any]) -> str:
     if report["release_blockers"]:
         for blocker in report["release_blockers"]:
             lines.append(f"- `{blocker}`")
+    else:
+        lines.append("- None")
+    lines.extend(["", "## Release Warnings", ""])
+    if report.get("release_warnings"):
+        for warning in report["release_warnings"]:
+            lines.append(f"- `{warning['check']}`: {warning['warning']}")
     else:
         lines.append("- None")
     lines.extend(["", "## Claim Boundary", ""])

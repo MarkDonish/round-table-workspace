@@ -34,9 +34,9 @@ machines/accounts must rerun `claude_code_live_validation.py`.
 
 The current reproducible release target is:
 
-- Tag: `v0.2.0-alpha`
+- Tag: `v0.2.2-pages-launch-kit`
 - Changelog: `CHANGELOG.md`
-- Release notes: `docs/releases/v0.2.0-alpha.md`
+- Release notes: `docs/releases/v0.2.2-pages-launch-kit.md`
 
 Create or update this tag only after the strict release gate and claim-safe
 release report pass from a clean Git tree.
@@ -117,7 +117,7 @@ python3 .codex/skills/room-skill/runtime/release_candidate_report.py \
 
 The support-scope rules for interpreting that report live in `docs/release-candidate-scope.md`.
 
-## v0.2.0 Aggregate Release Check
+## Aggregate Release Check
 
 The unified CLI now exposes a non-replacing aggregation layer:
 
@@ -193,7 +193,7 @@ consumer audit from a fresh cloned checkout of the release ref:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
-  --ref v0.2.0-alpha \
+  --ref v0.2.2-pages-launch-kit \
   --state-root /tmp/round-table-post-release-consumer-audit
 ```
 

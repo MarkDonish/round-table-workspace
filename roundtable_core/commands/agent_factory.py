@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,8 @@ def run_agent_validate(
     target: str | None = None,
     profile: str | None = None,
 ) -> dict[str, Any]:
+    if target and looks_like_registry_path(target):
+        return validate_factory_registry(resolve_repo_path(target))
     if target and looks_like_manifest_path(target):
         return validate_bundle(
             resolve_repo_path(target),
@@ -78,3 +81,20 @@ def run_agent_disable(*, registry: str | None = None, agent_id: str) -> dict[str
 
 def looks_like_manifest_path(target: str) -> bool:
     return target.endswith(".json") or "/" in target or "\\" in target
+
+
+def looks_like_registry_path(target: str) -> bool:
+    if not looks_like_manifest_path(target):
+        return False
+    path = resolve_repo_path(target)
+    if path.name.startswith("agent-registry"):
+        return True
+    if not path.exists():
+        return False
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return False
+    return isinstance(payload, dict) and (
+        payload.get("registry_kind") == "agent_factory_library" or isinstance(payload.get("agents"), list)
+    )

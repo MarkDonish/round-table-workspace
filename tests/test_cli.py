@@ -136,6 +136,20 @@ class RoundtableCliTest(unittest.TestCase):
             self.assertTrue(Path(payload["outputs"]["debate_session"]).exists())
             self.assertTrue(Path(payload["outputs"]["debate_result"]).exists())
 
+    def test_demo_runs_do_not_overwrite_same_explicit_state_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            first_code, first_output = self.invoke(["demo", "startup-idea", "--state-root", temp_dir])
+            second_code, second_output = self.invoke(["demo", "startup-idea", "--state-root", temp_dir])
+
+            self.assertEqual(first_code, 0)
+            self.assertEqual(second_code, 0)
+            first_payload = json.loads(first_output)
+            second_payload = json.loads(second_output)
+            self.assertNotEqual(first_payload["run_id"], second_payload["run_id"])
+            self.assertNotEqual(first_payload["run_dir"], second_payload["run_dir"])
+            self.assertTrue((Path(first_payload["run_dir"]) / "output.json").exists())
+            self.assertTrue((Path(second_payload["run_dir"]) / "output.json").exists())
+
     def test_ship_check_returns_fixture_backed_decision_gate(self) -> None:
         code, output = self.invoke(["ship-check", "Launch the AI-generated MVP README polish"])
 

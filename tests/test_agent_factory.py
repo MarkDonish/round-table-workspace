@@ -64,6 +64,7 @@ class AgentFactoryTest(unittest.TestCase):
 
         list_report = run_agent_list()
         registry_report = run_agent_validate()
+        explicit_registry_report = run_agent_validate(target="config/agent-registry.json")
         bundle_report = run_agent_validate(
             target="examples/agent-factory/duan-yongping.agent.manifest.json",
             profile="examples/agent-factory/duan-yongping.roundtable-profile.md",
@@ -72,6 +73,8 @@ class AgentFactoryTest(unittest.TestCase):
         self.assertTrue(list_report["ok"])
         self.assertEqual(list_report["action"], "agent-registry-list")
         self.assertTrue(registry_report["ok"], json.dumps(registry_report, ensure_ascii=False, indent=2))
+        self.assertTrue(explicit_registry_report["ok"], json.dumps(explicit_registry_report, ensure_ascii=False, indent=2))
+        self.assertEqual(explicit_registry_report["action"], "agent-registry-validate")
         self.assertTrue(bundle_report["ok"], json.dumps(bundle_report, ensure_ascii=False, indent=2))
         self.assertEqual(bundle_report["action"], "agent-bundle-validate")
 
@@ -110,6 +113,12 @@ class AgentFactoryTest(unittest.TestCase):
         self.assertGreaterEqual(payload["agent_count"], 1)
 
         code, output = self.invoke_cli(["agent", "validate"])
+        self.assertEqual(code, 0)
+        payload = json.loads(output)
+        self.assertEqual(payload["action"], "agent-registry-validate")
+        self.assertTrue(payload["ok"])
+
+        code, output = self.invoke_cli(["agent", "validate", "config/agent-registry.json"])
         self.assertEqual(code, 0)
         payload = json.loads(output)
         self.assertEqual(payload["action"], "agent-registry-validate")

@@ -39,6 +39,7 @@ def build_report() -> dict[str, Any]:
     required_docs = check_required_docs()
     claim_dashboard_freshness = check_claim_dashboard_freshness(readme)
     protocol_versions = check_protocol_versioning(readme, launch)
+    release_publication_defaults = check_release_publication_defaults(version_check)
     checks = {
         "active_source_paths": {
             "ok": all(item["exists"] for item in source_checks),
@@ -50,6 +51,7 @@ def build_report() -> dict[str, Any]:
         "required_docs": required_docs,
         "claim_dashboard_freshness": claim_dashboard_freshness,
         "protocol_versioning": protocol_versions,
+        "release_publication_defaults": release_publication_defaults,
     }
     ok = all(item["ok"] for item in checks.values())
     return {
@@ -150,6 +152,77 @@ def check_protocol_versioning(readme: str, launch: str) -> dict[str, Any]:
         "doc_exists": doc_exists,
         "warnings": warnings,
     }
+
+
+def check_release_publication_defaults(version_check: dict[str, Any]) -> dict[str, Any]:
+    current_release = version_check.get("readme_versions", [None])[-1] if version_check.get("readme_versions") else None
+    expected_draft = f"docs/releases/{current_release}-github-release.md" if current_release else None
+    publication_check = read(".codex/skills/room-skill/runtime/github_release_publication_check.py")
+    extractor = read(".codex/skills/room-skill/runtime/extract_github_release_body.py")
+    workflow = read(".github/workflows/publish-github-release.yml")
+    helper_tag = extract_python_constant(publication_check, "DEFAULT_TAG")
+    helper_draft = extract_python_constant(publication_check, "DEFAULT_RELEASE_DRAFT")
+    extractor_draft = extract_python_constant(extractor, "DEFAULT_RELEASE_DRAFT")
+    workflow_tag = extract_workflow_default(workflow, "tag")
+    workflow_draft = extract_workflow_default(workflow, "release_draft")
+    workflow_push_can_publish = workflow_push_trigger_can_publish(workflow)
+    problems = []
+    warnings = []
+    if current_release and helper_tag != current_release:
+        problems.append("github_release_publication_check_default_tag_mismatch")
+    if expected_draft and helper_draft != expected_draft:
+        problems.append("github_release_publication_check_default_draft_mismatch")
+    if expected_draft and extractor_draft != expected_draft:
+        problems.append("extract_github_release_body_default_draft_mismatch")
+    if current_release and workflow_tag != current_release:
+        warnings.append("publish_github_release_workflow_default_tag_mismatch")
+    if expected_draft and workflow_draft != expected_draft:
+        warnings.append("publish_github_release_workflow_default_draft_mismatch")
+    if workflow_push_can_publish:
+        warnings.append("publish_github_release_workflow_push_publication_risk")
+    return {
+        "ok": not problems,
+        "current_release": current_release,
+        "expected_release_draft": expected_draft,
+        "github_release_publication_check_default_tag": helper_tag,
+        "github_release_publication_check_default_draft": helper_draft,
+        "extract_github_release_body_default_draft": extractor_draft,
+        "workflow_default_tag": workflow_tag,
+        "workflow_default_release_draft": workflow_draft,
+        "workflow_push_trigger_can_publish": workflow_push_can_publish,
+        "problems": problems,
+        "warnings": warnings,
+    }
+
+
+def extract_python_constant(text: str, name: str) -> str | None:
+    match = re.search(rf"^{re.escape(name)}\s*=\s*[\"']([^\"']+)[\"']", text, flags=re.MULTILINE)
+    return match.group(1) if match else None
+
+
+def extract_workflow_default(text: str, input_name: str) -> str | None:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() != f"{input_name}:":
+            continue
+        base_indent = len(line) - len(line.lstrip())
+        for child in lines[index + 1 :]:
+            if not child.strip():
+                continue
+            child_indent = len(child) - len(child.lstrip())
+            if child_indent <= base_indent:
+                break
+            if child.strip().startswith("default:"):
+                value = child.split(":", 1)[1].strip()
+                return value.strip("\"'")
+    return None
+
+
+def workflow_push_trigger_can_publish(text: str) -> bool:
+    has_push_trigger = "push:" in text
+    publishes_release = "gh release create" in text or "gh release edit" in text
+    push_defaults_to_dry_run = "DRY_RUN_INPUT:-true" in text
+    return has_push_trigger and publishes_release and not push_defaults_to_dry_run
 
 
 def collect_problems(checks: dict[str, Any]) -> list[dict[str, Any]]:

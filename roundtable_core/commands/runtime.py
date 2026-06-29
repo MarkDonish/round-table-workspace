@@ -225,7 +225,7 @@ def run_debate_fixture(*, question: str, state_root: str | Path, run_id: str | N
 
 
 def run_golden_demo(*, demo_name: str, state_root: str | Path) -> dict[str, Any]:
-    run = create_run_dir(state_root, "demo", run_id=f"demo-{demo_name}")
+    run = create_run_dir(state_root, "demo")
     input_payload = {
         "demo": demo_name,
         "mode": "fixture_mock",
@@ -276,6 +276,7 @@ def run_golden_demo(*, demo_name: str, state_root: str | Path) -> dict[str, Any]
         "action": "golden-demo",
         "demo": demo_name,
         "mode": "fixture_mock",
+        "run_id": run.run_id,
         "run_dir": str(run.run_dir),
         "outputs": outputs,
         "runtime": {

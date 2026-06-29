@@ -32,6 +32,47 @@ class ReleaseCheckTest(unittest.TestCase):
         self.assertTrue(result["json_parse_ok"])
         self.assertEqual(result["payload"]["action"], "fake")
 
+    def test_run_json_rejects_empty_json_payload(self) -> None:
+        from scripts import release_check
+
+        def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess(command, 0, stdout="{}\n", stderr="")
+
+        with patch("scripts.release_check.subprocess.run", side_effect=fake_run):
+            result = release_check.run_json(["fake"], timeout=1)
+
+        self.assertFalse(result["ok"])
+        self.assertTrue(result["json_parse_ok"])
+        self.assertEqual(result["payload"], {})
+
+    def test_collect_check_warnings_includes_nested_payload_warnings(self) -> None:
+        from scripts import release_check
+
+        warnings = release_check.collect_check_warnings(
+            {
+                "source_truth": {
+                    "ok": True,
+                    "payload": {
+                        "warnings": [
+                            {"check": "release_publication_defaults", "warning": "workflow_default_tag_mismatch"}
+                        ]
+                    },
+                },
+                "direct": {"ok": True, "warnings": ["direct_warning"]},
+            }
+        )
+
+        self.assertEqual(
+            warnings,
+            [
+                {
+                    "check": "source_truth",
+                    "warning": {"check": "release_publication_defaults", "warning": "workflow_default_tag_mismatch"},
+                },
+                {"check": "direct", "warning": "direct_warning"},
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

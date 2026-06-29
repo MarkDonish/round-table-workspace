@@ -100,7 +100,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     gh_state = detect_gh_state(args.timeout_seconds)
     local_tag = check_local_tag(args.tag, args.timeout_seconds)
     release_draft = check_release_draft(args.release_draft)
-    release_workflow = check_release_workflow(args.release_workflow)
+    release_workflow = check_release_workflow(
+        args.release_workflow,
+        expected_tag=args.tag,
+        expected_release_draft=args.release_draft,
+    )
     workflow_runs = check_github_actions_workflow_runs(
         repository=args.repository,
         release_workflow=args.release_workflow,
@@ -134,7 +138,11 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         tag=args.tag,
     )
     report = {
-        "ok": local_tag["exists"] and release_draft["exists"] and release_workflow["usable"],
+        "ok": local_tag["exists"]
+        and release_draft["exists"]
+        and release_workflow["usable"]
+        and release_workflow["defaults_match_requested_release"]
+        and release_workflow["publication_safe"],
         "action": "github-release-publication-check",
         "generated_at": utc_now_iso(),
         "repo_root": str(REPO_ROOT),
@@ -208,7 +216,9 @@ def build_summary(
     else:
         release_page_status = "unknown_api_error"
 
-    repo_automation_available = release_workflow["usable"]
+    workflow_defaults_match = release_workflow["defaults_match_requested_release"]
+    workflow_publication_safe = release_workflow["publication_safe"]
+    repo_automation_available = release_workflow["usable"] and workflow_defaults_match and workflow_publication_safe
     workflow_run_status = summarize_workflow_run_status(workflow_runs)
     can_publish = bool(token_present or gh_state.get("authenticated"))
     if release_page_status == "published":
@@ -235,6 +245,12 @@ def build_summary(
         "release_draft_exists": release_draft["exists"],
         "release_publication_workflow_exists": release_workflow["exists"],
         "release_publication_workflow_usable": release_workflow["usable"],
+        "release_workflow_default_tag": release_workflow["default_tag"],
+        "release_workflow_default_release_draft": release_workflow["default_release_draft"],
+        "release_workflow_default_dry_run": release_workflow["default_dry_run"],
+        "release_workflow_defaults_match_requested_release": workflow_defaults_match,
+        "release_workflow_publication_safe": workflow_publication_safe,
+        "release_workflow_push_trigger_can_publish": release_workflow["push_trigger_can_publish"],
         "repo_automation_available": repo_automation_available,
         "release_workflow_run_status": workflow_run_status,
         "release_workflow_latest_run": workflow_runs.get("latest_run"),
@@ -257,6 +273,35 @@ def build_next_actions(
     release_workflow: str,
 ) -> list[dict[str, str]]:
     status = summary["release_page_status"]
+    if summary.get("release_workflow_defaults_match_requested_release") is False:
+        return [
+            {
+                "priority": "P1",
+                "task": f"Update `{release_workflow}` defaults or pass explicit workflow inputs for `{tag}`",
+                "why": (
+                    "The checked-in release workflow still points at a different default tag/draft, "
+                    "so an operator using the default UI could publish the wrong release."
+                ),
+            },
+            {
+                "priority": "P1",
+                "task": f"Publish GitHub Release `{tag}` manually if workflow updates are blocked",
+                "why": f"Use `{release_draft}` as the copy-ready fallback body at https://github.com/{repository}/releases/new?tag={tag}.",
+            },
+        ]
+    if summary.get("release_workflow_publication_safe") is False:
+        return [
+            {
+                "priority": "P1",
+                "task": f"Restrict `{release_workflow}` release publication to explicit workflow_dispatch runs",
+                "why": "The push-triggered path can reach the publish step, so a normal push could edit or create a release.",
+            },
+            {
+                "priority": "P1",
+                "task": "Make push-triggered runs dry-run only or move write permissions to a dispatch-only job",
+                "why": "Repository automation should not silently publish releases from a regular push path.",
+            },
+        ]
     if status == "published":
         return [
             {
@@ -364,24 +409,71 @@ def check_release_draft(release_draft: str) -> dict[str, Any]:
     }
 
 
-def check_release_workflow(release_workflow: str) -> dict[str, Any]:
+def check_release_workflow(
+    release_workflow: str,
+    *,
+    expected_tag: str | None = None,
+    expected_release_draft: str | None = None,
+) -> dict[str, Any]:
     path = REPO_ROOT / release_workflow
     text = path.read_text(encoding="utf-8") if path.is_file() else ""
     uses_github_token = "GH_TOKEN: ${{ github.token }}" in text
     has_workflow_dispatch = "workflow_dispatch:" in text
     has_push_trigger = "push:" in text
     publishes_release = "gh release create" in text or "gh release edit" in text
+    default_tag = extract_workflow_default(text, "tag")
+    default_release_draft = extract_workflow_default(text, "release_draft")
+    default_dry_run = extract_workflow_default(text, "dry_run")
+    defaults_match_requested_release = (
+        (expected_tag is None or default_tag == expected_tag)
+        and (expected_release_draft is None or default_release_draft == expected_release_draft)
+    )
+    push_trigger_can_publish = has_push_trigger and publishes_release and "DRY_RUN_INPUT:-true" not in text
+    publication_safe = bool(
+        path.is_file()
+        and uses_github_token
+        and has_workflow_dispatch
+        and has_push_trigger
+        and publishes_release
+        and not push_trigger_can_publish
+    )
     return {
         "exists": path.is_file(),
         "path": release_workflow,
         "absolute_path": str(path),
         "size_bytes": path.stat().st_size if path.is_file() else None,
         "usable": bool(path.is_file() and uses_github_token and has_workflow_dispatch and has_push_trigger and publishes_release),
+        "default_tag": default_tag,
+        "default_release_draft": default_release_draft,
+        "default_dry_run": default_dry_run,
+        "expected_tag": expected_tag,
+        "expected_release_draft": expected_release_draft,
+        "defaults_match_requested_release": defaults_match_requested_release,
+        "publication_safe": publication_safe,
+        "push_trigger_can_publish": push_trigger_can_publish,
         "uses_github_token": uses_github_token,
         "has_workflow_dispatch": has_workflow_dispatch,
         "has_push_trigger": has_push_trigger,
         "publishes_release": publishes_release,
     }
+
+
+def extract_workflow_default(text: str, input_name: str) -> str | None:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() != f"{input_name}:":
+            continue
+        base_indent = len(line) - len(line.lstrip())
+        for child in lines[index + 1 :]:
+            if not child.strip():
+                continue
+            child_indent = len(child) - len(child.lstrip())
+            if child_indent <= base_indent:
+                break
+            if child.strip().startswith("default:"):
+                value = child.split(":", 1)[1].strip()
+                return value.strip("\"'")
+    return None
 
 
 def check_github_actions_workflow_runs(
@@ -721,6 +813,18 @@ def render_markdown(report: dict[str, Any]) -> str:
         row("Release draft exists", str(summary["release_draft_exists"]).lower()),
         row("Release publication workflow exists", str(summary["release_publication_workflow_exists"]).lower()),
         row("Release publication workflow usable", str(summary["release_publication_workflow_usable"]).lower()),
+        row("Release workflow default tag", summary["release_workflow_default_tag"]),
+        row("Release workflow default draft", summary["release_workflow_default_release_draft"]),
+        row("Release workflow default dry run", str(summary["release_workflow_default_dry_run"]).lower()),
+        row(
+            "Release workflow defaults match requested release",
+            str(summary["release_workflow_defaults_match_requested_release"]).lower(),
+        ),
+        row("Release workflow publication safe", str(summary["release_workflow_publication_safe"]).lower()),
+        row(
+            "Release workflow push trigger can publish",
+            str(summary["release_workflow_push_trigger_can_publish"]).lower(),
+        ),
         row("Repo automation available", str(summary["repo_automation_available"]).lower()),
         row("Release workflow run status", summary["release_workflow_run_status"]),
         row("Can check workflow runs from this host", str(summary["can_check_workflow_runs_from_this_host"]).lower()),

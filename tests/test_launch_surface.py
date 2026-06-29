@@ -183,6 +183,17 @@ class LaunchSurfaceTest(unittest.TestCase):
         )
         self.assertTrue(extraction["ok"], extraction)
 
+        workflow_check = publication_check.check_release_workflow(
+            publication_check.DEFAULT_RELEASE_WORKFLOW,
+            expected_tag=publication_check.DEFAULT_TAG,
+            expected_release_draft=publication_check.DEFAULT_RELEASE_DRAFT,
+        )
+        self.assertFalse(workflow_check["defaults_match_requested_release"])
+        self.assertEqual(workflow_check["default_tag"], "v0.2.0-alpha")
+        self.assertEqual(workflow_check["default_release_draft"], "docs/releases/v0.2.0-alpha-github-release.md")
+        self.assertFalse(workflow_check["publication_safe"])
+        self.assertTrue(workflow_check["push_trigger_can_publish"])
+
     @staticmethod
     def load_module(name: str, path: Path) -> object:
         spec = importlib.util.spec_from_file_location(name, path)
