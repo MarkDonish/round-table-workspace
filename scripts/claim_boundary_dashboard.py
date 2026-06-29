@@ -13,6 +13,17 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components
+
+RUNTIME_DIR = REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime"
+if str(RUNTIME_DIR) not in sys.path:
+    sys.path.insert(0, str(RUNTIME_DIR))
+
+from secret_redaction import redact_sensitive_text, redact_sensitive_value
+
 DEFAULT_MARKDOWN = REPO_ROOT / "reports" / "claim-boundary-dashboard.md"
 DEFAULT_JSON = REPO_ROOT / "reports" / "claim-boundary-dashboard.json"
 
@@ -196,7 +207,7 @@ def normalize_status(status: Any) -> str:
 
 def sanitize(value: Any) -> Any:
     if isinstance(value, str):
-        return value.replace(str(REPO_ROOT), "<repo>")
+        return redact_sensitive_text(value.replace(str(REPO_ROOT), "<repo>"))
     if isinstance(value, list):
         return [sanitize(item) for item in value]
     if isinstance(value, dict):
@@ -262,13 +273,13 @@ def render_markdown(report: dict[str, Any]) -> str:
 def run_json_command(command: list[str], *, timeout_seconds: int) -> dict[str, Any]:
     completed = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True, timeout=timeout_seconds, check=False)
     payload = extract_json(completed.stdout)
-    return {
+    return redact_sensitive_value({
         "command": command,
         "returncode": completed.returncode,
         "ok": completed.returncode == 0 and isinstance(payload, dict) and payload.get("ok") is True,
         "payload": payload,
         "stderr": completed.stderr.strip(),
-    }
+    })
 
 
 def extract_json(text: str) -> Any:
@@ -303,11 +314,13 @@ def iso_after(*, days: int) -> str:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def write_text(path: Path, text: str) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
 

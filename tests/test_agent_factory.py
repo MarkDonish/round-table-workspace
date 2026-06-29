@@ -284,6 +284,35 @@ class AgentFactoryTest(unittest.TestCase):
             self.assertEqual(payload["action"], "agent-register")
             self.assertIn("symlink component", payload["errors"][0])
 
+    def test_rtw_agent_register_refuses_symlink_before_dotdot_registry_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            target_parent = base / "target-parent"
+            target_parent.mkdir()
+            subdir = target_parent / "subdir"
+            subdir.mkdir()
+            registry = target_parent / "agent-registry.json"
+            shutil.copyfile(REPO_ROOT / "config" / "agent-registry.json", registry)
+            link_dir = base / "link"
+            link_dir.symlink_to(subdir, target_is_directory=True)
+            manifest = REPO_ROOT / "examples" / "agent-factory" / "duan-yongping.agent.manifest.json"
+
+            code, output = self.invoke_cli(
+                [
+                    "agent",
+                    "--registry",
+                    str(link_dir / ".." / "agent-registry.json"),
+                    "register",
+                    str(manifest),
+                    "--replace",
+                ]
+            )
+
+            self.assertEqual(code, 1)
+            payload = json.loads(output)
+            self.assertEqual(payload["action"], "agent-register")
+            self.assertIn("symlink component", payload["errors"][0])
+
     def test_rtw_agent_missing_paths_return_structured_errors(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             missing_registry = Path(temp_dir) / "missing-registry.json"

@@ -12,6 +12,13 @@ from pathlib import Path
 from typing import Iterable
 
 
+RUNTIME_DIR = Path(__file__).resolve().parent
+REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components
+
 SOURCE_TRUTH_ROOTS = [
     "AGENTS.md",
     "README.md",
@@ -205,6 +212,7 @@ def main() -> int:
     output = json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True)
 
     if args.output_json:
+        assert_no_symlink_components(args.output_json, include_leaf=True)
         args.output_json.parent.mkdir(parents=True, exist_ok=True)
         args.output_json.write_text(output + "\n", encoding="utf-8")
     print(output)

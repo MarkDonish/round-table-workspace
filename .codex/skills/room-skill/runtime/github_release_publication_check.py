@@ -17,6 +17,12 @@ from urllib.request import Request, urlopen
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components
+from secret_redaction import redact_sensitive_text, redact_sensitive_value
+
 DEFAULT_STATE_ROOT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-github-release-publication"
 DEFAULT_REPOSITORY = "MarkDonish/round-table-workspace"
 DEFAULT_TAG = "v0.2.2-pages-launch-kit"
@@ -93,7 +99,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    raw_state_root = Path(args.state_root).expanduser()
+    assert_no_symlink_components(raw_state_root, include_leaf=True)
+    state_root = raw_state_root.resolve()
     state_root.mkdir(parents=True, exist_ok=True)
 
     token_state = detect_token_state()
@@ -183,7 +191,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "markdown": str(state_root / "github-release-publication-check.md"),
         },
     }
-    return report
+    return redact_sensitive_value(report)
 
 
 def build_summary(
@@ -438,6 +446,7 @@ def check_release_workflow(
             "publication_safe": False,
             "push_trigger_can_publish": False,
             "has_tag_checkout_guard": False,
+            "has_pre_publish_release_guards": False,
             "watches_gate_scripts": False,
             "uses_github_token": False,
             "has_workflow_dispatch": False,
@@ -466,6 +475,17 @@ def check_release_workflow(
             "scripts/release_check.py",
         ]
     )
+    has_pre_publish_release_guards = all(
+        marker in text
+        for marker in [
+            "Run release guards before publication",
+            "python3 scripts/check_source_truth_consistency.py",
+            "./rtw release-check",
+            "--include-fixtures",
+            "--strict-git-clean",
+            "$RUNNER_TEMP/rtw-publish-release-check",
+        ]
+    )
     default_tag = extract_workflow_default(text, "tag")
     default_release_draft = extract_workflow_default(text, "release_draft")
     default_dry_run = extract_workflow_default(text, "dry_run")
@@ -481,6 +501,7 @@ def check_release_workflow(
         and has_push_trigger
         and publishes_release
         and has_tag_checkout_guard
+        and has_pre_publish_release_guards
         and watches_gate_scripts
         and not push_trigger_can_publish
     )
@@ -501,6 +522,7 @@ def check_release_workflow(
         "publication_safe": publication_safe,
         "push_trigger_can_publish": push_trigger_can_publish,
         "has_tag_checkout_guard": has_tag_checkout_guard,
+        "has_pre_publish_release_guards": has_pre_publish_release_guards,
         "watches_gate_scripts": watches_gate_scripts,
         "uses_github_token": uses_github_token,
         "has_workflow_dispatch": has_workflow_dispatch,
@@ -925,21 +947,21 @@ def run_command(command: list[str], *, timeout_seconds: int) -> dict[str, Any]:
             timeout=timeout_seconds,
             check=False,
         )
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": completed.returncode,
             "stdout": completed.stdout.strip(),
             "stderr": completed.stderr.strip(),
             "timed_out": False,
-        }
+        })
     except subprocess.TimeoutExpired as exc:
-        return {
+        return redact_sensitive_value({
             "command": command,
             "returncode": 124,
             "stdout": (exc.stdout or "").strip() if isinstance(exc.stdout, str) else "",
             "stderr": (exc.stderr or "").strip() if isinstance(exc.stderr, str) else "",
             "timed_out": True,
-        }
+        })
 
 
 def parse_json_or_none(text: str) -> Any:
@@ -959,13 +981,15 @@ def escape_cell(value: Any) -> str:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def write_text(path: Path, text: str) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
+    path.write_text(redact_sensitive_text(text), encoding="utf-8")
 
 
 def utc_now_iso() -> str:

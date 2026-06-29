@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
@@ -72,6 +73,82 @@ class RoomSessionSchemaTest(unittest.TestCase):
         self.assertEqual(validator_name, "rtw-subset")
         self.assertEqual(supported_draft, "draft-2020-12-subset")
         self.assertTrue(any("panel" in error for error in invalid_errors), invalid_errors)
+
+    def test_fallback_schema_validator_fails_closed_for_unsupported_keywords(self) -> None:
+        from roundtable_core.validation.json_schema import validate_instance_details
+
+        schema = {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "maxLength": 3,
+                }
+            },
+        }
+        instance = {"name": "too-long"}
+
+        with patch("roundtable_core.validation.json_schema.Draft202012Validator", None):
+            errors, validator_name, supported_draft = validate_instance_details(instance=instance, schema=schema)
+
+        self.assertEqual(validator_name, "rtw-subset")
+        self.assertEqual(supported_draft, "draft-2020-12-subset")
+        self.assertTrue(any("does not support JSON Schema keyword 'maxLength'" in error for error in errors), errors)
+
+    def test_fallback_schema_validator_rejects_naive_date_time(self) -> None:
+        from roundtable_core.validation.json_schema import validate_instance_details
+
+        schema = {"type": "string", "format": "date-time"}
+
+        with patch("roundtable_core.validation.json_schema.Draft202012Validator", None):
+            errors, _, _ = validate_instance_details(instance="2026-01-01T00:00:00", schema=schema)
+            valid_errors, _, _ = validate_instance_details(instance="2026-01-01T00:00:00Z", schema=schema)
+
+        self.assertTrue(any("date-time" in error for error in errors), errors)
+        self.assertEqual(valid_errors, [])
+
+    def test_fallback_schema_validator_applies_ref_sibling_keywords(self) -> None:
+        from roundtable_core.validation.json_schema import validate_instance_details
+
+        schema = {"$defs": {"name": {"type": "string"}}, "$ref": "#/$defs/name", "minLength": 2}
+
+        with patch("roundtable_core.validation.json_schema.Draft202012Validator", None):
+            errors, _, _ = validate_instance_details(instance="x", schema=schema)
+
+        self.assertTrue(any("string length" in error for error in errors), errors)
+
+    def test_fallback_schema_validator_handles_boolean_false_schema(self) -> None:
+        from roundtable_core.validation.json_schema import validate_instance_details
+
+        with patch("roundtable_core.validation.json_schema.Draft202012Validator", None):
+            errors, validator_name, _ = validate_instance_details(instance={"x": 1}, schema=False)
+
+        self.assertEqual(validator_name, "rtw-subset")
+        self.assertTrue(any("boolean schema false" in error for error in errors), errors)
+
+    def test_cli_schema_validation_returns_structured_error_for_unsupported_ref(self) -> None:
+        from roundtable import cli
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            schema_path = Path(temp_dir) / "schema.json"
+            fixture_path = Path(temp_dir) / "fixture.json"
+            schema_path.write_text(json.dumps({"$ref": "https://example.com/schema.json"}), encoding="utf-8")
+            fixture_path.write_text(json.dumps({"ok": True}), encoding="utf-8")
+
+            stdout = io.StringIO()
+            with redirect_stdout(stdout):
+                code = cli.main(["validate", "--schema", str(schema_path), "--fixture", str(fixture_path)])
+
+        self.assertEqual(code, 1)
+        payload = json.loads(stdout.getvalue())
+        self.assertFalse(payload["ok"])
+        self.assertIn("Only local JSON Schema refs are supported", payload["results"][0]["errors"][0])
+
+    def test_schema_validator_import_fallback_is_not_broad_exception(self) -> None:
+        source = (REPO_ROOT / "roundtable_core" / "validation" / "json_schema.py").read_text(encoding="utf-8")
+
+        self.assertNotIn("except Exception", source)
+        self.assertIn("except ModuleNotFoundError", source)
 
     def test_jsonschema_validator_uses_format_checker(self) -> None:
         from roundtable_core.validation.json_schema import validate_instance_details

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 from dataclasses import dataclass
 from datetime import datetime
@@ -9,9 +10,31 @@ from typing import Any
 
 try:  # pragma: no cover - optional dependency path depends on local install.
     from jsonschema import Draft202012Validator, FormatChecker
-except Exception:  # pragma: no cover - the repo keeps a no-dependency fallback.
+except ModuleNotFoundError as exc:  # pragma: no cover - the repo keeps a no-dependency fallback.
+    if exc.name != "jsonschema":
+        raise
     Draft202012Validator = None
     FormatChecker = None
+
+
+UNSUPPORTED_FALLBACK_VALIDATION_KEYWORDS = {
+    "contains",
+    "contentEncoding",
+    "contentMediaType",
+    "contentSchema",
+    "dependentSchemas",
+    "exclusiveMaximum",
+    "exclusiveMinimum",
+    "maxContains",
+    "maxLength",
+    "minContains",
+    "multipleOf",
+    "patternProperties",
+    "prefixItems",
+    "propertyNames",
+    "unevaluatedItems",
+    "unevaluatedProperties",
+}
 
 
 @dataclass(frozen=True)
@@ -38,8 +61,8 @@ class SchemaValidationResult:
 
 
 def validate_file(*, schema_path: Path, instance_path: Path) -> SchemaValidationResult:
-    schema = json.loads(Path(schema_path).read_text(encoding="utf-8"))
-    instance = json.loads(Path(instance_path).read_text(encoding="utf-8"))
+    schema = parse_json_document(Path(schema_path))
+    instance = parse_json_document(Path(instance_path))
     errors, validator_name, supported_draft = validate_instance_details(instance=instance, schema=schema)
     return SchemaValidationResult(
         ok=not errors,
@@ -51,34 +74,88 @@ def validate_file(*, schema_path: Path, instance_path: Path) -> SchemaValidation
     )
 
 
-def validate_instance(*, instance: Any, schema: dict[str, Any]) -> list[str]:
+def parse_json_document(path: Path) -> Any:
+    return json.loads(path.read_text(encoding="utf-8"), parse_constant=reject_json_constant)
+
+
+def reject_json_constant(value: str) -> None:
+    raise ValueError(f"Non-standard JSON constant is not allowed: {value}")
+
+
+def validate_instance(*, instance: Any, schema: dict[str, Any] | bool) -> list[str]:
     errors, _, _ = validate_instance_details(instance=instance, schema=schema)
     return errors
 
 
-def validate_instance_details(*, instance: Any, schema: dict[str, Any]) -> tuple[list[str], str, str]:
+def validate_instance_details(*, instance: Any, schema: dict[str, Any] | bool) -> tuple[list[str], str, str]:
     if Draft202012Validator is not None:
         validator = Draft202012Validator(schema, format_checker=FormatChecker() if FormatChecker else None)
         errors = sorted(validator.iter_errors(instance), key=lambda item: list(item.path))
         return [format_jsonschema_error(error) for error in errors], "jsonschema.Draft202012Validator", "draft-2020-12"
+
+    unsupported = find_unsupported_fallback_keywords(schema)
+    if unsupported:
+        return unsupported, "rtw-subset", "draft-2020-12-subset"
 
     errors: list[str] = []
     _validate(instance=instance, schema=schema, root_schema=schema, path="$", errors=errors)
     return errors, "rtw-subset", "draft-2020-12-subset"
 
 
+def find_unsupported_fallback_keywords(schema: dict[str, Any] | bool) -> list[str]:
+    findings: list[str] = []
+    visit_schema_keywords(schema=schema, path="$", findings=findings)
+    return findings
+
+
+def visit_schema_keywords(*, schema: Any, path: str, findings: list[str]) -> None:
+    if not isinstance(schema, dict):
+        return
+    for key in sorted(set(schema) & UNSUPPORTED_FALLBACK_VALIDATION_KEYWORDS):
+        findings.append(f"{path}: fallback validator does not support JSON Schema keyword {key!r}")
+
+    for container_key in ["$defs", "properties"]:
+        container = schema.get(container_key)
+        if isinstance(container, dict):
+            for child_name, child_schema in container.items():
+                visit_schema_keywords(schema=child_schema, path=f"{path}.{container_key}.{child_name}", findings=findings)
+
+    for child_key in ["additionalProperties", "items", "not", "if", "then", "else"]:
+        child_schema = schema.get(child_key)
+        if isinstance(child_schema, dict):
+            visit_schema_keywords(schema=child_schema, path=f"{path}.{child_key}", findings=findings)
+
+    for child_key in ["allOf", "anyOf", "oneOf"]:
+        child_schemas = schema.get(child_key)
+        if isinstance(child_schemas, list):
+            for index, child_schema in enumerate(child_schemas):
+                visit_schema_keywords(schema=child_schema, path=f"{path}.{child_key}[{index}]", findings=findings)
+
+
 def _validate(
     *,
     instance: Any,
-    schema: dict[str, Any],
-    root_schema: dict[str, Any],
+    schema: dict[str, Any] | bool,
+    root_schema: dict[str, Any] | bool,
     path: str,
     errors: list[str],
 ) -> None:
+    if schema is True:
+        return
+    if schema is False:
+        errors.append(f"{path}: boolean schema false does not allow any instance")
+        return
+    if not isinstance(schema, dict):
+        errors.append(f"{path}: schema must be an object or boolean")
+        return
+
     if "$ref" in schema:
         target = resolve_ref(root_schema, str(schema["$ref"]))
         _validate(instance=instance, schema=target, root_schema=root_schema, path=path, errors=errors)
-        return
+        sibling_schema = {key: value for key, value in schema.items() if key != "$ref"}
+        if not sibling_schema:
+            return
+        schema = sibling_schema
 
     for child_schema in schema.get("allOf", []):
         if isinstance(child_schema, dict):
@@ -257,7 +334,7 @@ def validate_number(*, instance: int | float, schema: dict[str, Any], path: str,
         errors.append(f"{path}: expected value <= {maximum}, got {instance}")
 
 
-def resolve_ref(root_schema: dict[str, Any], ref: str) -> dict[str, Any]:
+def resolve_ref(root_schema: dict[str, Any] | bool, ref: str) -> dict[str, Any] | bool:
     if not ref.startswith("#/"):
         raise ValueError(f"Only local JSON Schema refs are supported: {ref}")
 
@@ -268,8 +345,8 @@ def resolve_ref(root_schema: dict[str, Any], ref: str) -> dict[str, Any]:
             raise ValueError(f"Unresolvable JSON Schema ref: {ref}")
         target = target[key]
 
-    if not isinstance(target, dict):
-        raise ValueError(f"JSON Schema ref does not point to an object: {ref}")
+    if not isinstance(target, (dict, bool)):
+        raise ValueError(f"JSON Schema ref does not point to an object or boolean: {ref}")
     return target
 
 
@@ -286,7 +363,7 @@ def matches_type(instance: Any, expected_type: str | list[str]) -> bool:
     if expected_type == "integer":
         return isinstance(instance, int) and not isinstance(instance, bool)
     if expected_type == "number":
-        return isinstance(instance, (int, float)) and not isinstance(instance, bool)
+        return isinstance(instance, (int, float)) and not isinstance(instance, bool) and math.isfinite(instance)
     if expected_type == "boolean":
         return isinstance(instance, bool)
     if expected_type == "null":
@@ -315,10 +392,10 @@ def json_type_name(instance: Any) -> str:
 def is_iso_datetime(value: str) -> bool:
     normalized = value[:-1] + "+00:00" if value.endswith("Z") else value
     try:
-        datetime.fromisoformat(normalized)
+        parsed = datetime.fromisoformat(normalized)
     except ValueError:
         return False
-    return True
+    return parsed.tzinfo is not None
 
 
 def validate_schema_candidates(

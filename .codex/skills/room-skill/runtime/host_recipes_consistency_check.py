@@ -13,6 +13,11 @@ import agent_host_inventory
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components
+
 HOST_RECIPES_DOC = REPO_ROOT / "docs/local-agent-host-recipes.md"
 QUICKSTART_DOC = REPO_ROOT / "docs/agent-consumer-quickstart.md"
 LAUNCH_DOC = REPO_ROOT / "LAUNCH.md"
@@ -110,6 +115,7 @@ def check_host(candidate: dict[str, Any], doc_text: str) -> dict[str, Any]:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

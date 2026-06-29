@@ -91,6 +91,17 @@ jobs:
             exit 1
           fi
 
+      - name: Run release guards before publication
+        if: env.DRY_RUN != 'true'
+        shell: bash
+        run: |
+          python3 scripts/check_source_truth_consistency.py
+          ./rtw release-check \
+            --include-fixtures \
+            --strict-git-clean \
+            --state-root "$RUNNER_TEMP/rtw-publish-release-check" \
+            --quiet
+
       - name: Extract release body
         shell: bash
         run: |

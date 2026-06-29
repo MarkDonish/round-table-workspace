@@ -11,11 +11,23 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+RUNTIME_DIR = REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime"
+if str(RUNTIME_DIR) not in sys.path:
+    sys.path.insert(0, str(RUNTIME_DIR))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components, utc_timestamp
+from secret_redaction import redact_sensitive_value
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Aggregate Round Table Workspace release checks.")
-    parser.add_argument("--state-root", default=str(Path(tempfile.gettempdir()) / "round-table-release-check"))
+    parser.add_argument(
+        "--state-root",
+        default=str(Path(tempfile.gettempdir()) / "round-table-release-check" / utc_timestamp()),
+    )
     parser.add_argument("--include-fixtures", action="store_true")
     parser.add_argument("--strict-git-clean", action="store_true")
     parser.add_argument("--timeout-seconds", type=int, default=30)
@@ -30,7 +42,9 @@ def main() -> int:
 
 
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
-    state_root = Path(args.state_root).expanduser().resolve()
+    raw_state_root = Path(args.state_root).expanduser()
+    assert_no_symlink_components(raw_state_root, include_leaf=True)
+    state_root = raw_state_root.resolve()
     state_root.mkdir(parents=True, exist_ok=True)
     checks: dict[str, Any] = {}
     checks["source_truth_consistency"] = run_json(
@@ -328,14 +342,14 @@ def run_json(command: list[str], *, timeout: int) -> dict[str, Any]:
     json_parse_ok = isinstance(payload, dict)
     payload_ok = payload.get("ok") is True if json_parse_ok else False
     ok = completed.returncode == 0 and json_parse_ok and payload_ok
-    return {
+    return redact_sensitive_value({
         "ok": ok,
         "command": command,
         "returncode": completed.returncode,
         "payload": payload if isinstance(payload, dict) else None,
         "json_parse_ok": json_parse_ok,
         "stderr": completed.stderr.strip(),
-    }
+    })
 
 
 def extract_json(text: str) -> Any:
@@ -377,11 +391,13 @@ def render_markdown(report: dict[str, Any]) -> str:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def write_text(path: Path, text: str) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
 

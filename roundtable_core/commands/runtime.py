@@ -54,6 +54,12 @@ def validate_schema_file(*, schema_path: Path, fixture: str) -> dict[str, Any]:
             instance_path=instance_path,
             error=f"invalid JSON: {exc.msg} at line {exc.lineno} column {exc.colno}",
         )
+    except ValueError as exc:
+        return validation_error_result(
+            schema_path=schema_path,
+            instance_path=instance_path,
+            error=str(exc),
+        )
     except OSError as exc:
         return validation_error_result(
             schema_path=schema_path,

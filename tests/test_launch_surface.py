@@ -7,6 +7,7 @@ from pathlib import Path
 from io import StringIO
 from contextlib import redirect_stdout
 from types import SimpleNamespace
+from unittest.mock import patch
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -198,6 +199,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertTrue(workflow_check["publication_safe"])
         self.assertFalse(workflow_check["push_trigger_can_publish"])
         self.assertTrue(workflow_check["has_tag_checkout_guard"])
+        self.assertTrue(workflow_check["has_pre_publish_release_guards"])
         self.assertTrue(workflow_check["watches_gate_scripts"])
 
     def test_release_publication_paths_are_repo_bounded(self) -> None:
@@ -232,6 +234,30 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertFalse(workflow_check["within_repo"])
         self.assertEqual(workflow_check["error"], "release_workflow_outside_repo")
 
+    def test_github_release_publication_check_redacts_command_output(self) -> None:
+        publication_check = self.load_module(
+            "github_release_publication_redaction",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "github_release_publication_check.py",
+        )
+        token = "ghp_releasepublication1234567890SECRET"
+
+        def fake_run(command: list[str], **_: object) -> object:
+            import subprocess
+
+            return subprocess.CompletedProcess(
+                command,
+                1,
+                stdout=f'{{"ok": false, "token": "{token}"}}\n',
+                stderr=f"Authorization: Bearer {token}",
+            )
+
+        with patch.object(publication_check.subprocess, "run", side_effect=fake_run):
+            result = publication_check.run_command(["fake", "--token", token], timeout_seconds=1)
+
+        result_text = str(result)
+        self.assertNotIn(token, result_text)
+        self.assertIn("[REDACTED]", result_text)
+
     def test_publish_release_workflow_dry_run_does_not_swallow_gh_errors(self) -> None:
         workflow = (REPO_ROOT / ".github" / "workflows" / "publish-github-release.yml").read_text(encoding="utf-8")
 
@@ -242,6 +268,11 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Verify checkout matches release tag", workflow)
         self.assertIn('tag_commit="$(git rev-list -n 1 "$TAG")"', workflow)
         self.assertIn("release checkout does not match tag", workflow)
+        self.assertIn("Run release guards before publication", workflow)
+        self.assertIn("python3 scripts/check_source_truth_consistency.py", workflow)
+        self.assertIn("./rtw release-check \\", workflow)
+        self.assertIn("--strict-git-clean", workflow)
+        self.assertIn("$RUNNER_TEMP/rtw-publish-release-check", workflow)
         for path in [
             ".codex/skills/room-skill/runtime/github_release_publication_check.py",
             "scripts/check_source_truth_consistency.py",
@@ -270,6 +301,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         )
         self.assertFalse(release_defaults["workflow_push_trigger_can_publish"])
         self.assertTrue(release_defaults["workflow_has_tag_checkout_guard"])
+        self.assertTrue(release_defaults["workflow_has_pre_publish_release_guards"])
         self.assertTrue(release_defaults["workflow_watches_gate_scripts"])
         self.assertEqual(release_defaults["problems"], [])
 
@@ -284,6 +316,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIsNotNone(freshness["stale_after"])
         self.assertRegex(freshness["source_commit"], r"^[0-9a-f]{40}$")
         self.assertTrue(freshness["source_commit_is_ancestor"], freshness)
+        self.assertIsNotNone(freshness["source_commit_ahead_count"])
+        self.assertLessEqual(freshness["source_commit_ahead_count"], 1, freshness)
 
     @staticmethod
     def load_module(name: str, path: Path) -> object:

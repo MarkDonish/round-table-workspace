@@ -136,6 +136,21 @@ class RoundtableCoreTest(unittest.TestCase):
                 create_run_dir(base / "missing" / ".." / "link", "room")
             self.assertFalse((real_dir / "runs").exists())
 
+    def test_state_store_refuses_symlink_before_dotdot_state_root(self) -> None:
+        from roundtable_core.runtime.state_store import create_run_dir
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            target_parent = base / "target-parent"
+            target_parent.mkdir()
+            (target_parent / "subdir").mkdir()
+            link_dir = base / "link"
+            link_dir.symlink_to(target_parent / "subdir", target_is_directory=True)
+
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                create_run_dir(link_dir / "..", "room")
+            self.assertFalse((target_parent / "runs").exists())
+
     def test_path_segment_validator_rejects_traversal(self) -> None:
         from roundtable_core.runtime.paths import validate_path_segment
 

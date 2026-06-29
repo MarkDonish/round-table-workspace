@@ -20,6 +20,11 @@ from secret_redaction import redact_sensitive_text, redact_sensitive_value
 
 RUNTIME_DIR = Path(__file__).resolve().parent
 REPO_ROOT = RUNTIME_DIR.parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from roundtable_core.runtime.paths import assert_no_symlink_components
+
 DEFAULT_TIMEOUT_SECONDS = 900
 DEFAULT_CLAUDE_CODE_COMMAND = "claude -p"
 TRACE_MANIFEST_SUFFIX = ".agent-trace.json"
@@ -72,8 +77,9 @@ def main() -> int:
     output_json = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.output_json:
         output_path = Path(args.output_json).expanduser().resolve()
+        assert_no_symlink_components(output_path, include_leaf=True)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(output_json, encoding="utf-8")
+        output_path.write_text(redact_sensitive_text(output_json), encoding="utf-8")
     else:
         sys.stdout.write(output_json)
     return 0
@@ -562,6 +568,8 @@ def build_trace_hint(trace_base: Path | None) -> str:
 def write_trace_manifest(path: Path | None, payload: dict[str, Any]) -> None:
     if path is None:
         return
+    assert_no_symlink_components(path, include_leaf=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
     payload["updated_at"] = utc_now_iso()
     path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -580,6 +588,7 @@ def set_trace_manifest_finished(
 def write_json_file(path: Path | None, payload: dict[str, Any]) -> None:
     if path is None:
         return
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(redact_sensitive_value(payload), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
@@ -587,6 +596,7 @@ def write_json_file(path: Path | None, payload: dict[str, Any]) -> None:
 def write_text_file(path: Path | None, text: str) -> None:
     if path is None:
         return
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(redact_sensitive_text(text), encoding="utf-8")
 

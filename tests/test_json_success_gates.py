@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -89,6 +90,87 @@ class JsonSuccessGateTest(unittest.TestCase):
 
             self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
 
+    def test_report_writers_refuse_symlink_outputs(self) -> None:
+        from evals.decision_quality import run_decision_evals
+        from scripts import (
+            check_agent_registry_sync,
+            check_skill_drift,
+            claim_boundary_dashboard,
+            release_check,
+            run_negative_fixtures,
+            run_regression_fixtures,
+        )
+
+        runtime_dir = REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime"
+        modules = [
+            check_agent_registry_sync,
+            check_skill_drift,
+            claim_boundary_dashboard,
+            release_check,
+            run_negative_fixtures,
+            run_regression_fixtures,
+            run_decision_evals,
+            load_module("agent_host_inventory_guard_test", runtime_dir / "agent_host_inventory.py"),
+            load_module("generic_agent_json_wrapper_validation_guard_test", runtime_dir / "generic_agent_json_wrapper_validation.py"),
+            load_module("chat_completions_live_validation_guard_test", runtime_dir / "chat_completions_live_validation.py"),
+            load_module("host_recipes_consistency_check_guard_test", runtime_dir / "host_recipes_consistency_check.py"),
+            load_module("live_lane_evidence_report_guard_test", runtime_dir / "live_lane_evidence_report.py"),
+            load_module("release_readiness_check_guard_test", runtime_dir / "release_readiness_check.py"),
+        ]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            for index, module in enumerate(modules):
+                victim = Path(temp_dir) / f"victim-{index}.json"
+                victim.write_text("keep", encoding="utf-8")
+                output_json = Path(temp_dir) / f"out-{index}.json"
+                output_json.symlink_to(victim)
+
+                with self.assertRaisesRegex(ValueError, "symlink component"):
+                    module.write_json(output_json, {"ok": True})
+
+                self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
+
+    def test_generic_agent_executor_writer_refuses_symlink_output(self) -> None:
+        module = load_module(
+            "generic_agent_executor_output_guard_test",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "generic_agent_executor.py",
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            victim = Path(temp_dir) / "victim.json"
+            victim.write_text("keep", encoding="utf-8")
+            output_json = Path(temp_dir) / "out.json"
+            output_json.symlink_to(victim)
+
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                module.write_json_file(output_json, {"ok": True})
+
+            self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
+
+    def test_source_boundary_audit_refuses_symlink_output_json(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            victim = Path(temp_dir) / "victim.json"
+            victim.write_text("keep", encoding="utf-8")
+            output_json = Path(temp_dir) / "out.json"
+            output_json.symlink_to(victim)
+
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "source_boundary_audit.py"),
+                    "--output-json",
+                    str(output_json),
+                ],
+                cwd=REPO_ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("symlink component", completed.stderr)
+            self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
+
     def test_development_checkpoint_rejects_empty_json_success(self) -> None:
         module = load_module(
             "development_checkpoint_gate_test",
@@ -107,6 +189,9 @@ class JsonSuccessGateTest(unittest.TestCase):
 
 
 def load_module(name: str, path: Path) -> object:
+    parent = str(path.parent)
+    if parent not in sys.path:
+        sys.path.insert(0, parent)
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
         raise AssertionError(f"Cannot load module from {path}")

@@ -143,6 +143,7 @@ def check_claim_dashboard_freshness(readme: str) -> dict[str, Any]:
     stale_after_dt = parse_iso_datetime(stale_after) if stale_after else None
     source_commit = extract_markdown_metadata(report_text, "source_commit")
     source_commit_is_ancestor: bool | None = None
+    source_commit_ahead_count: int | None = None
     if stale_after and stale_after_dt is None:
         problems.append("claim_dashboard_stale_after_unparseable")
     if stale_after_dt and stale_after_dt <= datetime.now(timezone.utc):
@@ -159,12 +160,19 @@ def check_claim_dashboard_freshness(readme: str) -> dict[str, Any]:
             problems.append("claim_dashboard_source_commit_not_ancestor")
         elif source_commit_is_ancestor is None:
             problems.append("claim_dashboard_source_commit_unverifiable")
+        else:
+            source_commit_ahead_count = git_commit_ahead_count(source_commit)
+            if source_commit_ahead_count is None:
+                problems.append("claim_dashboard_source_commit_distance_unverifiable")
+            elif source_commit_ahead_count > 1:
+                problems.append("claim_dashboard_source_commit_stale")
     return {
         "ok": report_path.is_file() and not problems,
         "report": "reports/claim-boundary-dashboard.md",
         "stale_after": stale_after,
         "source_commit": source_commit,
         "source_commit_is_ancestor": source_commit_is_ancestor,
+        "source_commit_ahead_count": source_commit_ahead_count,
         "warnings": warnings,
         "problems": problems,
     }
@@ -202,6 +210,22 @@ def git_commit_is_ancestor(commit: str) -> bool | None:
     if completed.returncode == 1:
         return False
     return None
+
+
+def git_commit_ahead_count(commit: str) -> int | None:
+    completed = subprocess.run(
+        ["git", "rev-list", "--count", f"{commit}..HEAD"],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        return None
+    try:
+        return int(completed.stdout.strip())
+    except ValueError:
+        return None
 
 
 def check_protocol_versioning(readme: str, launch: str) -> dict[str, Any]:
@@ -248,6 +272,17 @@ def check_release_publication_defaults(version_check: dict[str, Any]) -> dict[st
             "scripts/release_check.py",
         ]
     )
+    workflow_has_pre_publish_release_guards = all(
+        marker in workflow
+        for marker in [
+            "Run release guards before publication",
+            "python3 scripts/check_source_truth_consistency.py",
+            "./rtw release-check",
+            "--include-fixtures",
+            "--strict-git-clean",
+            "$RUNNER_TEMP/rtw-publish-release-check",
+        ]
+    )
     problems = []
     warnings = []
     if current_release and helper_tag != current_release:
@@ -266,6 +301,8 @@ def check_release_publication_defaults(version_check: dict[str, Any]) -> dict[st
         problems.append("publish_github_release_workflow_missing_tag_checkout_guard")
     if not workflow_watches_gate_scripts:
         problems.append("publish_github_release_workflow_missing_gate_script_paths")
+    if not workflow_has_pre_publish_release_guards:
+        problems.append("publish_github_release_workflow_missing_pre_publish_release_guards")
     return {
         "ok": not problems,
         "current_release": current_release,
@@ -277,6 +314,7 @@ def check_release_publication_defaults(version_check: dict[str, Any]) -> dict[st
         "workflow_default_release_draft": workflow_draft,
         "workflow_push_trigger_can_publish": workflow_push_can_publish,
         "workflow_has_tag_checkout_guard": workflow_has_tag_checkout_guard,
+        "workflow_has_pre_publish_release_guards": workflow_has_pre_publish_release_guards,
         "workflow_watches_gate_scripts": workflow_watches_gate_scripts,
         "problems": problems,
         "warnings": warnings,

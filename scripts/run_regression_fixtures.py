@@ -13,6 +13,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from roundtable_core.validation import validate_file
+from roundtable_core.runtime.paths import assert_no_symlink_components
 
 
 FIXTURE_DIRS = [
@@ -78,6 +79,7 @@ def check_fixture_dir(fixture_dir: Path) -> dict[str, Any]:
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
+    assert_no_symlink_components(path, include_leaf=True)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

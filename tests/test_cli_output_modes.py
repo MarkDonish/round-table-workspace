@@ -144,6 +144,31 @@ class CliOutputModesTest(unittest.TestCase):
             self.assertIn("refusing path through symlink component", stdout)
             self.assertFalse((real_dir / "out.json").exists())
 
+    def test_output_json_refuses_symlink_before_dotdot(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base = Path(temp_dir)
+            target_parent = base / "target-parent"
+            target_parent.mkdir()
+            (target_parent / "subdir").mkdir()
+            victim = target_parent / "victim.json"
+            victim.write_text("keep", encoding="utf-8")
+            link_dir = base / "link"
+            link_dir.symlink_to(target_parent / "subdir", target_is_directory=True)
+            output_json = link_dir / ".." / "victim.json"
+
+            code, stdout = self.invoke(
+                [
+                    "ship-check",
+                    "Should we merge this AI-generated feature?",
+                    "--output-json",
+                    str(output_json),
+                ]
+            )
+
+            self.assertEqual(code, 2)
+            self.assertIn("refusing path through symlink component", stdout)
+            self.assertEqual(victim.read_text(encoding="utf-8"), "keep")
+
     def test_output_markdown_refuses_symlink_target(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             victim = Path(temp_dir) / "victim.md"

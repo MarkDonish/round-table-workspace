@@ -6,6 +6,28 @@ from unittest.mock import patch
 
 
 class ClaimBoundaryDashboardTest(unittest.TestCase):
+    def test_run_json_command_redacts_sensitive_stderr_and_payload(self) -> None:
+        import subprocess
+
+        from scripts import claim_boundary_dashboard
+
+        token = "ghp_claimdashboard1234567890SECRET"
+
+        def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess(
+                command,
+                1,
+                stdout=f'{{"ok": false, "token": "{token}"}}\n',
+                stderr=f"Authorization: Basic {token}",
+            )
+
+        with patch("scripts.claim_boundary_dashboard.subprocess.run", side_effect=fake_run):
+            result = claim_boundary_dashboard.run_json_command(["fake", "--token", token], timeout_seconds=1)
+
+        result_text = str(result)
+        self.assertNotIn(token, result_text)
+        self.assertIn("[REDACTED]", result_text)
+
     def test_local_mainline_claimable_requires_release_gate_pass(self) -> None:
         from scripts import claim_boundary_dashboard
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import subprocess
 import tempfile
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -46,6 +47,26 @@ class ReleaseCheckTest(unittest.TestCase):
         self.assertFalse(result["ok"])
         self.assertTrue(result["json_parse_ok"])
         self.assertEqual(result["payload"], {})
+
+    def test_run_json_redacts_sensitive_stderr_and_payload(self) -> None:
+        from scripts import release_check
+
+        token = "ghp_releasecheck1234567890SECRET"
+
+        def fake_run(command: list[str], **_: object) -> subprocess.CompletedProcess[str]:
+            return subprocess.CompletedProcess(
+                command,
+                1,
+                stdout=f'{{"ok": false, "api_key": "{token}"}}\n',
+                stderr=f"Authorization: Bearer {token}",
+            )
+
+        with patch("scripts.release_check.subprocess.run", side_effect=fake_run):
+            result = release_check.run_json(["fake", "--token", token], timeout=1)
+
+        result_text = str(result)
+        self.assertNotIn(token, result_text)
+        self.assertIn("[REDACTED]", result_text)
 
     def test_collect_check_warnings_includes_nested_payload_warnings(self) -> None:
         from scripts import release_check
@@ -109,6 +130,24 @@ class ReleaseCheckTest(unittest.TestCase):
         ]
         self.assertEqual(len(publication_commands), 1)
         self.assertIn("--output-json", publication_commands[0])
+
+    def test_release_check_refuses_symlink_state_root(self) -> None:
+        from scripts import release_check
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            real_dir = Path(temp_dir) / "real"
+            real_dir.mkdir()
+            link_dir = Path(temp_dir) / "link"
+            link_dir.symlink_to(real_dir, target_is_directory=True)
+            args = SimpleNamespace(
+                state_root=str(link_dir),
+                include_fixtures=False,
+                strict_git_clean=False,
+                timeout_seconds=1,
+            )
+
+            with self.assertRaisesRegex(ValueError, "symlink component"):
+                release_check.build_report(args)
 
 
 if __name__ == "__main__":
