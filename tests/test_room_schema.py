@@ -5,6 +5,7 @@ import json
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -54,6 +55,23 @@ class RoomSessionSchemaTest(unittest.TestCase):
         errors = validate_instance(instance=fixture, schema=schema)
 
         self.assertTrue(any("workflow" in error for error in errors), errors)
+
+    def test_fallback_schema_validator_is_forced_in_unit_test(self) -> None:
+        from roundtable_core.validation.json_schema import validate_instance_details
+
+        schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+        fixture = json.loads(FIXTURE_PATH.read_text(encoding="utf-8"))
+        invalid_fixture = dict(fixture)
+        del invalid_fixture["panel"]
+
+        with patch("roundtable_core.validation.json_schema.Draft202012Validator", None):
+            errors, validator_name, supported_draft = validate_instance_details(instance=fixture, schema=schema)
+            invalid_errors, _, _ = validate_instance_details(instance=invalid_fixture, schema=schema)
+
+        self.assertEqual(errors, [])
+        self.assertEqual(validator_name, "rtw-subset")
+        self.assertEqual(supported_draft, "draft-2020-12-subset")
+        self.assertTrue(any("panel" in error for error in invalid_errors), invalid_errors)
 
     def test_cli_can_validate_room_session_fixture(self) -> None:
         from roundtable import cli

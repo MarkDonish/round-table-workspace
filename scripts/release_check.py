@@ -67,6 +67,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         timeout=args.timeout_seconds + 10,
     )
     checks["agent_factory"] = run_agent_factory_checks(args.timeout_seconds)
+    checks["public_cli_surface"] = run_public_cli_surface_checks(args.timeout_seconds)
     checks["schema_validation"] = run_schema_validations(args.timeout_seconds)
     checks["runtime_projection_validation"] = run_runtime_projection_validations(state_root, args.timeout_seconds)
     checks["regression_fixtures"] = run_json(
@@ -98,21 +99,22 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ],
         timeout=args.timeout_seconds + 30,
     )
-    checks["claim_boundary_dashboard"] = run_json(
-        [
-            sys.executable,
-            "scripts/claim_boundary_dashboard.py",
-            "--state-root",
-            str(state_root / "claim-boundary-dashboard-state"),
-            "--output-json",
-            str(state_root / "claim-boundary-dashboard.json"),
-            "--output-markdown",
-            str(state_root / "claim-boundary-dashboard.md"),
-            "--timeout-seconds",
-            str(args.timeout_seconds),
-        ],
-        timeout=args.timeout_seconds + 40,
-    )
+    claim_dashboard_command = [
+        sys.executable,
+        "scripts/claim_boundary_dashboard.py",
+        "--state-root",
+        str(state_root / "claim-boundary-dashboard-state"),
+        "--output-json",
+        str(state_root / "claim-boundary-dashboard.json"),
+        "--output-markdown",
+        str(state_root / "claim-boundary-dashboard.md"),
+        "--timeout-seconds",
+        str(args.timeout_seconds),
+    ]
+    if args.strict_git_clean:
+        claim_dashboard_command.append("--strict-git-clean")
+    checks["claim_boundary_dashboard"] = run_json(claim_dashboard_command, timeout=args.timeout_seconds + 100)
+    checks["legacy_release_readiness"] = run_legacy_release_readiness(args)
     if args.include_fixtures:
         checks["decision_quality_evals"] = run_json(
             [
@@ -195,6 +197,48 @@ def run_agent_factory_checks(timeout: int) -> dict[str, Any]:
     return {"ok": all(item.get("ok") for item in results.values()), "results": results}
 
 
+def run_public_cli_surface_checks(timeout: int) -> dict[str, Any]:
+    commands = {
+        "ship_check": [
+            "./rtw",
+            "ship-check",
+            "Should we merge this AI-generated feature?",
+        ],
+        "launch_kit": [
+            "./rtw",
+            "launch-kit",
+        ],
+    }
+    results = {name: run_json(command, timeout=timeout + 10) for name, command in commands.items()}
+    launch_payload = results["launch_kit"].get("payload")
+    missing_assets = (
+        launch_payload.get("missing_assets", [])
+        if isinstance(launch_payload, dict) and isinstance(launch_payload.get("missing_assets"), list)
+        else ["missing launch-kit payload"]
+    )
+    return {
+        "ok": all(item.get("ok") for item in results.values()) and not missing_assets,
+        "results": results,
+        "missing_assets": missing_assets,
+    }
+
+
+def run_legacy_release_readiness(args: argparse.Namespace) -> dict[str, Any]:
+    command = [
+        sys.executable,
+        ".codex/skills/room-skill/runtime/release_readiness_check.py",
+        "--state-root",
+        str(Path(args.state_root).expanduser().resolve() / "legacy-release-readiness"),
+        "--output-json",
+        str(Path(args.state_root).expanduser().resolve() / "legacy-release-readiness.json"),
+        "--timeout-seconds",
+        str(args.timeout_seconds),
+    ]
+    if args.strict_git_clean:
+        command.append("--strict-git-clean")
+    return run_json(command, timeout=args.timeout_seconds + 60)
+
+
 def run_runtime_projection_validations(state_root: Path, timeout: int) -> dict[str, Any]:
     room = run_json(
         [
@@ -253,12 +297,15 @@ def run_git_clean() -> dict[str, Any]:
 def run_json(command: list[str], *, timeout: int) -> dict[str, Any]:
     completed = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True, timeout=timeout, check=False)
     payload = extract_json(completed.stdout)
-    ok = completed.returncode == 0 and (not isinstance(payload, dict) or payload.get("ok") is not False)
+    json_parse_ok = isinstance(payload, dict)
+    payload_ok = payload.get("ok") is not False if json_parse_ok else False
+    ok = completed.returncode == 0 and json_parse_ok and payload_ok
     return {
         "ok": ok,
         "command": command,
         "returncode": completed.returncode,
         "payload": payload if isinstance(payload, dict) else None,
+        "json_parse_ok": json_parse_ok,
         "stderr": completed.stderr.strip(),
     }
 

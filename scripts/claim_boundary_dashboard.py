@@ -23,6 +23,11 @@ def main() -> int:
     parser.add_argument("--output-markdown", default=str(DEFAULT_MARKDOWN))
     parser.add_argument("--output-json", default=str(DEFAULT_JSON))
     parser.add_argument("--timeout-seconds", type=int, default=30)
+    parser.add_argument(
+        "--strict-git-clean",
+        action="store_true",
+        help="Require the release-readiness gate to treat a dirty worktree as a local-mainline blocker.",
+    )
     args = parser.parse_args()
 
     report = build_report(args)
@@ -51,19 +56,33 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     payload = live_report.get("payload") if isinstance(live_report.get("payload"), dict) else {}
     host_lanes = payload.get("host_live_lanes", []) if isinstance(payload, dict) else []
     provider_lane = payload.get("provider_live_lane", {}) if isinstance(payload, dict) else {}
+    release_readiness = run_release_readiness(args)
+    release_payload = release_readiness.get("payload") if isinstance(release_readiness.get("payload"), dict) else {}
+    release_scope = release_payload.get("release_scope", {}) if isinstance(release_payload, dict) else {}
+    p0_blockers = release_payload.get("p0_blockers", []) if isinstance(release_payload, dict) else []
+    local_mainline_claimable = (
+        release_readiness.get("ok") is True
+        and isinstance(release_scope, dict)
+        and release_scope.get("ship_decision") == "ready_for_codex_local_mainline_scope"
+        and isinstance(p0_blockers, list)
+        and not p0_blockers
+    )
+    local_mainline_status = "supported" if local_mainline_claimable else "blocked"
     rows = [
         {
             "lane": "local_mainline",
-            "status": "supported",
+            "status": local_mainline_status,
             "claim": "Codex local-first mainline when release readiness has no P0 blockers",
-            "evidence": "release_readiness_check.py / agent_consumer_self_check.py",
+            "evidence": {
+                "release_readiness": summarize_release_readiness(release_readiness),
+            },
             "evidence_record": build_evidence_record(
                 lane="local_mainline",
-                status="supported",
+                status=local_mainline_status,
                 generated_at=generated_at,
                 stale_after=stale_after,
                 source_commit=source_commit,
-                claimable=True,
+                claimable=local_mainline_claimable,
                 claim_text="Local-first fixture/runtime mainline supported when release-check has no P0 blockers.",
             ),
         }
@@ -106,7 +125,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         }
     )
     return {
-        "ok": live_report.get("ok") is True,
+        "ok": live_report.get("ok") is True and release_readiness.get("ok") is True,
         "action": "claim-boundary-dashboard",
         "generated_at": generated_at,
         "source_commit": source_commit,
@@ -120,11 +139,43 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "summary": payload.get("summary") if isinstance(payload, dict) else None,
             "stderr": live_report.get("stderr"),
         },
+        "release_gate": summarize_release_readiness(release_readiness),
         "matrix": rows,
         "claim_boundary": [
             "Fixture, mock-provider, wrapper, inventory, and config preflight evidence is not live support.",
+            "Local-mainline support is claimable only when release_readiness_check.py returns no P0 blockers.",
             "Only live_passed host/provider evidence may be claimed as live support.",
         ],
+    }
+
+
+def run_release_readiness(args: argparse.Namespace) -> dict[str, Any]:
+    command = [
+        sys.executable,
+        ".codex/skills/room-skill/runtime/release_readiness_check.py",
+        "--state-root",
+        str(Path(args.state_root).expanduser().resolve() / "release-readiness"),
+        "--output-json",
+        str(Path(args.state_root).expanduser().resolve() / "release-readiness.json"),
+        "--timeout-seconds",
+        str(args.timeout_seconds),
+    ]
+    if args.strict_git_clean:
+        command.append("--strict-git-clean")
+    return run_json_command(command, timeout_seconds=args.timeout_seconds + 60)
+
+
+def summarize_release_readiness(result: dict[str, Any]) -> dict[str, Any]:
+    payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
+    release_scope = payload.get("release_scope", {}) if isinstance(payload, dict) else {}
+    p0_blockers = payload.get("p0_blockers", []) if isinstance(payload, dict) else []
+    return {
+        "command": result.get("command"),
+        "returncode": result.get("returncode"),
+        "ok": result.get("ok"),
+        "ship_decision": release_scope.get("ship_decision") if isinstance(release_scope, dict) else None,
+        "p0_blockers": p0_blockers if isinstance(p0_blockers, list) else [],
+        "stderr": result.get("stderr"),
     }
 
 

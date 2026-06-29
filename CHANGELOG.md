@@ -38,6 +38,14 @@ live validation evidence.
 - Agent Factory registry and bundle validation now live in
   `roundtable_core.agents.factory`, with `./rtw agent` calling the core service
   directly and skill-local runtime scripts retained as compatibility wrappers.
+- Schema validation now returns structured JSON errors for missing/invalid
+  schema fixture paths instead of leaking Python tracebacks.
+- `./rtw launch-kit` reports asset existence, and `release-check` now verifies
+  the public `ship-check`/`launch-kit` CLI surface.
+- Claim boundary dashboard local-mainline claims now depend on fresh
+  `release_readiness_check.py` evidence instead of a static claimable flag.
+- GitHub Release publication defaults now target the current
+  `v0.2.2-pages-launch-kit` release draft.
 - JSON Schema validation fallback now supports the conditional and composition
   keywords used by current schemas and reports its validator boundary.
 - Default state roots now use `tempfile.gettempdir()`, with `python -m

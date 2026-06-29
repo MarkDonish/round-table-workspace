@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import re
 from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
@@ -97,7 +98,7 @@ class RoundtableCliTest(unittest.TestCase):
     def test_room_stub_remains_available(self) -> None:
         code, output = self.invoke(["room", "--stub", "讨论一个大学生 AI 学习产品"])
 
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 1)
         payload = json.loads(output)
         self.assertEqual(payload["action"], "room")
         self.assertEqual(payload["status"], "safe_stub")
@@ -107,7 +108,7 @@ class RoundtableCliTest(unittest.TestCase):
     def test_debate_stub_remains_available(self) -> None:
         code, output = self.invoke(["debate", "--stub", "这个 MVP 值不值得做"])
 
-        self.assertEqual(code, 0)
+        self.assertEqual(code, 1)
         payload = json.loads(output)
         self.assertEqual(payload["action"], "debate")
         self.assertEqual(payload["status"], "safe_stub")
@@ -153,6 +154,12 @@ class RoundtableCliTest(unittest.TestCase):
 
         self.assertTrue((cli.REPO_ROOT / "AGENTS.md").exists())
         self.assertEqual(cli.REPO_ROOT, Path(__file__).resolve().parents[1])
+
+    def test_default_timestamp_includes_collision_resistant_suffix(self) -> None:
+        from roundtable import cli
+
+        value = cli.utc_timestamp()
+        self.assertRegex(value, re.compile(r"^\d{8}T\d{6}Z-[0-9a-f]{8}$"))
 
 
 if __name__ == "__main__":

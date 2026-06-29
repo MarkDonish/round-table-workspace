@@ -74,6 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="rtw",
         description="Unified local-first CLI for Round Table Workspace.",
     )
+    add_output_args(parser, suppress_defaults=True)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     doctor = subparsers.add_parser(
@@ -83,7 +84,7 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.add_argument("--quick", action="store_true", help="Run the fast self-check path.")
     doctor.add_argument("--state-root", help="Directory for generated doctor evidence.")
     doctor.add_argument("--timeout-seconds", type=int, default=30)
-    add_output_args(doctor)
+    add_output_args(doctor, suppress_defaults=True)
 
     validate = subparsers.add_parser(
         "validate",
@@ -98,7 +99,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="append",
         help="Fixture JSON file to validate. Can be passed more than once.",
     )
-    add_output_args(validate)
+    add_output_args(validate, suppress_defaults=True)
 
     evidence = subparsers.add_parser(
         "evidence",
@@ -113,7 +114,7 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="HOST_ID=REASON",
         help="Pass an explicit host skip reason to the live-lane evidence report.",
     )
-    add_output_args(evidence)
+    add_output_args(evidence, suppress_defaults=True)
 
     room = subparsers.add_parser(
         "room",
@@ -122,7 +123,7 @@ def build_parser() -> argparse.ArgumentParser:
     room.add_argument("question", nargs="+", help="Question to explore with /room.")
     room.add_argument("--state-root", help="Directory for generated /room runtime output.")
     room.add_argument("--stub", action="store_true", help="Show the old claim-safe stub instead of running fixtures.")
-    add_output_args(room)
+    add_output_args(room, suppress_defaults=True)
 
     debate = subparsers.add_parser(
         "debate",
@@ -131,20 +132,20 @@ def build_parser() -> argparse.ArgumentParser:
     debate.add_argument("question", nargs="+", help="Question to review with /debate.")
     debate.add_argument("--state-root", help="Directory for generated /debate runtime output.")
     debate.add_argument("--stub", action="store_true", help="Show the old claim-safe stub instead of running fixtures.")
-    add_output_args(debate)
+    add_output_args(debate, suppress_defaults=True)
 
     ship_check = subparsers.add_parser(
         "ship-check",
         help="Run a local ship/revise/reject decision gate for AI-generated work.",
     )
     ship_check.add_argument("question", nargs="+", help="Change, feature, or launch decision to review before shipping.")
-    add_output_args(ship_check)
+    add_output_args(ship_check, suppress_defaults=True)
 
     launch_kit = subparsers.add_parser(
         "launch-kit",
         help="Print the public launch assets, links, and GitHub topic checklist.",
     )
-    add_output_args(launch_kit)
+    add_output_args(launch_kit, suppress_defaults=True)
 
     release_check = subparsers.add_parser(
         "release-check",
@@ -154,7 +155,7 @@ def build_parser() -> argparse.ArgumentParser:
     release_check.add_argument("--include-fixtures", action="store_true")
     release_check.add_argument("--strict-git-clean", action="store_true")
     release_check.add_argument("--timeout-seconds", type=int, default=30)
-    add_output_args(release_check)
+    add_output_args(release_check, suppress_defaults=True)
 
     interactive = subparsers.add_parser(
         "interactive",
@@ -168,14 +169,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     demo.add_argument("demo_name", choices=["startup-idea"])
     demo.add_argument("--state-root", help="Directory for generated demo output.")
-    add_output_args(demo)
+    add_output_args(demo, suppress_defaults=True)
 
     agent = subparsers.add_parser(
         "agent",
         help="Manage Agent Factory manifests and registry entries.",
     )
     agent.add_argument("--registry", help="Registry JSON path. Defaults to config/agent-registry.json.")
-    add_output_args(agent)
+    add_output_args(agent, suppress_defaults=True)
     agent_subparsers = agent.add_subparsers(dest="agent_command", required=True)
 
     agent_list = agent_subparsers.add_parser("list", help="List Agent Factory registry entries.")
@@ -272,34 +273,25 @@ def run_validate(args: argparse.Namespace) -> int:
 
 def run_schema_validation(args: argparse.Namespace) -> int:
     if args.quick:
-        print(
-            json.dumps(
-                {
-                    "ok": False,
-                    "error": "--quick cannot be combined with --schema validation.",
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
+        emit_payload(args, schema_usage_error("--quick cannot be combined with --schema validation."))
         return EXIT_USAGE_OR_CONFIG
 
     if not args.schema or not args.fixture:
-        print(
-            json.dumps(
-                {
-                    "ok": False,
-                    "error": "--schema and at least one --fixture are required together.",
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
+        emit_payload(args, schema_usage_error("--schema and at least one --fixture are required together."))
         return EXIT_USAGE_OR_CONFIG
 
     payload = validate_schema_files(schema=args.schema, fixtures=list(args.fixture))
     emit_payload(args, payload, markdown=render_payload_summary(payload))
     return EXIT_SUCCESS if payload["ok"] else EXIT_VALIDATION_FAILURE
+
+
+def schema_usage_error(message: str) -> dict[str, object]:
+    return {
+        "ok": False,
+        "action": "schema-validation",
+        "error": message,
+        "results": [],
+    }
 
 
 def run_evidence(args: argparse.Namespace) -> int:
@@ -592,8 +584,28 @@ def build_launch_kit_payload() -> dict[str, object]:
         "openai",
         "llm",
     ]
+    assets = [
+        "README.md",
+        "docs/index.html",
+        "docs/launch-copy.md",
+        "docs/application-packet.md",
+        "docs/credits-application-answers.md",
+        "docs/reviewer-checklist.md",
+        "docs/competitive-insights.md",
+        "docs/demo.html",
+        "CONTRIBUTING.md",
+        "LICENSE",
+    ]
+    asset_status = [
+        {
+            "path": asset,
+            "exists": (REPO_ROOT / asset).exists(),
+        }
+        for asset in assets
+    ]
+    missing_assets = [item["path"] for item in asset_status if not item["exists"]]
     return {
-        "ok": True,
+        "ok": not missing_assets,
         "action": "launch-kit",
         "positioning": "Make your AI agents argue before they ship.",
         "repository": "https://github.com/MarkDonish/round-table-workspace",
@@ -602,18 +614,9 @@ def build_launch_kit_payload() -> dict[str, object]:
         "credits_application_answers": "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/credits-application-answers.md",
         "reviewer_checklist": "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md",
         "competitive_insights": "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/competitive-insights.md",
-        "assets": [
-            "README.md",
-            "docs/index.html",
-            "docs/launch-copy.md",
-            "docs/application-packet.md",
-            "docs/credits-application-answers.md",
-            "docs/reviewer-checklist.md",
-            "docs/competitive-insights.md",
-            "docs/demo.html",
-            "CONTRIBUTING.md",
-            "LICENSE",
-        ],
+        "assets": assets,
+        "asset_status": asset_status,
+        "missing_assets": missing_assets,
         "topics": topics,
         "commands": [
             "./rtw ship-check \"Should we merge this AI-generated feature?\"",
@@ -688,7 +691,9 @@ def resolve_state_root(explicit_state_root: str | None, command: str) -> str:
 
 
 def utc_timestamp() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    import uuid
+
+    return f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{uuid.uuid4().hex[:8]}"
 
 
 def print_stub(action: str, question: str, state_root: str | None, *, args: argparse.Namespace | None = None) -> int:
@@ -697,7 +702,7 @@ def print_stub(action: str, question: str, state_root: str | None, *, args: argp
         emit_payload(args, payload, markdown=render_payload_summary(payload))
     else:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
-    return 0
+    return exit_code_for_payload(payload)
 
 
 def build_stub_payload(action: str, question: str, state_root: str | None) -> dict[str, object]:

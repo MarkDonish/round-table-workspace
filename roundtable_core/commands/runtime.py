@@ -27,16 +27,49 @@ def resolve_cli_state_root(explicit_state_root: str | None, command: str, *, tim
 
 def validate_schema_files(*, schema: str, fixtures: list[str]) -> dict[str, Any]:
     schema_path = resolve_repo_path(schema)
-    results = [
-        validate_file(schema_path=schema_path, instance_path=resolve_repo_path(fixture))
-        for fixture in fixtures
-    ]
+    results = [validate_schema_file(schema_path=schema_path, fixture=fixture) for fixture in fixtures]
     return {
-        "ok": all(result.ok for result in results),
+        "ok": all(result["ok"] for result in results),
         "action": "schema-validation",
         "schema": schema,
         "fixtures": fixtures,
-        "results": [result.to_dict() for result in results],
+        "results": results,
+    }
+
+
+def validate_schema_file(*, schema_path: Path, fixture: str) -> dict[str, Any]:
+    instance_path = resolve_repo_path(fixture)
+    try:
+        return validate_file(schema_path=schema_path, instance_path=instance_path).to_dict()
+    except FileNotFoundError as exc:
+        missing_path = Path(str(exc.filename)) if exc.filename else instance_path
+        return validation_error_result(
+            schema_path=schema_path,
+            instance_path=instance_path,
+            error=f"file does not exist: {missing_path}",
+        )
+    except json.JSONDecodeError as exc:
+        return validation_error_result(
+            schema_path=schema_path,
+            instance_path=instance_path,
+            error=f"invalid JSON: {exc.msg} at line {exc.lineno} column {exc.colno}",
+        )
+    except OSError as exc:
+        return validation_error_result(
+            schema_path=schema_path,
+            instance_path=instance_path,
+            error=str(exc),
+        )
+
+
+def validation_error_result(*, schema_path: Path, instance_path: Path, error: str) -> dict[str, Any]:
+    return {
+        "ok": False,
+        "schema_path": str(schema_path),
+        "instance_path": str(instance_path),
+        "errors": [error],
+        "validator_name": "not_run",
+        "supported_draft": "not_applicable",
     }
 
 

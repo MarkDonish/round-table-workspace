@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -196,9 +197,28 @@ def load_factory_registry(path: Path) -> dict[str, Any]:
 
 
 def write_factory_registry(path: Path, payload: dict[str, Any]) -> None:
+    if path.is_symlink():
+        raise ValueError(f"Refusing to write registry through symlink: {path}")
     payload["updated_at"] = iso_now()
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    data = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    temp_file = tempfile.NamedTemporaryFile(
+        "w",
+        encoding="utf-8",
+        dir=path.parent,
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        delete=False,
+    )
+    temp_path = Path(temp_file.name)
+    try:
+        with temp_file:
+            temp_file.write(data)
+            temp_file.flush()
+        temp_path.replace(path)
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
 
 
 def list_factory_agents(path: Path, status: str | None = None) -> dict[str, Any]:
@@ -276,56 +296,65 @@ def validate_factory_registry(path: Path, agent_id: str | None = None) -> dict[s
 def register_factory_agent(*, registry_path: Path, manifest_path: Path, replace: bool, enable: bool) -> dict[str, Any]:
     if not registry_path.exists():
         return missing_registry_report("agent-register", registry_path)
-    manifest_report = validate_manifest_file(manifest_path)
-    if not manifest_report["ok"]:
+    try:
+        manifest_report = validate_manifest_file(manifest_path)
+        if not manifest_report["ok"]:
+            return {
+                "ok": False,
+                "action": "agent-register",
+                "registry": str(registry_path),
+                "manifest": str(manifest_path),
+                "errors": manifest_report["errors"],
+                "manifest_validation": manifest_report,
+            }
+        manifest = load_manifest(manifest_path)
+        agent_id = str(manifest["agent_id"])
+        registry = load_factory_registry(registry_path)
+        agents = [agent for agent in registry.get("agents", []) if isinstance(agent, dict)]
+        existing_index = next((index for index, agent in enumerate(agents) if agent.get("agent_id") == agent_id), None)
+        if existing_index is not None and not replace:
+            return {
+                "ok": False,
+                "action": "agent-register",
+                "registry": str(registry_path),
+                "agent_id": agent_id,
+                "errors": [f"duplicate agent_id: {agent_id}"],
+            }
+        if enable and not find_skill_dir(str(manifest.get("skill_name", ""))):
+            return {
+                "ok": False,
+                "action": "agent-register",
+                "registry": str(registry_path),
+                "agent_id": agent_id,
+                "errors": [f"cannot enable without local skill directory: {manifest.get('skill_name')}"],
+            }
+        manifest["status"] = "enabled" if enable else "registered"
+        manifest.setdefault("quality", {})
+        manifest["quality"]["manifest_valid"] = True
+        manifest["quality"]["registry_ready"] = True
+        if existing_index is None:
+            agents.append(manifest)
+        else:
+            agents[existing_index] = manifest
+        registry["agents"] = sorted(agents, key=lambda item: str(item.get("agent_id", "")))
+        write_factory_registry(registry_path, registry)
+        return {
+            "ok": True,
+            "action": "agent-register",
+            "registry": str(registry_path),
+            "agent_id": agent_id,
+            "status": manifest["status"],
+            "replaced": existing_index is not None,
+            "claim_boundary": agent_factory_claim_boundary(),
+        }
+    except (OSError, ValueError) as exc:
         return {
             "ok": False,
             "action": "agent-register",
             "registry": str(registry_path),
             "manifest": str(manifest_path),
-            "errors": manifest_report["errors"],
-            "manifest_validation": manifest_report,
+            "errors": [str(exc)],
         }
-    manifest = load_manifest(manifest_path)
-    agent_id = str(manifest["agent_id"])
-    registry = load_factory_registry(registry_path)
-    agents = [agent for agent in registry.get("agents", []) if isinstance(agent, dict)]
-    existing_index = next((index for index, agent in enumerate(agents) if agent.get("agent_id") == agent_id), None)
-    if existing_index is not None and not replace:
-        return {
-            "ok": False,
-            "action": "agent-register",
-            "registry": str(registry_path),
-            "agent_id": agent_id,
-            "errors": [f"duplicate agent_id: {agent_id}"],
-        }
-    if enable and not find_skill_dir(str(manifest.get("skill_name", ""))):
-        return {
-            "ok": False,
-            "action": "agent-register",
-            "registry": str(registry_path),
-            "agent_id": agent_id,
-            "errors": [f"cannot enable without local skill directory: {manifest.get('skill_name')}"],
-        }
-    manifest["status"] = "enabled" if enable else "registered"
-    manifest.setdefault("quality", {})
-    manifest["quality"]["manifest_valid"] = True
-    manifest["quality"]["registry_ready"] = True
-    if existing_index is None:
-        agents.append(manifest)
-    else:
-        agents[existing_index] = manifest
-    registry["agents"] = sorted(agents, key=lambda item: str(item.get("agent_id", "")))
-    write_factory_registry(registry_path, registry)
-    return {
-        "ok": True,
-        "action": "agent-register",
-        "registry": str(registry_path),
-        "agent_id": agent_id,
-        "status": manifest["status"],
-        "replaced": existing_index is not None,
-        "claim_boundary": agent_factory_claim_boundary(),
-    }
 
 
 def set_factory_agent_status(
@@ -337,28 +366,37 @@ def set_factory_agent_status(
 ) -> dict[str, Any]:
     if not registry_path.exists():
         return missing_registry_report(f"agent-{status}", registry_path)
-    registry = load_factory_registry(registry_path)
-    agents = [agent for agent in registry.get("agents", []) if isinstance(agent, dict)]
-    for agent in agents:
-        if agent.get("agent_id") != agent_id:
-            continue
-        if status == "enabled" and not allow_missing_skill and not find_skill_dir(str(agent.get("skill_name", ""))):
+    try:
+        registry = load_factory_registry(registry_path)
+        agents = [agent for agent in registry.get("agents", []) if isinstance(agent, dict)]
+        for agent in agents:
+            if agent.get("agent_id") != agent_id:
+                continue
+            if status == "enabled" and not allow_missing_skill and not find_skill_dir(str(agent.get("skill_name", ""))):
+                return {
+                    "ok": False,
+                    "action": f"agent-{status}",
+                    "registry": str(registry_path),
+                    "agent_id": agent_id,
+                    "errors": [f"cannot enable without local skill directory: {agent.get('skill_name')}"],
+                }
+            agent["status"] = status
+            write_factory_registry(registry_path, registry)
             return {
-                "ok": False,
+                "ok": True,
                 "action": f"agent-{status}",
                 "registry": str(registry_path),
                 "agent_id": agent_id,
-                "errors": [f"cannot enable without local skill directory: {agent.get('skill_name')}"],
+                "status": status,
+                "claim_boundary": agent_factory_claim_boundary(),
             }
-        agent["status"] = status
-        write_factory_registry(registry_path, registry)
+    except (OSError, ValueError) as exc:
         return {
-            "ok": True,
+            "ok": False,
             "action": f"agent-{status}",
             "registry": str(registry_path),
             "agent_id": agent_id,
-            "status": status,
-            "claim_boundary": agent_factory_claim_boundary(),
+            "errors": [str(exc)],
         }
     return {
         "ok": False,

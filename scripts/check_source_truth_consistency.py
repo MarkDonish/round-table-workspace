@@ -140,9 +140,10 @@ def check_claim_dashboard_freshness(readme: str) -> dict[str, Any]:
 def check_protocol_versioning(readme: str, launch: str) -> dict[str, Any]:
     doc_exists = (REPO_ROOT / "docs" / "protocol-versioning.md").is_file()
     warnings = []
-    if "v0.2.0-alpha" in readme and "0.1.0" in readme and "protocol-versioning" not in readme:
+    release_pattern = r"v[0-9]+\.[0-9]+\.[0-9]+(?:[-.][A-Za-z0-9]+)*"
+    if re.search(release_pattern, readme) and "0.1.0" in readme and "protocol-versioning" not in readme:
         warnings.append("readme_mentions_release_and_schema_versions_without_versioning_link")
-    if "v0.2.0-alpha" in launch and "protocol-versioning" not in launch:
+    if re.search(release_pattern, launch) and "protocol-versioning" not in launch:
         warnings.append("launch_mentions_release_without_versioning_link")
     return {
         "ok": doc_exists,

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 import unittest
+import importlib.util
 from pathlib import Path
 from io import StringIO
 from contextlib import redirect_stdout
+from types import SimpleNamespace
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -105,6 +107,9 @@ class LaunchSurfaceTest(unittest.TestCase):
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/competitive-insights.md",
         )
         self.assertIn("Make your AI agents argue", payload["positioning"])
+        self.assertEqual(payload["missing_assets"], [])
+        for item in payload["asset_status"]:
+            self.assertTrue(item["exists"], item["path"])
 
         summary_path = REPO_ROOT / ".tmp-launch-kit-summary.md"
         try:
@@ -147,3 +152,42 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("v0.2.2-pages-launch-kit", readme)
+
+    def test_github_release_publication_defaults_follow_current_release(self) -> None:
+        publication_check = self.load_module(
+            "github_release_publication_check",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "github_release_publication_check.py",
+        )
+        release_extractor = self.load_module(
+            "extract_github_release_body",
+            REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "extract_github_release_body.py",
+        )
+        draft = REPO_ROOT / "docs" / "releases" / "v0.2.2-pages-launch-kit-github-release.md"
+
+        self.assertTrue(draft.exists())
+        self.assertEqual(publication_check.DEFAULT_TAG, "v0.2.2-pages-launch-kit")
+        self.assertEqual(
+            publication_check.DEFAULT_RELEASE_DRAFT,
+            "docs/releases/v0.2.2-pages-launch-kit-github-release.md",
+        )
+        self.assertEqual(
+            release_extractor.DEFAULT_RELEASE_DRAFT,
+            "docs/releases/v0.2.2-pages-launch-kit-github-release.md",
+        )
+        extraction = release_extractor.build_report(
+            SimpleNamespace(
+                release_draft=release_extractor.DEFAULT_RELEASE_DRAFT,
+                output="/tmp/rtw-test-release-body.md",
+                output_json=None,
+            )
+        )
+        self.assertTrue(extraction["ok"], extraction)
+
+    @staticmethod
+    def load_module(name: str, path: Path) -> object:
+        spec = importlib.util.spec_from_file_location(name, path)
+        if spec is None or spec.loader is None:
+            raise AssertionError(f"Cannot load module from {path}")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
