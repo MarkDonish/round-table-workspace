@@ -137,6 +137,10 @@ an older release draft, or allows push-triggered publication, `release-check`
 must fail until the workflow is updated or the release is published manually
 with fresh evidence.
 
+The checked-in workflow currently defaults to `v0.2.2-pages-launch-kit` and
+uses push-triggered runs as dry-runs; real publication remains a manual
+`workflow_dispatch` action.
+
 ## CI Coverage
 
 `.github/workflows/ci.yml` runs the core non-secret validation chain on push and

@@ -188,22 +188,30 @@ class LaunchSurfaceTest(unittest.TestCase):
             expected_tag=publication_check.DEFAULT_TAG,
             expected_release_draft=publication_check.DEFAULT_RELEASE_DRAFT,
         )
-        self.assertFalse(workflow_check["defaults_match_requested_release"])
-        self.assertEqual(workflow_check["default_tag"], "v0.2.0-alpha")
-        self.assertEqual(workflow_check["default_release_draft"], "docs/releases/v0.2.0-alpha-github-release.md")
-        self.assertFalse(workflow_check["publication_safe"])
-        self.assertTrue(workflow_check["push_trigger_can_publish"])
+        self.assertTrue(workflow_check["defaults_match_requested_release"])
+        self.assertEqual(workflow_check["default_tag"], "v0.2.2-pages-launch-kit")
+        self.assertEqual(
+            workflow_check["default_release_draft"],
+            "docs/releases/v0.2.2-pages-launch-kit-github-release.md",
+        )
+        self.assertEqual(workflow_check["default_dry_run"], "false")
+        self.assertTrue(workflow_check["publication_safe"])
+        self.assertFalse(workflow_check["push_trigger_can_publish"])
 
-    def test_source_truth_blocks_unsafe_release_workflow_defaults(self) -> None:
+    def test_source_truth_accepts_safe_release_workflow_defaults(self) -> None:
         from scripts import check_source_truth_consistency
 
         report = check_source_truth_consistency.build_report()
 
         release_defaults = report["checks"]["release_publication_defaults"]
-        self.assertFalse(release_defaults["ok"])
-        self.assertIn("publish_github_release_workflow_default_tag_mismatch", release_defaults["problems"])
-        self.assertIn("publish_github_release_workflow_default_draft_mismatch", release_defaults["problems"])
-        self.assertIn("publish_github_release_workflow_push_publication_risk", release_defaults["problems"])
+        self.assertTrue(release_defaults["ok"], release_defaults)
+        self.assertEqual(release_defaults["workflow_default_tag"], "v0.2.2-pages-launch-kit")
+        self.assertEqual(
+            release_defaults["workflow_default_release_draft"],
+            "docs/releases/v0.2.2-pages-launch-kit-github-release.md",
+        )
+        self.assertFalse(release_defaults["workflow_push_trigger_can_publish"])
+        self.assertEqual(release_defaults["problems"], [])
 
     @staticmethod
     def load_module(name: str, path: Path) -> object:
