@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -175,6 +176,63 @@ class ClaimBoundaryDashboardTest(unittest.TestCase):
         host_row = next(row for row in report["matrix"] if row["lane"] == "host:claude_code")
         self.assertEqual(host_row["status"], "historical_only")
         self.assertFalse(host_row["evidence_record"]["claimable"])
+
+    def test_report_projection_redacts_local_machine_and_runtime_paths(self) -> None:
+        from scripts import claim_boundary_dashboard
+
+        state_root = Path("/tmp/rtw-claim-dashboard-portable")
+        args = SimpleNamespace(state_root=str(state_root), timeout_seconds=1, strict_git_clean=False)
+
+        def fake_run_json(command: list[str], *, timeout_seconds: int) -> dict[str, object]:
+            del timeout_seconds
+            if any("live_lane_evidence_report.py" in part for part in command):
+                return {
+                    "ok": True,
+                    "command": command,
+                    "returncode": 0,
+                    "payload": {
+                        "ok": True,
+                        "artifacts": {
+                            "json": str(state_root / "live-lane-evidence-report.json"),
+                            "markdown": str(state_root / "live-lane-evidence-report.md"),
+                        },
+                        "host_live_lanes": [],
+                        "provider_live_lane": {
+                            "evidence_status": "not_configured",
+                            "claim": "not_claimed",
+                            "next_action": f"inspect {state_root}/provider",
+                        },
+                        "summary": {"state_root": str(state_root)},
+                    },
+                    "stderr": "",
+                }
+            return {
+                "ok": True,
+                "command": command,
+                "returncode": 0,
+                "payload": {
+                    "ok": True,
+                    "release_blockers": [],
+                    "artifacts": {
+                        "json": str(state_root / "release-check" / "release-check.json"),
+                        "markdown": str(state_root / "release-check" / "release-check.md"),
+                    },
+                },
+                "stderr": "",
+            }
+
+        with patch("scripts.claim_boundary_dashboard.run_json_command", side_effect=fake_run_json):
+            with patch("scripts.claim_boundary_dashboard.git_commit", return_value="test-commit"):
+                with patch("scripts.claim_boundary_dashboard.platform.node", return_value="Mark-local-host"):
+                    report = claim_boundary_dashboard.build_report(args)
+
+        report_text = str(report)
+        self.assertEqual(report["machine_scope"], "local-machine-redacted")
+        self.assertNotIn("Mark-local-host", report_text)
+        self.assertNotIn(str(state_root), report_text)
+        self.assertNotIn(str(claim_boundary_dashboard.REPO_ROOT), report_text)
+        self.assertIn("<state-root>/release-check/release-check.json", report_text)
+        self.assertIn("<state-root>/live-lane-evidence-report.json", report_text)
 
 
 if __name__ == "__main__":

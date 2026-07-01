@@ -54,6 +54,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     stale_after = iso_after(days=7)
     source_commit = git_commit()
     state_root = resolve_state_root(args.state_root)
+    machine_scope = portable_machine_scope()
     live_report = run_json_command(
         [
             sys.executable,
@@ -73,15 +74,15 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     release_blockers = release_payload.get("release_blockers", []) if isinstance(release_payload, dict) else []
     local_mainline_claimable = release_check.get("ok") is True and isinstance(release_blockers, list) and not release_blockers
     local_mainline_status = "supported" if local_mainline_claimable else "blocked"
-    release_artifacts = artifact_paths_from_payload(release_payload)
-    live_artifacts = artifact_paths_from_payload(payload)
+    release_artifacts = artifact_paths_from_payload(release_payload, state_root=state_root)
+    live_artifacts = artifact_paths_from_payload(payload, state_root=state_root)
     rows = [
         {
             "lane": "local_mainline",
             "status": local_mainline_status,
             "claim": "Codex local-first mainline when aggregate release-check has no blockers",
             "evidence": {
-                "release_check": summarize_release_check(release_check),
+                "release_check": summarize_release_check(release_check, state_root=state_root),
             },
             "evidence_record": build_evidence_record(
                 lane="local_mainline",
@@ -89,6 +90,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 generated_at=generated_at,
                 stale_after=stale_after,
                 source_commit=source_commit,
+                machine_scope=machine_scope,
                 claimable=local_mainline_claimable,
                 claim_text="Local-first fixture/runtime mainline supported when release-check has no blockers.",
                 artifact_paths=release_artifacts,
@@ -101,18 +103,19 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 "lane": f"host:{lane.get('host_id')}",
                 "status": normalize_status(lane.get("evidence_status")),
                 "claim": lane.get("claim"),
-                "evidence": sanitize(lane.get("checked_in_evidence") or lane.get("next_action")),
+                "evidence": sanitize(lane.get("checked_in_evidence") or lane.get("next_action"), state_root=state_root),
                 "evidence_record": build_evidence_record(
                     lane=f"host:{lane.get('host_id')}",
                     status=normalize_status(lane.get("evidence_status")),
                     generated_at=generated_at,
                     stale_after=stale_after,
                     source_commit=source_commit,
+                    machine_scope=machine_scope,
                     host_id=lane.get("host_id"),
                     claimable=normalize_status(lane.get("evidence_status")) == "live_passed",
                     claim_text=str(lane.get("claim") or "not_claimed"),
                     artifact_paths=host_artifact_paths(lane, live_artifacts),
-                    source_evidence=sanitize(lane.get("checked_in_evidence")),
+                    source_evidence=sanitize(lane.get("checked_in_evidence"), state_root=state_root),
                 ),
             }
         )
@@ -121,13 +124,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "lane": "provider:chat_completions",
             "status": normalize_status(provider_lane.get("evidence_status")),
             "claim": provider_lane.get("claim"),
-            "evidence": sanitize(provider_lane.get("next_action") or provider_lane.get("blockers")),
+            "evidence": sanitize(provider_lane.get("next_action") or provider_lane.get("blockers"), state_root=state_root),
             "evidence_record": build_evidence_record(
                 lane="provider:chat_completions",
                 status=normalize_status(provider_lane.get("evidence_status")),
                 generated_at=generated_at,
                 stale_after=stale_after,
                 source_commit=source_commit,
+                machine_scope=machine_scope,
                 provider_id="chat_completions",
                 claimable=normalize_status(provider_lane.get("evidence_status")) == "live_passed",
                 claim_text=str(provider_lane.get("claim") or "not_claimed"),
@@ -135,13 +139,13 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             ),
         }
     )
-    return {
+    return sanitize({
         "ok": live_report.get("ok") is True and release_check.get("ok") is True,
         "action": "claim-boundary-dashboard",
         "generated_at": generated_at,
         "source_commit": source_commit,
         "stale_after": stale_after,
-        "machine_scope": platform.node() or "unknown-local-machine",
+        "machine_scope": machine_scope,
         "account_scope": "not_collected",
         "source": {
             "command": live_report.get("command"),
@@ -150,14 +154,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "summary": payload.get("summary") if isinstance(payload, dict) else None,
             "stderr": live_report.get("stderr"),
         },
-        "release_gate": summarize_release_check(release_check),
+        "release_gate": summarize_release_check(release_check, state_root=state_root),
         "matrix": rows,
         "claim_boundary": [
             "Fixture, mock-provider, wrapper, inventory, and config preflight evidence is not live support.",
             "Local-mainline support is claimable only when aggregate ./rtw release-check --include-fixtures returns no blockers.",
             "Only live_passed host/provider evidence may be claimed as live support.",
         ],
-    }
+    }, state_root=state_root)
 
 
 def run_release_check(args: argparse.Namespace, *, state_root: Path | None = None) -> dict[str, Any]:
@@ -177,18 +181,18 @@ def run_release_check(args: argparse.Namespace, *, state_root: Path | None = Non
     return run_json_command(command, timeout_seconds=args.timeout_seconds + 240)
 
 
-def summarize_release_check(result: dict[str, Any]) -> dict[str, Any]:
+def summarize_release_check(result: dict[str, Any], *, state_root: Path) -> dict[str, Any]:
     payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
     release_blockers = payload.get("release_blockers", []) if isinstance(payload, dict) else []
     release_warnings = payload.get("release_warnings", []) if isinstance(payload, dict) else []
     return {
-        "command": result.get("command"),
+        "command": sanitize(result.get("command"), state_root=state_root),
         "returncode": result.get("returncode"),
         "ok": result.get("ok"),
         "release_blockers": release_blockers if isinstance(release_blockers, list) else [],
         "release_warnings": release_warnings if isinstance(release_warnings, list) else [],
-        "artifacts": payload.get("artifacts") if isinstance(payload, dict) else None,
-        "stderr": result.get("stderr"),
+        "artifacts": sanitize(payload.get("artifacts"), state_root=state_root) if isinstance(payload, dict) else None,
+        "stderr": sanitize(result.get("stderr"), state_root=state_root),
     }
 
 
@@ -209,14 +213,43 @@ def normalize_status(status: Any) -> str:
     return "unsupported"
 
 
-def sanitize(value: Any) -> Any:
+def sanitize(value: Any, *, state_root: Path | None = None) -> Any:
     if isinstance(value, str):
-        return redact_sensitive_text(value.replace(str(REPO_ROOT), "<repo>"))
+        return sanitize_text(value, state_root=state_root)
     if isinstance(value, list):
-        return [sanitize(item) for item in value]
+        return [sanitize(item, state_root=state_root) for item in value]
     if isinstance(value, dict):
-        return {key: sanitize(item) for key, item in value.items()}
+        return {key: sanitize(item, state_root=state_root) for key, item in value.items()}
     return value
+
+
+def sanitize_text(value: str, *, state_root: Path | None = None) -> str:
+    sanitized = value.replace(str(REPO_ROOT), "<repo>")
+    if state_root is not None:
+        for candidate in path_aliases(state_root):
+            sanitized = sanitized.replace(candidate, "<state-root>")
+    temp_dir = Path(tempfile.gettempdir()).resolve()
+    sanitized = sanitized.replace(str(temp_dir), "<tmp>")
+    node = platform.node()
+    if node:
+        sanitized = sanitized.replace(node, portable_machine_scope())
+    return redact_sensitive_text(sanitized)
+
+
+def path_aliases(path: Path) -> list[str]:
+    text = str(path)
+    aliases = [text]
+    private_tmp_prefix = "/private/tmp/"
+    tmp_prefix = "/tmp/"
+    if text.startswith(private_tmp_prefix):
+        aliases.append(tmp_prefix + text[len(private_tmp_prefix) :])
+    elif text.startswith(tmp_prefix):
+        aliases.append(private_tmp_prefix + text[len(tmp_prefix) :])
+    return aliases
+
+
+def portable_machine_scope() -> str:
+    return "local-machine-redacted"
 
 
 def resolve_state_root(value: str | Path) -> Path:
@@ -234,6 +267,7 @@ def build_evidence_record(
     source_commit: str,
     claimable: bool,
     claim_text: str,
+    machine_scope: str,
     host_id: Any = None,
     provider_id: Any = None,
     artifact_paths: list[str] | None = None,
@@ -247,7 +281,7 @@ def build_evidence_record(
         "status": status,
         "host_id": host_id,
         "provider_id": provider_id,
-        "machine_scope": platform.node() or "unknown-local-machine",
+        "machine_scope": machine_scope,
         "account_scope": "not_collected",
         "generated_at": generated_at,
         "stale_after": stale_after,
@@ -259,11 +293,11 @@ def build_evidence_record(
     }
 
 
-def artifact_paths_from_payload(payload: dict[str, Any]) -> list[str]:
+def artifact_paths_from_payload(payload: dict[str, Any], *, state_root: Path) -> list[str]:
     artifacts = payload.get("artifacts") if isinstance(payload, dict) else None
     if not isinstance(artifacts, dict):
         return []
-    return [str(value) for value in artifacts.values() if value]
+    return [sanitize_text(str(value), state_root=state_root) for value in artifacts.values() if value]
 
 
 def host_artifact_paths(lane: dict[str, Any], live_artifacts: list[str]) -> list[str]:
