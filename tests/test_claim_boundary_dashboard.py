@@ -75,7 +75,8 @@ class ClaimBoundaryDashboardTest(unittest.TestCase):
     def test_local_mainline_claimable_when_release_gate_has_no_blockers(self) -> None:
         from scripts import claim_boundary_dashboard
 
-        args = SimpleNamespace(state_root="/tmp/rtw-claim-dashboard-test", timeout_seconds=1, strict_git_clean=False)
+        state_root = Path("/tmp/rtw-claim-dashboard-test")
+        args = SimpleNamespace(state_root=str(state_root), timeout_seconds=1, strict_git_clean=False)
 
         def fake_run_json(command: list[str], *, timeout_seconds: int) -> dict[str, object]:
             del timeout_seconds
@@ -99,7 +100,10 @@ class ClaimBoundaryDashboardTest(unittest.TestCase):
                 "payload": {
                     "ok": True,
                     "release_blockers": [],
-                    "artifacts": {"json": "/tmp/release-check.json", "markdown": "/tmp/release-check.md"},
+                    "artifacts": {
+                        "json": str(state_root / "release-check" / "release-check.json"),
+                        "markdown": str(state_root / "release-check" / "release-check.md"),
+                    },
                 },
                 "stderr": "",
             }
@@ -114,7 +118,7 @@ class ClaimBoundaryDashboardTest(unittest.TestCase):
         self.assertTrue(local_mainline["evidence_record"]["claimable"])
         self.assertEqual(
             local_mainline["evidence_record"]["artifact_paths"],
-            ["/tmp/release-check.json", "/tmp/release-check.md"],
+            ["<state-root>/release-check/release-check.json", "<state-root>/release-check/release-check.md"],
         )
 
     def test_claimable_lanes_require_artifact_paths_and_historical_host_is_not_claimable(self) -> None:
