@@ -69,6 +69,18 @@ The current best path to try is:
 
 No provider key is required for the default demo path.
 
+## Contribute
+
+New contributors can start with small, claim-safe tasks:
+
+- [#7 Add an architecture-decision `ship-check` transcript](https://github.com/MarkDonish/round-table-workspace/issues/7)
+- [#8 Make the one-minute demo easier to screenshot](https://github.com/MarkDonish/round-table-workspace/issues/8)
+- [#9 Add a real-world failure mode to the community share kit](https://github.com/MarkDonish/round-table-workspace/issues/9)
+
+See all
+[`good first issue`](https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue)
+tasks or read [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
 ## Why This Exists
 
 AI coding agents are fast. Sometimes too fast.

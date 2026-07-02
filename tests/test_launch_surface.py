@@ -187,6 +187,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             REPO_ROOT / ".github" / "ISSUE_TEMPLATE" / "claim_boundary.yml",
             REPO_ROOT / ".github" / "PULL_REQUEST_TEMPLATE.md",
         ]
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         for template in templates:
             self.assertTrue(template.exists(), str(template))
             text = template.read_text(encoding="utf-8")
@@ -195,6 +196,11 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         contributing = (REPO_ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
         share_kit = (REPO_ROOT / "docs" / "community-share-kit.md").read_text(encoding="utf-8")
+        self.assertIn("## Contribute", readme)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace/issues/7", readme)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace/issues/8", readme)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace/issues/9", readme)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue", readme)
         self.assertIn("Filing Issues", contributing)
         self.assertIn("Claim boundary question", contributing)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue", contributing)
