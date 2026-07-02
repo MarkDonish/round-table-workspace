@@ -75,7 +75,8 @@
           and run a ship/revise/reject gate before trusting AI-generated work.
         </p>
         <div class="actions">
-          <a class="button primary" href="https://github.com/MarkDonish/round-table-workspace">View on GitHub</a>
+          <a class="button primary" href="https://github.com/MarkDonish/round-table-workspace">Star on GitHub</a>
+          <a class="button" href="https://github.com/MarkDonish/round-table-workspace">View repo</a>
           <a class="button" href="./demo.html">Open visual demo</a>
           <a class="button" href="./reviewer-checklist.md">Reviewer checklist</a>
           <a class="button" href="./competitive-insights.md">Competitive insights</a>
@@ -96,6 +97,19 @@ Next: run tests, add a visible demo, keep claims local-first unless validated</c
       <div class="card"><span class="badge">/room</span><h3>Explore first</h3><p>Turn vague product or engineering questions into structured multi-agent exploration.</p></div>
       <div class="card"><span class="badge">/debate</span><h3>Review risky calls</h3><p>Escalate mature questions into decision review with explicit tradeoffs and evidence.</p></div>
       <div class="card"><span class="badge">ship-check</span><h3>Gate before shipping</h3><p>Get a practical ship / revise / reject result before trusting one confident agent.</p></div>
+    </section>
+
+    <section class="card" style="margin-top: 24px;">
+      <h2>Try it in 60 seconds</h2>
+      <p>
+        No provider key is required for the default demo path. Star the repo if
+        you want a repeatable review gate before merging AI-generated work.
+      </p>
+      <pre><code>git clone https://github.com/MarkDonish/round-table-workspace.git
+cd round-table-workspace
+./rtw demo startup-idea
+./rtw ship-check "Should we merge this AI-generated feature?"
+./rtw doctor --quick</code></pre>
     </section>
 
     <section class="card" style="margin-top: 24px;">
