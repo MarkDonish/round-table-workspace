@@ -870,11 +870,12 @@ class LaunchSurfaceTest(unittest.TestCase):
         robots = REPO_ROOT / "docs" / "robots.txt"
         sitemap = REPO_ROOT / "docs" / "sitemap.xml"
         llms = REPO_ROOT / "docs" / "llms.txt"
+        nojekyll = REPO_ROOT / "docs" / ".nojekyll"
         docs_index = REPO_ROOT / "docs" / "index.md"
         share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
         pages_workflow = REPO_ROOT / ".github" / "workflows" / "pages.yml"
 
-        for path in (robots, sitemap, llms, pages_workflow):
+        for path in (robots, sitemap, llms, nojekyll, pages_workflow):
             self.assertTrue(path.exists(), str(path))
 
         robots_text = robots.read_text(encoding="utf-8")
