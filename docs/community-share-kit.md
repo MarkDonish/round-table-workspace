@@ -13,6 +13,8 @@ before you trust generated work.
 
 - GitHub repo: <https://github.com/MarkDonish/round-table-workspace>
 - Pages overview: <https://markdonish.github.io/round-table-workspace/>
+- One-minute demo:
+  <https://markdonish.github.io/round-table-workspace/one-minute-demo.html>
 - Use cases:
   <https://markdonish.github.io/round-table-workspace/use-cases.html>
 - AI feature review demo:
@@ -72,7 +74,7 @@ public claim.
 | Hacker News | Show a local-first review gate for AI coding agents | Try the 60-second demo and critique the workflow |
 | Reddit / developer forums | Ask whether teams need a pre-merge AI review gate | Share one failure mode this would catch |
 | LinkedIn | Frame it as an AI-assisted engineering governance workflow | Review the Pages demo or checklist |
-| Newsletters | Position it as a lightweight open-source tool for safer agent work | Link to the AI feature review demo |
+| Newsletters | Position it as a lightweight open-source tool for safer agent work | Link to the one-minute transcript |
 | Private team chats | Share the `ship-check` command as a quick local trial | Run it before the next AI-generated change |
 
 ## Good First Feedback

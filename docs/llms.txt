@@ -5,6 +5,7 @@ before trusting generated work.
 
 Primary repo: https://github.com/MarkDonish/round-table-workspace
 Pages overview: https://markdonish.github.io/round-table-workspace/
+One-minute demo: https://markdonish.github.io/round-table-workspace/one-minute-demo.html
 Use cases: https://markdonish.github.io/round-table-workspace/use-cases.html
 AI feature review demo: https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html
 
@@ -19,6 +20,7 @@ AI feature review demo: https://markdonish.github.io/round-table-workspace/ai-ge
 
 - README: https://github.com/MarkDonish/round-table-workspace/blob/main/README.md
 - Why star this repo: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/why-star-this-repo.md
+- One-minute demo: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/one-minute-demo.md
 - Use cases: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/use-cases.md
 - Community share kit: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/community-share-kit.md
 - Reviewer checklist: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md

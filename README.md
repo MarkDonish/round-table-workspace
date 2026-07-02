@@ -49,6 +49,9 @@ or the Pages demo:
 For workflow fit, see [`docs/use-cases.md`](docs/use-cases.md) or the Pages
 use-cases page:
 <https://markdonish.github.io/round-table-workspace/use-cases.html>.
+For the shortest output sample, see
+[`docs/one-minute-demo.md`](docs/one-minute-demo.md) or the Pages transcript:
+<https://markdonish.github.io/round-table-workspace/one-minute-demo.html>.
 
 ## When To Star This
 
@@ -233,6 +236,8 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `LAUNCH.md` | Shortest safe path for a fresh clone |
 | `docs/index.md` | Documentation map by user, protocol, runtime, validation, and history areas |
 | `docs/why-star-this-repo.md` | Quick evaluator guide for deciding whether the repo is worth starring |
+| `docs/one-minute-demo.html` | Pages-ready one-minute `ship-check` transcript |
+| `docs/one-minute-demo.md` | Markdown source for the one-minute demo transcript |
 | `docs/use-cases.html` | Pages-ready use-case guide for practical AI coding workflows |
 | `docs/use-cases.md` | Markdown source for concrete Round Table Workspace use cases |
 | `docs/community-share-kit.md` | Claim-safe community sharing guide and short blurbs |

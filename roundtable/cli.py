@@ -703,6 +703,8 @@ def build_launch_kit_payload() -> dict[str, object]:
         "docs/robots.txt",
         "docs/sitemap.xml",
         "docs/llms.txt",
+        "docs/one-minute-demo.html",
+        "docs/one-minute-demo.md",
         "docs/use-cases.html",
         "docs/use-cases.md",
         "docs/launch-copy.md",

@@ -29,6 +29,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("./rtw ship-check", text)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
         self.assertIn("ai-generated-feature-review-demo.html", text)
+        self.assertIn("./one-minute-demo.html", text)
         self.assertIn("./use-cases.html", text)
         self.assertIn('property="og:title"', text)
         self.assertIn('property="og:image"', text)
@@ -111,6 +112,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/robots.txt", payload["assets"])
         self.assertIn("docs/sitemap.xml", payload["assets"])
         self.assertIn("docs/llms.txt", payload["assets"])
+        self.assertIn("docs/one-minute-demo.html", payload["assets"])
+        self.assertIn("docs/one-minute-demo.md", payload["assets"])
         self.assertIn("docs/use-cases.html", payload["assets"])
         self.assertIn("docs/use-cases.md", payload["assets"])
         self.assertIn("docs/community-share-kit.md", payload["assets"])
@@ -252,6 +255,42 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("https://markdonish.github.io/round-table-workspace/use-cases.html", sitemap.read_text(encoding="utf-8"))
         self.assertIn("https://markdonish.github.io/round-table-workspace/use-cases.html", llms.read_text(encoding="utf-8"))
         self.assertIn("https://markdonish.github.io/round-table-workspace/use-cases.html", share_kit.read_text(encoding="utf-8"))
+
+    def test_one_minute_demo_surface_is_pages_ready_and_linked(self) -> None:
+        page = REPO_ROOT / "docs" / "one-minute-demo.html"
+        markdown = REPO_ROOT / "docs" / "one-minute-demo.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        sitemap = REPO_ROOT / "docs" / "sitemap.xml"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+
+        self.assertTrue(page.exists())
+        self.assertTrue(markdown.exists())
+        text = page.read_text(encoding="utf-8")
+        self.assertIn("See the review gate in one minute.", text)
+        self.assertIn("Decision: revise", text)
+        self.assertIn("product: revise", text)
+        self.assertIn("engineering: ship", text)
+        self.assertIn("Star on GitHub", text)
+        self.assertIn("host-live", text)
+        self.assertIn("provider-live", text)
+        self.assertIn("./one-minute-demo.md", text)
+        self.assertIn('property="og:image"', text)
+        self.assertIn('name="twitter:image"', text)
+        self.assertNotIn("<script", text.lower())
+
+        markdown_text = markdown.read_text(encoding="utf-8")
+        self.assertIn("# One-Minute Demo", markdown_text)
+        self.assertIn("Decision: revise", markdown_text)
+        self.assertIn("fixture-backed local transcript", markdown_text)
+        self.assertIn("host-live or provider-live", markdown_text)
+
+        for surface in (readme, docs_index):
+            self.assertIn("docs/one-minute-demo", surface.read_text(encoding="utf-8"))
+        self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo.html", sitemap.read_text(encoding="utf-8"))
+        self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo.html", llms.read_text(encoding="utf-8"))
+        self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo.html", share_kit.read_text(encoding="utf-8"))
 
     def test_competitive_insights_doc_is_original_and_source_attributed(self) -> None:
         insights = REPO_ROOT / "docs" / "competitive-insights.md"
