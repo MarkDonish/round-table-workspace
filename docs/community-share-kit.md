@@ -121,6 +121,33 @@ public claim.
 - Share one failure mode from real AI-assisted coding that a round-table review
   should catch.
 
+## Real-World Failure Mode To Share
+
+Use this example when a community asks what the workflow catches in practice:
+
+```text
+An AI coding agent adds a database migration, updates the ORM model, and says
+the change is safe to merge.
+
+The patch looks coherent, but no reviewer has checked:
+
+- whether the migration can roll back
+- whether existing rows keep valid defaults
+- whether the generated tests cover old and new data
+- whether the README or launch note now implies production readiness
+- whether the change should ship, be revised, or be rejected
+
+That is a good `ship-check` moment.
+```
+
+Claim-safe framing:
+
+- Do not say RTW proves the migration is safe.
+- Say it forces the decision to name missing evidence before trust.
+- Expected result for this example is usually `revise` until rollback,
+  fixtures, and claim wording are checked.
+- No host-live or provider-live support is implied by this example.
+
 ## What To Emphasize
 
 - The project is for AI coding workflows that need a real review step.
