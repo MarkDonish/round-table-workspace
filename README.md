@@ -248,6 +248,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `LAUNCH.md` | Shortest safe path for a fresh clone |
 | `docs/index.md` | Documentation map by user, protocol, runtime, validation, and history areas |
 | `docs/why-star-this-repo.md` | Quick evaluator guide for deciding whether the repo is worth starring |
+| `docs/comparison-guide.md` | Plain comparison against direct agent answers, CI, manual review, and multi-agent frameworks |
 | `docs/one-minute-demo.html` | Pages-ready one-minute `ship-check` transcript |
 | `docs/one-minute-demo.md` | Markdown source for the one-minute demo transcript |
 | `docs/use-cases.html` | Pages-ready use-case guide for practical AI coding workflows |

@@ -10,6 +10,7 @@
 | `README.md` | Project overview, five-minute path, support boundary, and key links. |
 | `LAUNCH.md` | Shortest safe startup path for fresh clones and local agent hosts. |
 | `docs/why-star-this-repo.md` | Fast evaluator guide for deciding whether the repo is worth starring. |
+| `docs/comparison-guide.md` | Decide when RTW fits better than direct agent answers, CI, manual review, or multi-agent frameworks. |
 | `docs/one-minute-demo.html` | Pages-ready one-minute transcript of the `ship-check` review gate. |
 | `docs/one-minute-demo.md` | Markdown source for the one-minute transcript. |
 | `docs/community-share-kit.md` | Claim-safe sharing guide for communities, newsletters, and team chats. |
@@ -28,6 +29,7 @@
 | Document | Use |
 |---|---|
 | `docs/agent-consumer-quickstart.md` | Clone-friendly commands for Codex, Claude Code, and generic local agents. |
+| `docs/comparison-guide.md` | Plain-language comparison for teams evaluating whether to add a review layer. |
 | `docs/one-minute-demo.html` | Short transcript showing what `ship-check` returns before trusting generated work. |
 | `docs/use-cases.html` | Practical workflows for deciding when to run `ship-check`, `/room`, or `/debate`. |
 | `docs/community-share-kit.md` | Shareable descriptions, channel angles, and public claim boundaries. |

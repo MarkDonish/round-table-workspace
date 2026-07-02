@@ -8,6 +8,10 @@ see `docs/community-share-kit.md`.
 For copy-ready open-source directory, newsletter, and tool-list submission
 fields, see `docs/directory-submission-kit.md`.
 
+For evaluator copy that explains how this differs from direct agent answers,
+CI, manual checklists, and multi-agent frameworks, see
+`docs/comparison-guide.md`.
+
 ## One-Line Positioning
 
 Make your AI coding agents argue before they ship.

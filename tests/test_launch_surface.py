@@ -118,6 +118,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/use-cases.md", payload["assets"])
         self.assertIn("docs/community-share-kit.md", payload["assets"])
         self.assertIn("docs/directory-submission-kit.md", payload["assets"])
+        self.assertIn("docs/comparison-guide.md", payload["assets"])
         self.assertIn("docs/application-packet.md", payload["assets"])
         self.assertIn("docs/credits-application-answers.md", payload["assets"])
         self.assertIn("docs/reviewer-checklist.md", payload["assets"])
@@ -151,6 +152,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["directory_submission_kit"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/directory-submission-kit.md",
         )
+        self.assertIn("comparison_guide", payload)
+        self.assertEqual(
+            payload["comparison_guide"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/comparison-guide.md",
+        )
         self.assertIn("Make your AI agents argue", payload["positioning"])
         self.assertEqual(payload["missing_assets"], [])
         for item in payload["asset_status"]:
@@ -165,6 +171,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Competitive insights", summary)
             self.assertIn("Community share kit", summary)
             self.assertIn("Directory submission kit", summary)
+            self.assertIn("Comparison guide", summary)
             self.assertIn("docs/application-packet.md", summary)
         finally:
             summary_path.unlink(missing_ok=True)
@@ -208,6 +215,27 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         for surface in (readme, docs_index, launch_copy, share_kit, llms):
             self.assertIn("docs/directory-submission-kit.md", surface.read_text(encoding="utf-8"))
+
+    def test_comparison_guide_is_claim_safe_and_linked(self) -> None:
+        comparison = REPO_ROOT / "docs" / "comparison-guide.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(comparison.exists())
+        text = comparison.read_text(encoding="utf-8")
+        self.assertIn("# Comparison Guide", text)
+        self.assertIn("One direct AI agent answer", text)
+        self.assertIn("Multi-agent framework", text)
+        self.assertIn("CI / test suite", text)
+        self.assertIn("Should this AI-assisted work be trusted yet?", text)
+        self.assertIn("host-live or provider-live", text)
+        self.assertIn("does not add any host-live or provider-live support claim", text)
+
+        for surface in (readme, docs_index, launch_copy, share_kit, llms):
+            self.assertIn("docs/comparison-guide.md", surface.read_text(encoding="utf-8"))
 
     def test_github_contribution_templates_preserve_claim_boundary(self) -> None:
         templates = [
