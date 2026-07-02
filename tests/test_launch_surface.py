@@ -152,6 +152,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/directory-submission-kit.md", payload["assets"])
         self.assertIn("docs/distribution-checklist.md", payload["assets"])
         self.assertIn("docs/public-submission-targets.md", payload["assets"])
+        self.assertIn("docs/promotion-feedback-template.md", payload["assets"])
         self.assertIn("docs/comparison-guide.md", payload["assets"])
         self.assertIn("docs/ai-failure-modes.md", payload["assets"])
         self.assertIn("docs/demo-recording-guide.md", payload["assets"])
@@ -198,6 +199,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["public_submission_targets"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md",
         )
+        self.assertIn("promotion_feedback_template", payload)
+        self.assertEqual(
+            payload["promotion_feedback_template"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/promotion-feedback-template.md",
+        )
         self.assertIn("comparison_guide", payload)
         self.assertEqual(
             payload["comparison_guide"],
@@ -231,6 +237,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Directory submission kit", summary)
             self.assertIn("Distribution checklist", summary)
             self.assertIn("Public submission targets", summary)
+            self.assertIn("Promotion feedback template", summary)
             self.assertIn("Comparison guide", summary)
             self.assertIn("AI failure modes", summary)
             self.assertIn("Demo recording guide", summary)
@@ -303,6 +310,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("repo-card.html", text)
         self.assertIn("repo-card.png", text)
         self.assertIn("docs/public-submission-targets.md", text)
+        self.assertIn("docs/promotion-feedback-template.md", text)
         self.assertIn("Do not claim host-live or provider-live support without fresh evidence.", text)
         self.assertIn("72h result", text)
 
@@ -330,11 +338,44 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("DevHunt", text)
         self.assertIn("https://devhunt.org/", text)
         self.assertIn("Do not publish a second public campaign from the same angle until the 72-hour", text)
+        self.assertIn("docs/promotion-feedback-template.md", text)
         self.assertIn("It does not add", text)
         self.assertIn("host-live or provider-live support", text)
 
         for surface in (readme, docs_index, launch_copy, share_kit, submission_kit, distribution, llms):
             self.assertIn("docs/public-submission-targets.md", surface.read_text(encoding="utf-8"))
+
+    def test_promotion_feedback_template_is_claim_safe_and_linked(self) -> None:
+        feedback = REPO_ROOT / "docs" / "promotion-feedback-template.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        submission_kit = REPO_ROOT / "docs" / "directory-submission-kit.md"
+        distribution = REPO_ROOT / "docs" / "distribution-checklist.md"
+        targets = REPO_ROOT / "docs" / "public-submission-targets.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(feedback.exists())
+        text = feedback.read_text(encoding="utf-8")
+        self.assertIn("# Promotion Feedback Template", text)
+        self.assertIn("72h", text)
+        self.assertIn("72-hour", text)
+        self.assertIn("impressions", text)
+        self.assertIn("link clicks", text)
+        self.assertIn("stars_before", text)
+        self.assertIn("stars_after", text)
+        self.assertIn("mechanism-first", text)
+        self.assertIn("failure-mode-first", text)
+        self.assertIn("demo-first", text)
+        self.assertIn("comparison-first", text)
+        self.assertIn("proof-card-first", text)
+        self.assertIn("Do not publish a second public campaign", text)
+        self.assertIn("records public response", text)
+        self.assertIn("host-live or provider-live support claims", text)
+
+        for surface in (readme, docs_index, launch_copy, share_kit, submission_kit, distribution, targets, llms):
+            self.assertIn("docs/promotion-feedback-template.md", surface.read_text(encoding="utf-8"))
 
     def test_comparison_guide_is_claim_safe_and_linked(self) -> None:
         comparison = REPO_ROOT / "docs" / "comparison-guide.md"

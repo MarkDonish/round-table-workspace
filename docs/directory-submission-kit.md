@@ -22,6 +22,8 @@ host-live or provider-live support.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md>
 - Public submission targets:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md>
+- Promotion feedback template:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/promotion-feedback-template.md>
 - Good first issues:
   <https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue>
 
@@ -132,6 +134,7 @@ Prefer:
 - Use `docs/distribution-checklist.md` to choose the submission order and
   tracking fields.
 - Use `docs/public-submission-targets.md` for current public entry points.
+- Use `docs/promotion-feedback-template.md` before choosing the next copy angle.
 - Keep the description focused on one idea: review AI-generated work before
   trusting it.
 - Include the MIT license when a directory asks for licensing.

@@ -120,3 +120,6 @@ next change:
 Use the 72-hour result to decide whether the next public post should lead with
 the mechanism, the failure mode, the demo, or the comparison against a direct
 agent answer.
+
+For the full 24h and 72h feedback record, use
+`docs/promotion-feedback-template.md`.

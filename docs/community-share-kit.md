@@ -43,6 +43,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md>
 - Public submission targets:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md>
+- Promotion feedback template:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/promotion-feedback-template.md>
 - LLM summary:
   <https://markdonish.github.io/round-table-workspace/llms.txt>
 

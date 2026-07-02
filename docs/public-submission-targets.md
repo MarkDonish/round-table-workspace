@@ -115,6 +115,9 @@ next_action:
 Do not publish a second public campaign from the same angle until the 72-hour
 result is recorded.
 
+Use `docs/promotion-feedback-template.md` to record X analytics, submission
+metrics, repository movement, and the next copy angle.
+
 ## Source Links
 
 - Hacker News submit: <https://news.ycombinator.com/submit>

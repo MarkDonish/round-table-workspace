@@ -24,6 +24,9 @@ directories, newsletters, and team chats, see `docs/distribution-checklist.md`.
 For current public submission targets and entry points, see
 `docs/public-submission-targets.md`.
 
+For the 24h and 72h feedback record used before writing the next public post,
+see `docs/promotion-feedback-template.md`.
+
 ## One-Line Positioning
 
 Make your AI coding agents argue before they ship.
