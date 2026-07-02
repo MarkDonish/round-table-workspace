@@ -153,6 +153,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/distribution-checklist.md", payload["assets"])
         self.assertIn("docs/public-submission-targets.md", payload["assets"])
         self.assertIn("docs/show-hn-submission-draft.md", payload["assets"])
+        self.assertIn("docs/newsletter-roundup-pitch-kit.md", payload["assets"])
         self.assertIn("docs/promotion-feedback-template.md", payload["assets"])
         self.assertIn("docs/comparison-guide.md", payload["assets"])
         self.assertIn("docs/ai-failure-modes.md", payload["assets"])
@@ -205,6 +206,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["show_hn_submission_draft"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/show-hn-submission-draft.md",
         )
+        self.assertIn("newsletter_roundup_pitch_kit", payload)
+        self.assertEqual(
+            payload["newsletter_roundup_pitch_kit"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/newsletter-roundup-pitch-kit.md",
+        )
         self.assertIn("promotion_feedback_template", payload)
         self.assertEqual(
             payload["promotion_feedback_template"],
@@ -244,6 +250,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Distribution checklist", summary)
             self.assertIn("Public submission targets", summary)
             self.assertIn("Show HN submission draft", summary)
+            self.assertIn("Newsletter roundup pitch kit", summary)
             self.assertIn("Promotion feedback template", summary)
             self.assertIn("Comparison guide", summary)
             self.assertIn("AI failure modes", summary)
@@ -318,6 +325,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("repo-card.png", text)
         self.assertIn("docs/public-submission-targets.md", text)
         self.assertIn("docs/show-hn-submission-draft.md", text)
+        self.assertIn("docs/newsletter-roundup-pitch-kit.md", text)
         self.assertIn("docs/promotion-feedback-template.md", text)
         self.assertIn("Do not claim host-live or provider-live support without fresh evidence.", text)
         self.assertIn("72h result", text)
@@ -342,6 +350,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Hacker News / Show HN", text)
         self.assertIn("https://news.ycombinator.com/submit", text)
         self.assertIn("docs/show-hn-submission-draft.md", text)
+        self.assertIn("docs/newsletter-roundup-pitch-kit.md", text)
         self.assertIn("Product Hunt", text)
         self.assertIn("https://www.producthunt.com/launch", text)
         self.assertIn("DevHunt", text)
@@ -384,6 +393,36 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         for surface in (readme, docs_index, launch_copy, share_kit, submission_kit, distribution, targets, llms):
             self.assertIn("docs/show-hn-submission-draft.md", surface.read_text(encoding="utf-8"))
+
+    def test_newsletter_roundup_pitch_kit_is_claim_safe_and_linked(self) -> None:
+        pitch_kit = REPO_ROOT / "docs" / "newsletter-roundup-pitch-kit.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        submission_kit = REPO_ROOT / "docs" / "directory-submission-kit.md"
+        distribution = REPO_ROOT / "docs" / "distribution-checklist.md"
+        targets = REPO_ROOT / "docs" / "public-submission-targets.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(pitch_kit.exists())
+        text = pitch_kit.read_text(encoding="utf-8")
+        self.assertIn("# Newsletter And Roundup Pitch Kit", text)
+        self.assertIn("Do not send these pitches before the 72-hour X feedback", text)
+        self.assertIn("docs/promotion-feedback-template.md", text)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
+        self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo.html", text)
+        self.assertIn("Subject Lines", text)
+        self.assertIn("Editor Email", text)
+        self.assertIn("Roundup Listing", text)
+        self.assertIn("Follow-Up Reply", text)
+        self.assertIn("host-live or provider-live support claims", text)
+        self.assertIn("Do not send the same copy to every publication.", text)
+        self.assertIn("stars_before", text)
+        self.assertIn("stars_after", text)
+
+        for surface in (readme, docs_index, launch_copy, share_kit, submission_kit, distribution, targets, llms):
+            self.assertIn("docs/newsletter-roundup-pitch-kit.md", surface.read_text(encoding="utf-8"))
 
     def test_promotion_feedback_template_is_claim_safe_and_linked(self) -> None:
         feedback = REPO_ROOT / "docs" / "promotion-feedback-template.md"

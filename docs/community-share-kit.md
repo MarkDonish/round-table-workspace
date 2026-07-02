@@ -45,6 +45,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md>
 - Show HN submission draft:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/show-hn-submission-draft.md>
+- Newsletter roundup pitch kit:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/newsletter-roundup-pitch-kit.md>
 - Promotion feedback template:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/promotion-feedback-template.md>
 - LLM summary:
@@ -96,7 +98,7 @@ public claim.
 | Hacker News | Show a local-first review gate for AI coding agents | Use the Show HN draft after the 72-hour feedback review |
 | Reddit / developer forums | Ask whether teams need a pre-merge AI review gate | Share one failure mode this would catch |
 | LinkedIn | Frame it as an AI-assisted engineering governance workflow | Share the short recording or Pages demo |
-| Newsletters | Position it as a lightweight open-source tool for safer agent work | Link to the one-minute transcript or demo GIF |
+| Newsletters | Position it as a lightweight open-source tool for safer agent work | Use the newsletter pitch kit after the 72-hour feedback review |
 | Private team chats | Share the `ship-check` command as a quick local trial | Run it before the next AI-generated change |
 | Open-source directories | Use the repo as the primary URL and the demo as proof | Follow the distribution checklist and public submission targets |
 

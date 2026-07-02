@@ -18,7 +18,7 @@ repository when stars are the goal.
 | 2 | Product Hunt | <https://www.producthunt.com/launch> | Repo card, one-minute demo, GitHub repo | Product Hunt is built around makers sharing products and getting feedback from early adopters. |
 | 3 | DevHunt | <https://devhunt.org/> | Repo card and GitHub repo | DevHunt is focused on developer tools, so RTW should lead with the AI coding review workflow. |
 | 4 | Developer forums and subreddits | Use the community's own posting page | Community intro plus AI failure modes | Best when the post asks for workflow critique, not generic promotion. |
-| 5 | AI agent newsletters and roundups | Use each publication's submission/contact path | Newsletter pitch plus repo card image | Best after the first X post has feedback data or a clearer demo angle. |
+| 5 | AI agent newsletters and roundups | Use each publication's submission/contact path | `docs/newsletter-roundup-pitch-kit.md` plus repo card image | Best after the first X post has feedback data or a clearer demo angle. |
 
 ## Channel Notes
 
@@ -121,6 +121,9 @@ metrics, repository movement, and the next copy angle.
 
 Use `docs/show-hn-submission-draft.md` for the HN title, first comment, reply
 bank, and HN-specific guardrails.
+
+Use `docs/newsletter-roundup-pitch-kit.md` for AI agent newsletter, roundup,
+and curated-list outreach after the 72-hour X feedback review.
 
 ## Source Links
 

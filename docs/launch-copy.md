@@ -27,6 +27,9 @@ For current public submission targets and entry points, see
 For a claim-safe Show HN title, first comment, and reply bank, see
 `docs/show-hn-submission-draft.md`.
 
+For newsletter editor, roundup, and curated-list pitches, see
+`docs/newsletter-roundup-pitch-kit.md`.
+
 For the 24h and 72h feedback record used before writing the next public post,
 see `docs/promotion-feedback-template.md`.
 

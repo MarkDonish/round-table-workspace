@@ -24,6 +24,8 @@ host-live or provider-live support.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md>
 - Show HN submission draft:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/show-hn-submission-draft.md>
+- Newsletter roundup pitch kit:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/newsletter-roundup-pitch-kit.md>
 - Promotion feedback template:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/promotion-feedback-template.md>
 - Good first issues:
@@ -136,6 +138,7 @@ Prefer:
 - Use `docs/distribution-checklist.md` to choose the submission order and
   tracking fields.
 - Use `docs/public-submission-targets.md` for current public entry points.
+- Use `docs/newsletter-roundup-pitch-kit.md` for newsletter and roundup outreach.
 - Use `docs/promotion-feedback-template.md` before choosing the next copy angle.
 - Keep the description focused on one idea: review AI-generated work before
   trusting it.
