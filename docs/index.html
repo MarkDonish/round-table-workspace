@@ -67,6 +67,8 @@
     .step { padding: 16px; border-radius: 18px; background: #fff7eb; border: 1px solid var(--line); }
     .step strong { display: block; margin-bottom: 6px; }
     .badge { display: inline-flex; border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 800; background: #fff0d8; color: #9a5515; border: 1px solid #edc58b; }
+    .plain-mechanism { margin-top: 24px; }
+    .plain-mechanism p { margin: 8px 0 0; color: var(--muted); max-width: 860px; }
     footer { margin-top: 28px; color: var(--muted); font-size: 14px; }
     a { color: var(--amber); }
     @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .grid, .workflow, .proof-strip { grid-template-columns: 1fr 1fr; } }
@@ -118,6 +120,22 @@ Next: run tests, add a visible demo, keep claims local-first unless validated</c
       <div class="card"><span class="badge">/room</span><h3>Explore first</h3><p>Turn vague product or engineering questions into structured multi-agent exploration.</p></div>
       <div class="card"><span class="badge">/debate</span><h3>Review risky calls</h3><p>Escalate mature questions into decision review with explicit tradeoffs and evidence.</p></div>
       <div class="card"><span class="badge">ship-check</span><h3>Gate before shipping</h3><p>Get a practical ship / revise / reject result before trusting one confident agent.</p></div>
+    </section>
+
+    <section class="card plain-mechanism" aria-label="Plain-English mechanism">
+      <h2>What Actually Happens</h2>
+      <p>
+        Round Table Workspace creates reviewer candidates for the question,
+        keeps the reviewers that add useful signal, brings them into a
+        round-table debate, and turns the discussion into a decision gate:
+        ship, revise, or reject.
+      </p>
+      <div class="workflow">
+        <div class="step"><strong>1. Create candidates</strong><span>Start with possible product, engineering, risk, and user reviewers.</span></div>
+        <div class="step"><strong>2. Keep signal</strong><span>Use the reviewers that add useful critique instead of filling space.</span></div>
+        <div class="step"><strong>3. Debate the work</strong><span>Make the panel argue about risks, evidence, and the next action.</span></div>
+        <div class="step"><strong>4. Decide</strong><span>Return ship / revise / reject with boundaries you can inspect.</span></div>
+      </div>
     </section>
 
     <section class="card" style="margin-top: 24px;">

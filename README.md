@@ -29,6 +29,10 @@ Round Table Workspace is a local-first decision layer for Codex, Claude Code, an
 
 Instead of taking one confident agent answer at face value, you get a small panel of roles that review the work from product, engineering, risk, and user perspectives, then return a practical `ship`, `revise`, or `reject` decision.
 
+Plainly: it can create reviewer candidates, keep the reviewers with useful
+signal, bring them into a round-table debate, and turn the discussion into a
+decision you can act on: `ship`, `revise`, or `reject`.
+
 If you use AI coding agents for real work, this repository is for the moment
 right before you merge, publish, or trust their output.
 
@@ -63,6 +67,13 @@ Next: revise the claim, run validation, then decide again
 The value is not "more agents for the sake of it." It is a repeatable pause
 between a confident AI answer and a real merge, launch note, architecture
 choice, or public claim.
+
+The mechanism is intentionally simple:
+
+1. Create candidate reviewers for the question.
+2. Keep the reviewers that add real signal.
+3. Bring them into a round-table discussion.
+4. Return a decision gate with risks, missing evidence, and next steps.
 
 ```bash
 git clone https://github.com/MarkDonish/round-table-workspace.git

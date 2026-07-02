@@ -39,6 +39,11 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("What it catches", text)
         self.assertIn("Why it is different", text)
         self.assertIn("product, engineering, risk, and user perspectives", text)
+        self.assertIn("What Actually Happens", text)
+        self.assertIn("creates reviewer candidates", text)
+        self.assertIn("keeps the reviewers that add useful signal", text)
+        self.assertIn("round-table debate", text)
+        self.assertIn("ship, revise, or reject", text)
         self.assertIn("ai-generated-feature-review-demo.html", text)
         self.assertIn("./one-minute-demo.html", text)
         self.assertIn("./quick-evaluation.html", text)
@@ -136,6 +141,10 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Product: the user value is still vague", readme)
         self.assertIn("Risk: the launch claim needs current evidence", readme)
         self.assertIn("a repeatable pause", readme)
+        self.assertIn("create reviewer candidates", readme)
+        self.assertIn("Keep the reviewers that add real signal", readme)
+        self.assertIn("Bring them into a round-table discussion", readme)
+        self.assertIn("Return a decision gate with risks", readme)
 
     def test_readme_surfaces_star_decision_before_long_overview(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")

@@ -31,6 +31,13 @@ The repository provides three linked surfaces:
 The default path is local-first and fixture-backed. You can try the demo without
 provider keys.
 
+The plain-English mechanism:
+
+1. Create reviewer candidates for the topic or AI-generated change.
+2. Keep the reviewers that add useful signal.
+3. Bring them into a round-table debate.
+4. Return `ship`, `revise`, or `reject` with risks, missing evidence, and next steps.
+
 ## A 60-Second Trial
 
 From a fresh clone:
