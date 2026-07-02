@@ -25,6 +25,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/why-star-this-repo.md>
 - Contributing guide:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/CONTRIBUTING.md>
+- Good first issues:
+  <https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue>
 - LLM summary:
   <https://markdonish.github.io/round-table-workspace/llms.txt>
 

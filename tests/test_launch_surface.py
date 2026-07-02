@@ -197,8 +197,10 @@ class LaunchSurfaceTest(unittest.TestCase):
         share_kit = (REPO_ROOT / "docs" / "community-share-kit.md").read_text(encoding="utf-8")
         self.assertIn("Filing Issues", contributing)
         self.assertIn("Claim boundary question", contributing)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue", contributing)
         self.assertIn("Good First Feedback", share_kit)
         self.assertIn("CONTRIBUTING.md", share_kit)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue", share_kit)
 
     def test_public_discovery_files_are_claim_safe(self) -> None:
         robots = REPO_ROOT / "docs" / "robots.txt"
