@@ -60,10 +60,14 @@ developer-tools
 local-first
 decision-making
 ai-coding
+ai-code-review
 cli
 python
 agent-workflow
+agentic-workflow
 code-review
+ship-check
+round-table
 vibe-coding
 openai
 llm

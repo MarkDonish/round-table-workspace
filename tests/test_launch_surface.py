@@ -138,6 +138,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertEqual(payload["pages_url"], "https://markdonish.github.io/round-table-workspace/")
         self.assertEqual(payload["repo_card"], "https://markdonish.github.io/round-table-workspace/repo-card.html")
         self.assertEqual(payload["repo_card_image"], "https://markdonish.github.io/round-table-workspace/repo-card.png")
+        for topic in ("ai-code-review", "agentic-workflow", "ship-check", "round-table"):
+            self.assertIn(topic, payload["topics"])
         self.assertIn("docs/launch-copy.md", payload["assets"])
         self.assertIn("docs/robots.txt", payload["assets"])
         self.assertIn("docs/sitemap.xml", payload["assets"])
