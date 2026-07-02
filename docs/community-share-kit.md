@@ -13,6 +13,8 @@ before you trust generated work.
 
 - GitHub repo: <https://github.com/MarkDonish/round-table-workspace>
 - Pages overview: <https://markdonish.github.io/round-table-workspace/>
+- Use cases:
+  <https://markdonish.github.io/round-table-workspace/use-cases.html>
 - AI feature review demo:
   <https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html>
 - Reviewer checklist:

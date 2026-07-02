@@ -11,6 +11,8 @@
 | `LAUNCH.md` | Shortest safe startup path for fresh clones and local agent hosts. |
 | `docs/why-star-this-repo.md` | Fast evaluator guide for deciding whether the repo is worth starring. |
 | `docs/community-share-kit.md` | Claim-safe sharing guide for communities, newsletters, and team chats. |
+| `docs/use-cases.html` | Pages-ready use-case guide for practical AI coding workflows. |
+| `docs/use-cases.md` | Markdown source for concrete Round Table Workspace use cases. |
 | `docs/llms.txt` | LLM-friendly summary for AI tools and agentic search. |
 | `docs/sitemap.xml` | Pages sitemap for public discovery. |
 | `docs/ai-generated-feature-review-demo.html` | Pages-ready demo for reviewing AI-generated work before merge. |
@@ -23,6 +25,7 @@
 | Document | Use |
 |---|---|
 | `docs/agent-consumer-quickstart.md` | Clone-friendly commands for Codex, Claude Code, and generic local agents. |
+| `docs/use-cases.html` | Practical workflows for deciding when to run `ship-check`, `/room`, or `/debate`. |
 | `docs/community-share-kit.md` | Shareable descriptions, channel angles, and public claim boundaries. |
 | `docs/ai-generated-feature-review-demo.html` | Visual Pages demo for the AI-generated feature review flow. |
 | `docs/ai-generated-feature-review-demo.md` | Example `ship-check` style review for an AI-generated feature before merge. |
