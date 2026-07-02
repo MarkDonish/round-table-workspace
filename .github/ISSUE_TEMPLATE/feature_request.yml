@@ -1,0 +1,46 @@
+name: Feature request
+description: Suggest a focused improvement to the review workflow.
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Good feature requests describe a real AI-assisted workflow decision
+        and the evidence needed to trust the result.
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Workflow
+      description: What AI coding workflow would this improve?
+      placeholder: "Before merging AI-generated code, I want..."
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: Value
+      description: What would this help users decide, catch, or verify?
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - ship-check
+        - room
+        - debate
+        - documentation
+        - validation / release gate
+        - other
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Claim boundary
+      options:
+        - label: This request does not require claiming unverified host-live or provider-live support.
+          required: true

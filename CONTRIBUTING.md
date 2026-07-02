@@ -14,6 +14,17 @@ support. Please keep that boundary intact in code, docs, tests, and examples.
 - Improve local-first validation messages.
 - Add docs that clarify claim boundaries, setup, or troubleshooting.
 
+## Filing Issues
+
+Use the GitHub issue templates when possible:
+
+- Bug report: include reproduction commands and concise evidence.
+- Feature request: describe the workflow decision this would improve.
+- Claim boundary question: use this when wording or support status may be too broad.
+
+Do not include API keys, tokens, cookies, private account data, or local-only
+secrets in issues, screenshots, logs, or pull requests.
+
 ## Development Setup
 
 ```bash

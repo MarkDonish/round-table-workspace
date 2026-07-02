@@ -1,0 +1,33 @@
+name: Claim boundary question
+description: Ask whether a support or release claim is currently backed by evidence.
+title: "docs: clarify claim boundary for "
+labels:
+  - documentation
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when a README, release, wrapper, host-live, provider-live, or
+        adapter claim may be too broad for the current evidence.
+  - type: textarea
+    id: claim
+    attributes:
+      label: Claim or wording
+      description: Paste the exact claim or describe the support lane.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Current evidence
+      description: Link to the report, command output, fixture, or validation artifact.
+    validations:
+      required: true
+  - type: checkboxes
+    id: requested_resolution
+    attributes:
+      label: Requested resolution
+      options:
+        - label: Tighten the wording.
+        - label: Add validation evidence.
+        - label: Mark the lane as unconfigured, blocked, pending, or historical-only.

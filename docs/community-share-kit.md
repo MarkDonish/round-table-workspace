@@ -19,6 +19,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md>
 - Why star this repo:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/why-star-this-repo.md>
+- Contributing guide:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/CONTRIBUTING.md>
 
 ## Short Blurbs
 
@@ -68,6 +70,14 @@ public claim.
 | LinkedIn | Frame it as an AI-assisted engineering governance workflow | Review the Pages demo or checklist |
 | Newsletters | Position it as a lightweight open-source tool for safer agent work | Link to the AI feature review demo |
 | Private team chats | Share the `ship-check` command as a quick local trial | Run it before the next AI-generated change |
+
+## Good First Feedback
+
+- Report where the 60-second demo was unclear.
+- Suggest one AI-generated workflow that needs a better `ship-check` example.
+- Ask whether a host, provider, wrapper, or release claim is backed by current evidence.
+- Share one failure mode from real AI-assisted coding that a round-table review
+  should catch.
 
 ## What To Emphasize
 

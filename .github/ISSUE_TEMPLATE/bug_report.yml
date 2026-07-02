@@ -1,0 +1,44 @@
+name: Bug report
+description: Report a reproducible problem in the local-first workflow.
+title: "fix: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. Please keep fixture-backed, host-live,
+        and provider-live evidence separate.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: List the exact commands or steps.
+      placeholder: |
+        ./rtw doctor --quick
+        ./rtw ship-check "Should we merge this AI-generated feature?"
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Paste concise output, screenshots, or artifact paths. Do not include secrets.
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Claim boundary
+      options:
+        - label: I am not treating fixture-backed success as host-live or provider-live support.
+          required: true
+        - label: I removed API keys, tokens, cookies, and private account details.
+          required: true

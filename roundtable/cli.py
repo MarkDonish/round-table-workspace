@@ -707,6 +707,10 @@ def build_launch_kit_payload() -> dict[str, object]:
         "docs/reviewer-checklist.md",
         "docs/competitive-insights.md",
         "docs/demo.html",
+        ".github/ISSUE_TEMPLATE/bug_report.yml",
+        ".github/ISSUE_TEMPLATE/feature_request.yml",
+        ".github/ISSUE_TEMPLATE/claim_boundary.yml",
+        ".github/PULL_REQUEST_TEMPLATE.md",
         "CONTRIBUTING.md",
         "LICENSE",
     ]

@@ -167,6 +167,26 @@ class LaunchSurfaceTest(unittest.TestCase):
         for surface in (readme, docs_index, launch_copy):
             self.assertIn("docs/community-share-kit.md", surface.read_text(encoding="utf-8"))
 
+    def test_github_contribution_templates_preserve_claim_boundary(self) -> None:
+        templates = [
+            REPO_ROOT / ".github" / "ISSUE_TEMPLATE" / "bug_report.yml",
+            REPO_ROOT / ".github" / "ISSUE_TEMPLATE" / "feature_request.yml",
+            REPO_ROOT / ".github" / "ISSUE_TEMPLATE" / "claim_boundary.yml",
+            REPO_ROOT / ".github" / "PULL_REQUEST_TEMPLATE.md",
+        ]
+        for template in templates:
+            self.assertTrue(template.exists(), str(template))
+            text = template.read_text(encoding="utf-8")
+            self.assertIn("host-live", text)
+            self.assertIn("provider-live", text)
+
+        contributing = (REPO_ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+        share_kit = (REPO_ROOT / "docs" / "community-share-kit.md").read_text(encoding="utf-8")
+        self.assertIn("Filing Issues", contributing)
+        self.assertIn("Claim boundary question", contributing)
+        self.assertIn("Good First Feedback", share_kit)
+        self.assertIn("CONTRIBUTING.md", share_kit)
+
     def test_competitive_insights_doc_is_original_and_source_attributed(self) -> None:
         insights = REPO_ROOT / "docs" / "competitive-insights.md"
         packet = REPO_ROOT / "docs" / "application-packet.md"

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 60-second local trial
+    url: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/why-star-this-repo.md
+    about: Try the default local-first path before filing broad support questions.
+  - name: Claim boundary dashboard
+    url: https://github.com/MarkDonish/round-table-workspace/blob/main/reports/claim-boundary-dashboard.md
+    about: Check current claimable, blocked, and unconfigured support lanes.
