@@ -117,6 +117,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn(star_cta, readme)
         self.assertIn("[60-second demo]", readme)
         self.assertIn("[AI feature review example]", readme)
+        self.assertIn("[5-minute evaluation path](docs/quick-evaluation.md)", readme)
         self.assertIn("[repo preview card]", readme)
         self.assertIn("[why this is worth starring](docs/why-star-this-repo.md)", readme)
         self.assertIn("No provider key is required for the default demo path.", readme)
@@ -156,6 +157,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/one-minute-demo-card.html", payload["assets"])
         self.assertIn("docs/one-minute-demo-card.png", payload["assets"])
         self.assertIn("docs/one-minute-demo.md", payload["assets"])
+        self.assertIn("docs/quick-evaluation.md", payload["assets"])
         self.assertIn("docs/use-cases.html", payload["assets"])
         self.assertIn("docs/use-cases.md", payload["assets"])
         self.assertIn("docs/repo-card.html", payload["assets"])
@@ -202,6 +204,11 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertEqual(
             payload["community_share_kit"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/community-share-kit.md",
+        )
+        self.assertIn("quick_evaluation", payload)
+        self.assertEqual(
+            payload["quick_evaluation"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/quick-evaluation.md",
         )
         self.assertIn("directory_submission_kit", payload)
         self.assertEqual(
@@ -288,6 +295,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Repo card image", summary)
             self.assertIn("Competitive insights", summary)
             self.assertIn("Community share kit", summary)
+            self.assertIn("Quick evaluation path", summary)
             self.assertIn("Directory submission kit", summary)
             self.assertIn("Distribution checklist", summary)
             self.assertIn("Public submission targets", summary)
@@ -305,6 +313,29 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("docs/application-packet.md", summary)
         finally:
             summary_path.unlink(missing_ok=True)
+
+    def test_quick_evaluation_path_is_claim_safe_and_linked(self) -> None:
+        quick_eval = REPO_ROOT / "docs" / "quick-evaluation.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(quick_eval.exists())
+        text = quick_eval.read_text(encoding="utf-8")
+        self.assertIn("# Quick Evaluation Path", text)
+        self.assertIn("5-Minute Local Trial", text)
+        self.assertIn("./rtw ship-check \"Should we merge this AI-generated feature?\"", text)
+        self.assertIn("./rtw doctor --quick", text)
+        self.assertIn("No provider key is required", text)
+        self.assertIn("Star the repo if", text)
+        self.assertIn("Skip For Now If", text)
+        self.assertIn("universal live support for every local agent host", text)
+        self.assertIn("provider-live", text)
+        self.assertIn("fresh evidence", text)
+
+        for surface in (readme, docs_index, launch_copy, llms):
+            self.assertIn("docs/quick-evaluation.md", surface.read_text(encoding="utf-8"))
 
     def test_community_share_kit_is_claim_safe_and_linked(self) -> None:
         share_kit = REPO_ROOT / "docs" / "community-share-kit.md"

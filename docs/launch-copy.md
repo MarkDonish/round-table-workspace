@@ -5,6 +5,9 @@ This file contains the public launch copy for Round Table Workspace.
 For reusable community blurbs, channel angles, and claim-safe sharing guidance,
 see `docs/community-share-kit.md`.
 
+For a 5-minute local trial and star decision path for new visitors, see
+`docs/quick-evaluation.md`.
+
 For copy-ready open-source directory, newsletter, and tool-list submission
 fields, see `docs/directory-submission-kit.md`.
 

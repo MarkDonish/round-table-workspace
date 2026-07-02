@@ -22,6 +22,7 @@ Repo preview image: https://markdonish.github.io/round-table-workspace/repo-card
 ## Useful Starting Points
 
 - README: https://github.com/MarkDonish/round-table-workspace/blob/main/README.md
+- Quick evaluation path: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/quick-evaluation.md
 - Why star this repo: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/why-star-this-repo.md
 - Comparison guide: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/comparison-guide.md
 - AI failure modes: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/ai-failure-modes.md

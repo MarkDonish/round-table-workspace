@@ -9,6 +9,7 @@
 |---|---|
 | `README.md` | Project overview, five-minute path, support boundary, and key links. |
 | `LAUNCH.md` | Shortest safe startup path for fresh clones and local agent hosts. |
+| `docs/quick-evaluation.md` | 5-minute local trial and star decision path for new visitors. |
 | `docs/why-star-this-repo.md` | Fast evaluator guide for deciding whether the repo is worth starring. |
 | `docs/comparison-guide.md` | Decide when RTW fits better than direct agent answers, CI, manual review, or multi-agent frameworks. |
 | `docs/ai-failure-modes.md` | Concrete AI coding failure modes the workflow is designed to slow down. |
@@ -45,6 +46,7 @@
 | Document | Use |
 |---|---|
 | `docs/agent-consumer-quickstart.md` | Clone-friendly commands for Codex, Claude Code, and generic local agents. |
+| `docs/quick-evaluation.md` | 5-minute local trial and star decision path before deeper setup. |
 | `docs/comparison-guide.md` | Plain-language comparison for teams evaluating whether to add a review layer. |
 | `docs/ai-failure-modes.md` | Failure-mode guide for deciding whether the workflow matches a real pain. |
 | `docs/demo-recording-guide.md` | Visual demo script and recording checklist for public sharing. |

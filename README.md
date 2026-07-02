@@ -15,6 +15,8 @@ AI-generated work.** Try the
 [60-second demo](https://markdonish.github.io/round-table-workspace/one-minute-demo.html),
 see the
 [AI feature review example](https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html),
+use the
+[5-minute evaluation path](docs/quick-evaluation.md),
 open the
 [repo preview card](https://markdonish.github.io/round-table-workspace/repo-card.html),
 or read
@@ -291,6 +293,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 |---|---|
 | `LAUNCH.md` | Shortest safe path for a fresh clone |
 | `docs/index.md` | Documentation map by user, protocol, runtime, validation, and history areas |
+| `docs/quick-evaluation.md` | 5-minute local trial and star decision path for new visitors |
 | `docs/why-star-this-repo.md` | Quick evaluator guide for deciding whether the repo is worth starring |
 | `docs/comparison-guide.md` | Plain comparison against direct agent answers, CI, manual review, and multi-agent frameworks |
 | `docs/ai-failure-modes.md` | Concrete failure modes this workflow is designed to catch before trust |
