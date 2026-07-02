@@ -57,6 +57,7 @@ Use:
 - `docs/product-hunt-launch-kit.md`
 - `docs/directory-submission-kit.md`
 - `docs/repo-card.png`
+- `docs/one-minute-demo-card.png`
 - `docs/demo-recording-guide.md`
 
 Avoid:

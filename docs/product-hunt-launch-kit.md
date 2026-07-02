@@ -138,6 +138,10 @@ Repo preview image:
 docs/repo-card.png
 https://markdonish.github.io/round-table-workspace/repo-card.png
 
+One-minute demo image:
+docs/one-minute-demo-card.png
+https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png
+
 Repo preview card:
 docs/repo-card.html
 https://markdonish.github.io/round-table-workspace/repo-card.html

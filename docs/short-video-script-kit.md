@@ -16,6 +16,8 @@ Use these checked-in assets:
 - Demo recording guide: `docs/demo-recording-guide.md`
 - Screenshot-ready one-minute demo:
   <https://markdonish.github.io/round-table-workspace/one-minute-demo.html>
+- One-minute demo social image:
+  <https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png>
 - One-minute demo source: `docs/one-minute-demo.md`
 - AI-generated feature review demo:
   `docs/ai-generated-feature-review-demo.md`

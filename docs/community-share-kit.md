@@ -15,6 +15,8 @@ before you trust generated work.
 - Pages overview: <https://markdonish.github.io/round-table-workspace/>
 - One-minute demo:
   <https://markdonish.github.io/round-table-workspace/one-minute-demo.html>
+- One-minute demo image:
+  <https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png>
 - Use cases:
   <https://markdonish.github.io/round-table-workspace/use-cases.html>
 - AI feature review demo:

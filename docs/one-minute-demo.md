@@ -37,6 +37,11 @@ newsletter, README update, or team chat:
 
 <https://markdonish.github.io/round-table-workspace/one-minute-demo.html>
 
+Use the checked-in 1200x630 social image when a platform asks for a static
+preview asset:
+
+<https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png>
+
 The screenshot card keeps four things visible at once:
 
 - the exact `ship-check` command

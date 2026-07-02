@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Screenshot card for the Round Table Workspace one-minute ship-check demo." />
+  <meta name="theme-color" content="#101820" />
+  <meta property="og:title" content="Round Table Workspace one-minute demo card" />
+  <meta property="og:description" content="A local-first review gate for AI-generated coding work: ship, revise, or reject." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://markdonish.github.io/round-table-workspace/one-minute-demo-card.html" />
+  <meta property="og:image" content="https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Round Table Workspace one-minute demo card" />
+  <meta name="twitter:description" content="A local-first ship-check review gate for AI-generated coding work." />
+  <meta name="twitter:image" content="https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png" />
+  <title>One-Minute Demo Card | Round Table Workspace</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #101820;
+      --panel: #fffdf7;
+      --ink: #18212b;
+      --muted: #66717d;
+      --line: #d7e0e9;
+      --blue: #2e6fb4;
+      --amber-soft: #fff0d9;
+      --green: #2f7a4c;
+      --green-soft: #e6f4ec;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      width: 1200px;
+      height: 630px;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(46,111,180,.28), transparent 34%),
+        linear-gradient(315deg, rgba(196,111,25,.2), transparent 32%),
+        var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 430px 1fr;
+      gap: 30px;
+      width: 1200px;
+      height: 630px;
+      padding: 42px;
+    }
+    .intro {
+      display: grid;
+      align-content: space-between;
+      color: #f5f8fb;
+    }
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 8px;
+      color: #d4e8ff;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    h1 {
+      margin: 18px 0 16px;
+      font-size: 58px;
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+    .lead {
+      margin: 0;
+      max-width: 390px;
+      color: #c7d1dc;
+      font-size: 24px;
+      line-height: 1.36;
+    }
+    .repo {
+      color: #f5f8fb;
+      font: 800 21px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .card {
+      display: grid;
+      align-content: space-between;
+      gap: 18px;
+      padding: 28px;
+      border: 1px solid rgba(255,255,255,.5);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: 0 28px 90px rgba(0, 0, 0, .34);
+    }
+    .terminal {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fbfe;
+    }
+    .bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #e8eff6;
+    }
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 999px;
+      background: #d85f4f;
+    }
+    .dot:nth-child(2) { background: #d9a83d; }
+    .dot:nth-child(3) { background: #61a66d; }
+    pre {
+      margin: 0;
+      padding: 18px 20px;
+      color: #1d2833;
+      font: 700 20px/1.42 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+    }
+    .decision {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 20px;
+      border: 1px solid #efca96;
+      border-radius: 8px;
+      background: var(--amber-soft);
+    }
+    .decision strong {
+      color: #8a4b12;
+      font-size: 34px;
+      line-height: 1;
+    }
+    .decision span {
+      max-width: 330px;
+      color: #6a5844;
+      font-size: 18px;
+      font-weight: 750;
+      line-height: 1.28;
+    }
+    .votes {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .vote {
+      min-height: 96px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfdff;
+    }
+    .vote b {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--ink);
+      font-size: 16px;
+    }
+    .vote span {
+      display: inline-flex;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: var(--amber-soft);
+      color: #965819;
+      font-size: 14px;
+      font-weight: 850;
+    }
+    .vote.ship span {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+    .boundary {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .boundary em {
+      color: var(--blue);
+      font-style: normal;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="intro" aria-label="Round Table Workspace demo card summary">
+      <div>
+        <span class="eyebrow">One-minute ship-check demo</span>
+        <h1>Make AI coding agents argue before they ship.</h1>
+        <p class="lead">
+          A local review gate turns one confident answer into a panel decision:
+          ship, revise, or reject.
+        </p>
+      </div>
+      <div class="repo">github.com/MarkDonish/round-table-workspace</div>
+    </section>
+    <section class="card" aria-label="Screenshot-ready ship-check output">
+      <div class="terminal">
+        <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <pre><code>$ ./rtw ship-check "Should we merge this AI-generated feature?"
+
+Decision: revise
+Confidence: medium</code></pre>
+      </div>
+      <div class="decision">
+        <strong>Decision: revise</strong>
+        <span>Useful direction. Evidence and public claims need tightening before merge.</span>
+      </div>
+      <div class="votes" aria-label="Reviewer vote summary">
+        <div class="vote"><b>Product</b><span>revise</span></div>
+        <div class="vote ship"><b>Engineering</b><span>ship</span></div>
+        <div class="vote"><b>Risk</b><span>revise</span></div>
+        <div class="vote"><b>User advocate</b><span>revise</span></div>
+      </div>
+      <div class="boundary">
+        <span>Fixture-backed local transcript</span>
+        <span><em>No</em> host-live or provider-live claim</span>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

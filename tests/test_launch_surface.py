@@ -138,6 +138,14 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertEqual(payload["pages_url"], "https://markdonish.github.io/round-table-workspace/")
         self.assertEqual(payload["repo_card"], "https://markdonish.github.io/round-table-workspace/repo-card.html")
         self.assertEqual(payload["repo_card_image"], "https://markdonish.github.io/round-table-workspace/repo-card.png")
+        self.assertEqual(
+            payload["one_minute_demo_card"],
+            "https://markdonish.github.io/round-table-workspace/one-minute-demo-card.html",
+        )
+        self.assertEqual(
+            payload["one_minute_demo_card_image"],
+            "https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png",
+        )
         for topic in ("ai-code-review", "agentic-workflow", "ship-check", "round-table"):
             self.assertIn(topic, payload["topics"])
         self.assertIn("docs/launch-copy.md", payload["assets"])
@@ -145,6 +153,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/sitemap.xml", payload["assets"])
         self.assertIn("docs/llms.txt", payload["assets"])
         self.assertIn("docs/one-minute-demo.html", payload["assets"])
+        self.assertIn("docs/one-minute-demo-card.html", payload["assets"])
+        self.assertIn("docs/one-minute-demo-card.png", payload["assets"])
         self.assertIn("docs/one-minute-demo.md", payload["assets"])
         self.assertIn("docs/use-cases.html", payload["assets"])
         self.assertIn("docs/use-cases.md", payload["assets"])
@@ -488,6 +498,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/promotion-feedback-template.md", text)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
         self.assertIn("https://markdonish.github.io/round-table-workspace/repo-card.png", text)
+        self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png", text)
         self.assertIn("Make AI coding agents argue before they ship", text)
         self.assertIn("Maker Comment", text)
         self.assertIn("Gallery Assets", text)
@@ -702,6 +713,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Sitemap: https://markdonish.github.io/round-table-workspace/sitemap.xml", robots_text)
         self.assertIn("<loc>https://markdonish.github.io/round-table-workspace/</loc>", sitemap_text)
         self.assertIn("ai-generated-feature-review-demo.html", sitemap_text)
+        self.assertIn("one-minute-demo-card.html", sitemap_text)
         self.assertIn("Round Table Workspace is a local-first review workflow", llms_text)
         self.assertIn("host-live or provider-live", llms_text)
         self.assertIn('./rtw ship-check "Should we merge this AI-generated feature?"', llms_text)
@@ -743,6 +755,8 @@ class LaunchSurfaceTest(unittest.TestCase):
 
     def test_one_minute_demo_surface_is_pages_ready_and_linked(self) -> None:
         page = REPO_ROOT / "docs" / "one-minute-demo.html"
+        card_page = REPO_ROOT / "docs" / "one-minute-demo-card.html"
+        card_image = REPO_ROOT / "docs" / "one-minute-demo-card.png"
         markdown = REPO_ROOT / "docs" / "one-minute-demo.md"
         readme = REPO_ROOT / "README.md"
         docs_index = REPO_ROOT / "docs" / "index.md"
@@ -751,6 +765,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
 
         self.assertTrue(page.exists())
+        self.assertTrue(card_page.exists())
+        self.assertTrue(card_image.exists())
         self.assertTrue(markdown.exists())
         text = page.read_text(encoding="utf-8")
         self.assertIn("See the review gate in one minute.", text)
@@ -765,13 +781,25 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("host-live", text)
         self.assertIn("provider-live", text)
         self.assertIn("./one-minute-demo.md", text)
+        self.assertIn("./one-minute-demo-card.png", text)
         self.assertIn('property="og:image"', text)
         self.assertIn('name="twitter:image"', text)
+        self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png", text)
         self.assertNotIn("<script", text.lower())
+
+        card_text = card_page.read_text(encoding="utf-8")
+        self.assertIn("Make AI coding agents argue before they ship.", card_text)
+        self.assertIn("Decision: revise", card_text)
+        self.assertIn("No</em> host-live or provider-live claim", card_text)
+        image_bytes = card_image.read_bytes()
+        self.assertEqual(image_bytes[:8], b"\x89PNG\r\n\x1a\n")
+        self.assertEqual(int.from_bytes(image_bytes[16:20], "big"), 1200)
+        self.assertEqual(int.from_bytes(image_bytes[20:24], "big"), 630)
 
         markdown_text = markdown.read_text(encoding="utf-8")
         self.assertIn("# One-Minute Demo", markdown_text)
         self.assertIn("Screenshot-Friendly Card", markdown_text)
+        self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png", markdown_text)
         self.assertIn("Decision: revise", markdown_text)
         self.assertIn("fixture-backed local transcript", markdown_text)
         self.assertIn("host-live or provider-live", markdown_text)
@@ -779,8 +807,11 @@ class LaunchSurfaceTest(unittest.TestCase):
         for surface in (readme, docs_index):
             self.assertIn("docs/one-minute-demo", surface.read_text(encoding="utf-8"))
         self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo.html", sitemap.read_text(encoding="utf-8"))
+        self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo-card.html", sitemap.read_text(encoding="utf-8"))
         self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo.html", llms.read_text(encoding="utf-8"))
+        self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png", llms.read_text(encoding="utf-8"))
         self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo.html", share_kit.read_text(encoding="utf-8"))
+        self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png", share_kit.read_text(encoding="utf-8"))
 
     def test_competitive_insights_doc_is_original_and_source_attributed(self) -> None:
         insights = REPO_ROOT / "docs" / "competitive-insights.md"

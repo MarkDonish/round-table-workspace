@@ -89,6 +89,8 @@ For the shortest output sample, see
 [`docs/one-minute-demo.md`](docs/one-minute-demo.md) or the screenshot-ready
 Pages transcript:
 <https://markdonish.github.io/round-table-workspace/one-minute-demo.html>.
+For a static social preview, use the checked-in image:
+<https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png>.
 For an architecture decision example, see
 [`examples/transcripts/ship-check-architecture-decision.md`](examples/transcripts/ship-check-architecture-decision.md).
 
@@ -297,6 +299,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `docs/repo-card.html` | Pages-hosted GitHub-style repo preview card for sharing and directory submissions |
 | `docs/repo-card.png` | 1200x630 repo preview image used for social cards and directory previews |
 | `docs/one-minute-demo.html` | Screenshot-ready Pages transcript for the one-minute `ship-check` demo |
+| `docs/one-minute-demo-card.png` | 1200x630 social image for the one-minute `ship-check` demo |
 | `docs/one-minute-demo.md` | Markdown source for the one-minute demo transcript |
 | `docs/use-cases.html` | Pages-ready use-case guide for practical AI coding workflows |
 | `docs/use-cases.md` | Markdown source for concrete Round Table Workspace use cases |

@@ -112,6 +112,8 @@ Use the repo card, preview image, or one-minute demo:
 
 - Repo card: <https://markdonish.github.io/round-table-workspace/repo-card.html>
 - Repo image: <https://markdonish.github.io/round-table-workspace/repo-card.png>
+- One-minute demo image:
+  <https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png>
 - One-minute demo:
   <https://markdonish.github.io/round-table-workspace/one-minute-demo.html>
 

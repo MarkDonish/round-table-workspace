@@ -25,6 +25,12 @@ Secondary demo URL:
 https://markdonish.github.io/round-table-workspace/one-minute-demo.html
 ```
 
+One-minute demo image:
+
+```text
+https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png
+```
+
 Visual preview URL:
 
 ```text
