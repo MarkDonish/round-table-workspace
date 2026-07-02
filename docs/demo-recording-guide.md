@@ -6,6 +6,10 @@ repository README update.
 For copy-ready 30-second and 60-second scripts, captions, and channel variants,
 use `docs/short-video-script-kit.md`.
 
+For a static asset instead of a recording, use the screenshot-ready card on
+`docs/one-minute-demo.html`. It keeps the command, `Decision: revise`, reviewer
+votes, GitHub repo URL, and fixture-backed claim boundary in one frame.
+
 The goal is to show the workflow in motion: an AI-generated change looks
 plausible, Round Table Workspace reviews it, and the output becomes
 `ship`, `revise`, or `reject`.
@@ -17,7 +21,7 @@ plausible, Round Table Workspace reviews it, and the output becomes
 | X / Twitter | 30-45 seconds | terminal clip plus one caption | GitHub repo |
 | LinkedIn | 45-60 seconds | terminal clip plus short context | Pages overview |
 | Newsletter | 20-30 second GIF | one command and result | one-minute demo |
-| README | static screenshot or short GIF | final `ship-check` output | GitHub repo |
+| README | static screenshot or short GIF | screenshot-ready one-minute demo card | GitHub repo |
 
 ## 45-Second Storyboard
 
@@ -61,6 +65,7 @@ Show:
 - the command being run
 - the decision line
 - panel votes or named reviewer perspectives
+- the screenshot-ready one-minute demo card if you need a still image
 - one concrete risk or missing evidence item
 - the GitHub repo link
 

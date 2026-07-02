@@ -14,7 +14,9 @@ surface. It does not add host-live or provider-live support claims.
 Use these checked-in assets:
 
 - Demo recording guide: `docs/demo-recording-guide.md`
-- One-minute demo: `docs/one-minute-demo.md`
+- Screenshot-ready one-minute demo:
+  <https://markdonish.github.io/round-table-workspace/one-minute-demo.html>
+- One-minute demo source: `docs/one-minute-demo.md`
 - AI-generated feature review demo:
   `docs/ai-generated-feature-review-demo.md`
 - Repo card image: `docs/repo-card.png`
@@ -142,6 +144,8 @@ Before recording:
 
 - hide tokens, `.env` files, local account names, browser cookies, and private
   repo paths
+- use the screenshot-ready one-minute demo card if a still image is clearer
+  than a terminal recording
 - zoom terminal text so `Decision: revise` is readable
 - keep the GitHub repository link visible at the end
 - show one decision, not a long transcript

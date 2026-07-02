@@ -115,6 +115,8 @@ public claim.
 ## Good First Feedback
 
 - Report where the 60-second demo was unclear.
+- Screenshot the one-minute demo and say whether the review gate is clear at a
+  glance.
 - Suggest one AI-generated workflow that needs a better `ship-check` example.
 - Share a real AI workflow example through the GitHub issue form.
 - Ask whether a host, provider, wrapper, or release claim is backed by current evidence.

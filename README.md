@@ -86,7 +86,8 @@ For workflow fit, see [`docs/use-cases.md`](docs/use-cases.md) or the Pages
 use-cases page:
 <https://markdonish.github.io/round-table-workspace/use-cases.html>.
 For the shortest output sample, see
-[`docs/one-minute-demo.md`](docs/one-minute-demo.md) or the Pages transcript:
+[`docs/one-minute-demo.md`](docs/one-minute-demo.md) or the screenshot-ready
+Pages transcript:
 <https://markdonish.github.io/round-table-workspace/one-minute-demo.html>.
 For an architecture decision example, see
 [`examples/transcripts/ship-check-architecture-decision.md`](examples/transcripts/ship-check-architecture-decision.md).
@@ -114,7 +115,7 @@ architecture-decision transcript, or share the AI workflow this review gate
 should cover next:
 
 - [Architecture-decision `ship-check` transcript](examples/transcripts/ship-check-architecture-decision.md)
-- [#8 Make the one-minute demo easier to screenshot](https://github.com/MarkDonish/round-table-workspace/issues/8)
+- [Screenshot-ready one-minute demo](https://markdonish.github.io/round-table-workspace/one-minute-demo.html)
 - [Real-world failure mode in the community share kit](docs/community-share-kit.md#real-world-failure-mode-to-share)
 - [Share an AI workflow example](https://github.com/MarkDonish/round-table-workspace/issues/new?template=workflow_example.yml)
 
@@ -295,7 +296,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `docs/short-video-script-kit.md` | Copy-ready short video scripts for X, LinkedIn, Product Hunt, and forums |
 | `docs/repo-card.html` | Pages-hosted GitHub-style repo preview card for sharing and directory submissions |
 | `docs/repo-card.png` | 1200x630 repo preview image used for social cards and directory previews |
-| `docs/one-minute-demo.html` | Pages-ready one-minute `ship-check` transcript |
+| `docs/one-minute-demo.html` | Screenshot-ready Pages transcript for the one-minute `ship-check` demo |
 | `docs/one-minute-demo.md` | Markdown source for the one-minute demo transcript |
 | `docs/use-cases.html` | Pages-ready use-case guide for practical AI coding workflows |
 | `docs/use-cases.md` | Markdown source for concrete Round Table Workspace use cases |

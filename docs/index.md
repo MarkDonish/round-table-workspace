@@ -17,7 +17,7 @@
 | `docs/distribution-checklist.md` | Ordered submission plan for HN, developer forums, directories, newsletters, and team chats. |
 | `docs/repo-card.html` | Pages-hosted GitHub-style repo preview card for sharing and directory submissions. |
 | `docs/repo-card.png` | 1200x630 repo preview image for social cards and directory previews. |
-| `docs/one-minute-demo.html` | Pages-ready one-minute transcript of the `ship-check` review gate. |
+| `docs/one-minute-demo.html` | Screenshot-ready Pages transcript of the `ship-check` review gate. |
 | `docs/one-minute-demo.md` | Markdown source for the one-minute transcript. |
 | `docs/community-share-kit.md` | Claim-safe sharing guide for communities, newsletters, and team chats. |
 | `docs/directory-submission-kit.md` | Copy-ready submission fields for open-source directories and roundups. |
@@ -47,7 +47,7 @@
 | `docs/ai-failure-modes.md` | Failure-mode guide for deciding whether the workflow matches a real pain. |
 | `docs/demo-recording-guide.md` | Visual demo script and recording checklist for public sharing. |
 | `docs/short-video-script-kit.md` | Short video scripts for X, LinkedIn, Product Hunt, and forum clips. |
-| `docs/one-minute-demo.html` | Short transcript showing what `ship-check` returns before trusting generated work. |
+| `docs/one-minute-demo.html` | Screenshot-ready transcript showing what `ship-check` returns before trusting generated work. |
 | `docs/use-cases.html` | Practical workflows for deciding when to run `ship-check`, `/room`, or `/debate`. |
 | `docs/community-share-kit.md` | Shareable descriptions, channel angles, and public claim boundaries. |
 | `docs/directory-submission-kit.md` | Submission copy for open-source directories, newsletters, and tool lists. |

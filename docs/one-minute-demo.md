@@ -30,6 +30,22 @@ Useful enough to continue, but revise positioning, evidence, and user-facing
 examples before claiming it is launch-ready.
 ```
 
+## Screenshot-Friendly Card
+
+Use the Pages version when you need a clean screenshot for a launch post,
+newsletter, README update, or team chat:
+
+<https://markdonish.github.io/round-table-workspace/one-minute-demo.html>
+
+The screenshot card keeps four things visible at once:
+
+- the exact `ship-check` command
+- the `Decision: revise` badge
+- the product, engineering, risk, and user-advocate votes
+- the GitHub repository URL and fixture-backed claim boundary
+
+It is designed for a quick visual explanation, not as provider-live proof.
+
 ## Why Each Reviewer Voted That Way
 
 | Reviewer | Vote | Reason |
