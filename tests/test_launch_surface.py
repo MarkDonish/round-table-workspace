@@ -863,21 +863,27 @@ class LaunchSurfaceTest(unittest.TestCase):
         llms = REPO_ROOT / "docs" / "llms.txt"
         docs_index = REPO_ROOT / "docs" / "index.md"
         share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        pages_workflow = REPO_ROOT / ".github" / "workflows" / "pages.yml"
 
-        for path in (robots, sitemap, llms):
+        for path in (robots, sitemap, llms, pages_workflow):
             self.assertTrue(path.exists(), str(path))
 
         robots_text = robots.read_text(encoding="utf-8")
         sitemap_text = sitemap.read_text(encoding="utf-8")
         llms_text = llms.read_text(encoding="utf-8")
+        pages_workflow_text = pages_workflow.read_text(encoding="utf-8")
 
         self.assertIn("Sitemap: https://markdonish.github.io/round-table-workspace/sitemap.xml", robots_text)
         self.assertIn("<loc>https://markdonish.github.io/round-table-workspace/</loc>", sitemap_text)
         self.assertIn("ai-generated-feature-review-demo.html", sitemap_text)
         self.assertIn("one-minute-demo-card.html", sitemap_text)
+        self.assertIn("review-packet.html", sitemap_text)
         self.assertIn("Round Table Workspace is a local-first review workflow", llms_text)
         self.assertIn("host-live or provider-live", llms_text)
         self.assertIn('./rtw ship-check "Should we merge this AI-generated feature?"', llms_text)
+        self.assertIn("actions/upload-pages-artifact", pages_workflow_text)
+        self.assertIn("actions/deploy-pages", pages_workflow_text)
+        self.assertIn("path: docs", pages_workflow_text)
         self.assertIn("docs/llms.txt", docs_index.read_text(encoding="utf-8"))
         self.assertIn("docs/sitemap.xml", docs_index.read_text(encoding="utf-8"))
         self.assertIn("https://markdonish.github.io/round-table-workspace/llms.txt", share_kit.read_text(encoding="utf-8"))
