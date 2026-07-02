@@ -34,6 +34,7 @@
 | `docs/sitemap.xml` | Pages sitemap for public discovery. |
 | `docs/ai-generated-feature-review-demo.html` | Pages-ready demo for reviewing AI-generated work before merge. |
 | `docs/ai-generated-feature-review-demo.md` | Concrete pre-merge demo for reviewing AI-generated work. |
+| `examples/transcripts/ship-check-architecture-decision.md` | Example `ship-check` review for an AI-generated architecture proposal. |
 | `AGENTS.md` | Repository operating rules, explicit-only triggers, and source boundaries. |
 | `docs/user-entry-guide.md` | Plain-language explanation of the repository logic. |
 
@@ -60,7 +61,8 @@
 | `docs/promotion-feedback-template.md` | X, forum, and directory feedback template for the next copy decision. |
 | `docs/ai-generated-feature-review-demo.html` | Visual Pages demo for the AI-generated feature review flow. |
 | `docs/ai-generated-feature-review-demo.md` | Example `ship-check` style review for an AI-generated feature before merge. |
-| `examples/transcripts/` | Illustrative `/room`, `/debate`, and handoff walkthroughs. |
+| `examples/transcripts/ship-check-architecture-decision.md` | Architecture tradeoff example for the `ship-check` gate. |
+| `examples/transcripts/` | Illustrative `ship-check`, `/room`, `/debate`, and handoff walkthroughs. |
 | `docs/roadmap.md` | Release horizons and roadmap direction. |
 | `docs/milestones/v0.2.0.md` | v0.2.0 task scope and status. |
 

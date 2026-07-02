@@ -7,6 +7,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DISCLAIMER = "This is an illustrative transcript, not host-live or provider-live validation evidence."
 TRANSCRIPTS = [
+    "examples/transcripts/ship-check-architecture-decision.md",
     "examples/transcripts/room-startup-idea.md",
     "examples/transcripts/debate-mvp-decision.md",
     "examples/transcripts/room-to-debate-handoff.md",
@@ -24,6 +25,17 @@ class TranscriptExamplesTest(unittest.TestCase):
     def test_readme_links_to_transcript_examples(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("examples/transcripts/", readme)
+        self.assertIn("ship-check-architecture-decision.md", readme)
+
+    def test_architecture_decision_transcript_is_claim_safe(self) -> None:
+        transcript = REPO_ROOT / "examples/transcripts/ship-check-architecture-decision.md"
+        text = transcript.read_text(encoding="utf-8")
+        self.assertIn("# Transcript: `ship-check` Architecture Decision", text)
+        self.assertIn("./rtw ship-check \"Should we add a generic provider adapter layer now?\"", text)
+        self.assertIn("Decision: revise", text)
+        self.assertIn("premature abstraction", text)
+        self.assertIn("provider-live", text)
+        self.assertIn("does not add provider-live support", text)
 
 
 if __name__ == "__main__":

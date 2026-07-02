@@ -88,6 +88,8 @@ use-cases page:
 For the shortest output sample, see
 [`docs/one-minute-demo.md`](docs/one-minute-demo.md) or the Pages transcript:
 <https://markdonish.github.io/round-table-workspace/one-minute-demo.html>.
+For an architecture decision example, see
+[`examples/transcripts/ship-check-architecture-decision.md`](examples/transcripts/ship-check-architecture-decision.md).
 
 ## When To Star This
 
@@ -107,10 +109,11 @@ No provider key is required for the default demo path.
 
 ## Contribute
 
-New contributors can start with small, claim-safe tasks or share the AI
-workflow this review gate should cover next:
+New contributors can start with small, claim-safe tasks, read the completed
+architecture-decision transcript, or share the AI workflow this review gate
+should cover next:
 
-- [#7 Add an architecture-decision `ship-check` transcript](https://github.com/MarkDonish/round-table-workspace/issues/7)
+- [Architecture-decision `ship-check` transcript](examples/transcripts/ship-check-architecture-decision.md)
 - [#8 Make the one-minute demo easier to screenshot](https://github.com/MarkDonish/round-table-workspace/issues/8)
 - [#9 Add a real-world failure mode to the community share kit](https://github.com/MarkDonish/round-table-workspace/issues/9)
 - [Share an AI workflow example](https://github.com/MarkDonish/round-table-workspace/issues/new?template=workflow_example.yml)
@@ -335,7 +338,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `docs/debate-skill-architecture.md` | `/debate` protocol and behavior |
 | `docs/room-to-debate-handoff.md` | Handoff contract from exploration to review |
 | `docs/generic-local-agent-adapter.md` | Generic local CLI agent contract |
-| `examples/transcripts/` | Example walkthroughs for `/room`, `/debate`, and handoff |
+| `examples/transcripts/` | Example walkthroughs for `ship-check`, `/room`, `/debate`, and handoff |
 | `reports/claim-boundary-dashboard.md` | Generated snapshot only; for current status, run `./rtw evidence` or `./rtw release-check` |
 | `CHANGELOG.md` | Release history |
 

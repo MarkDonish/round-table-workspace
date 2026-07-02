@@ -18,6 +18,10 @@ For concrete AI coding failure modes that the workflow is meant to catch, see
 For a short visual recording plan for X, LinkedIn, newsletters, and README
 screenshots, see `docs/demo-recording-guide.md`.
 
+For an architecture decision transcript that shows `ship-check` catching a
+premature abstraction, see
+`examples/transcripts/ship-check-architecture-decision.md`.
+
 For the ordered public distribution plan across HN, developer forums,
 directories, newsletters, and team chats, see `docs/distribution-checklist.md`.
 

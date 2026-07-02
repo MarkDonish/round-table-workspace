@@ -89,6 +89,9 @@ What the review should surface:
 
 Good result: a decision that names the tradeoff instead of hiding it in code.
 
+For a concrete transcript, see
+[`examples/transcripts/ship-check-architecture-decision.md`](../examples/transcripts/ship-check-architecture-decision.md).
+
 ## 5. Team Review Ritual
 
 Use this when a team wants a lightweight local habit before trusting generated

@@ -163,6 +163,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/ai-failure-modes.md", payload["assets"])
         self.assertIn("docs/demo-recording-guide.md", payload["assets"])
         self.assertIn("docs/short-video-script-kit.md", payload["assets"])
+        self.assertIn("examples/transcripts/ship-check-architecture-decision.md", payload["assets"])
         self.assertIn(".github/ISSUE_TEMPLATE/workflow_example.yml", payload["assets"])
         self.assertIn("docs/application-packet.md", payload["assets"])
         self.assertIn("docs/credits-application-answers.md", payload["assets"])
@@ -252,6 +253,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["short_video_script_kit"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/short-video-script-kit.md",
         )
+        self.assertIn("architecture_decision_transcript", payload)
+        self.assertEqual(
+            payload["architecture_decision_transcript"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/examples/transcripts/ship-check-architecture-decision.md",
+        )
         self.assertIn("workflow_example_issue", payload)
         self.assertEqual(
             payload["workflow_example_issue"],
@@ -284,6 +290,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("AI failure modes", summary)
             self.assertIn("Demo recording guide", summary)
             self.assertIn("Short video script kit", summary)
+            self.assertIn("Architecture decision transcript", summary)
             self.assertIn("Workflow example issue form", summary)
             self.assertIn("docs/application-packet.md", summary)
         finally:
@@ -658,7 +665,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         contributing = (REPO_ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
         share_kit = (REPO_ROOT / "docs" / "community-share-kit.md").read_text(encoding="utf-8")
         self.assertIn("## Contribute", readme)
-        self.assertIn("https://github.com/MarkDonish/round-table-workspace/issues/7", readme)
+        self.assertIn("examples/transcripts/ship-check-architecture-decision.md", readme)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace/issues/8", readme)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace/issues/9", readme)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue", readme)
