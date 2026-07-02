@@ -42,6 +42,9 @@ Why: useful direction, but public claims and evidence need tightening
 Next: run tests, add a visible demo, keep claims local-first unless validated
 ```
 
+For a concrete pre-merge example, see
+[`docs/ai-generated-feature-review-demo.md`](docs/ai-generated-feature-review-demo.md).
+
 ## When To Star This
 
 Star this repo if you want a local-first review layer for AI coding workflows,
@@ -225,6 +228,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `LAUNCH.md` | Shortest safe path for a fresh clone |
 | `docs/index.md` | Documentation map by user, protocol, runtime, validation, and history areas |
 | `docs/why-star-this-repo.md` | Quick evaluator guide for deciding whether the repo is worth starring |
+| `docs/ai-generated-feature-review-demo.md` | Concrete pre-merge demo for reviewing AI-generated work |
 | `docs/user-entry-guide.md` | Plain-language guide to the repository model |
 | `docs/agent-consumer-quickstart.md` | Command guide for Codex, Claude Code, and generic local agents |
 | `docs/source-truth-map.md` | Boundary between source files and historical / generated material |
