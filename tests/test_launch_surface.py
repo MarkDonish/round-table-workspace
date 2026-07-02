@@ -23,8 +23,11 @@ class LaunchSurfaceTest(unittest.TestCase):
 
     def test_docs_index_html_is_static_launch_landing_page(self) -> None:
         page = REPO_ROOT / "docs" / "index.html"
+        quick_eval_page = REPO_ROOT / "docs" / "quick-evaluation.html"
         self.assertTrue(page.exists())
+        self.assertTrue(quick_eval_page.exists())
         text = page.read_text(encoding="utf-8")
+        quick_eval = quick_eval_page.read_text(encoding="utf-8")
         self.assertIn("Make your AI agents argue before they ship", text)
         self.assertIn("./rtw ship-check", text)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
@@ -37,6 +40,12 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("./one-minute-demo.html", text)
         self.assertIn("./quick-evaluation.html", text)
         self.assertIn("5-minute evaluation", text)
+        self.assertIn("5-minute evaluation path", quick_eval)
+        self.assertIn("Star If", quick_eval)
+        self.assertIn("Skip For Now If", quick_eval)
+        self.assertIn("No host-live or provider-live support is claimed without fresh evidence.", quick_eval)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace", quick_eval)
+        self.assertIn('property="og:image"', quick_eval)
         self.assertIn("./use-cases.html", text)
         self.assertIn("./repo-card.html", text)
         self.assertIn('property="og:title"', text)
@@ -159,6 +168,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/one-minute-demo-card.html", payload["assets"])
         self.assertIn("docs/one-minute-demo-card.png", payload["assets"])
         self.assertIn("docs/one-minute-demo.md", payload["assets"])
+        self.assertIn("docs/quick-evaluation.html", payload["assets"])
         self.assertIn("docs/quick-evaluation.md", payload["assets"])
         self.assertIn("docs/use-cases.html", payload["assets"])
         self.assertIn("docs/use-cases.md", payload["assets"])
@@ -208,6 +218,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/community-share-kit.md",
         )
         self.assertIn("quick_evaluation", payload)
+        self.assertIn("quick_evaluation_pages", payload)
+        self.assertEqual(
+            payload["quick_evaluation_pages"],
+            "https://markdonish.github.io/round-table-workspace/quick-evaluation.html",
+        )
         self.assertEqual(
             payload["quick_evaluation"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/quick-evaluation.md",
@@ -297,6 +312,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Repo card image", summary)
             self.assertIn("Competitive insights", summary)
             self.assertIn("Community share kit", summary)
+            self.assertIn("Quick evaluation page", summary)
             self.assertIn("Quick evaluation path", summary)
             self.assertIn("Directory submission kit", summary)
             self.assertIn("Distribution checklist", summary)
@@ -318,6 +334,7 @@ class LaunchSurfaceTest(unittest.TestCase):
 
     def test_quick_evaluation_path_is_claim_safe_and_linked(self) -> None:
         quick_eval = REPO_ROOT / "docs" / "quick-evaluation.md"
+        quick_eval_html = REPO_ROOT / "docs" / "quick-evaluation.html"
         readme = REPO_ROOT / "README.md"
         docs_index = REPO_ROOT / "docs" / "index.md"
         pages_home = REPO_ROOT / "docs" / "index.html"
@@ -326,7 +343,9 @@ class LaunchSurfaceTest(unittest.TestCase):
         sitemap = REPO_ROOT / "docs" / "sitemap.xml"
 
         self.assertTrue(quick_eval.exists())
+        self.assertTrue(quick_eval_html.exists())
         text = quick_eval.read_text(encoding="utf-8")
+        html = quick_eval_html.read_text(encoding="utf-8")
         self.assertIn("# Quick Evaluation Path", text)
         self.assertIn("5-Minute Local Trial", text)
         self.assertIn("./rtw ship-check \"Should we merge this AI-generated feature?\"", text)
@@ -338,6 +357,9 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("provider-live", text)
         self.assertIn("fresh evidence", text)
         self.assertIn("./quick-evaluation.html", pages_home.read_text(encoding="utf-8"))
+        self.assertIn("Round Table Workspace - 5-minute evaluation", html)
+        self.assertIn("Star If", html)
+        self.assertNotIn("<script", html.lower())
         self.assertIn("quick-evaluation.html", sitemap.read_text(encoding="utf-8"))
 
         for surface in (readme, docs_index, launch_copy, llms):

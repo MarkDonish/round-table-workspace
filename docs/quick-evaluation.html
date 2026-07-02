@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A 5-minute path for deciding whether Round Table Workspace is worth starring and trying." />
+  <meta name="theme-color" content="#f7f0e6" />
+  <meta property="og:title" content="Round Table Workspace: 5-minute evaluation" />
+  <meta property="og:description" content="Try the local-first AI agent review gate, then decide whether it is worth starring." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://markdonish.github.io/round-table-workspace/quick-evaluation.html" />
+  <meta property="og:image" content="https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Round Table Workspace: 5-minute evaluation" />
+  <meta name="twitter:description" content="Try the local-first AI agent review gate, then decide whether it is worth starring." />
+  <meta name="twitter:image" content="https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png" />
+  <link rel="sitemap" type="application/xml" href="./sitemap.xml" />
+  <link rel="alternate" type="text/plain" href="./llms.txt" title="LLM summary" />
+  <title>Round Table Workspace - 5-minute evaluation</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f0e6;
+      --panel: #fffaf2;
+      --ink: #211912;
+      --muted: #75685b;
+      --line: #eadcc9;
+      --amber: #c77721;
+      --green: #2f7a4c;
+      --blue: #315f8c;
+      --shadow: 0 24px 80px rgba(72, 44, 18, .13);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f7f0e6 0%, #fffaf2 46%, #e7f0eb 100%);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    main { width: min(1080px, calc(100vw - 32px)); margin: 0 auto; padding: 46px 0 44px; }
+    nav { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 28px; }
+    nav a { color: var(--muted); text-decoration: none; font-weight: 750; }
+    .hero { display: grid; grid-template-columns: 1.02fr .98fr; gap: 24px; align-items: stretch; }
+    .eyebrow { color: var(--amber); font-size: 12px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 10px 0 16px; max-width: 720px; font-size: clamp(42px, 6vw, 72px); line-height: .96; letter-spacing: -.055em; }
+    h2, h3 { margin: 0 0 10px; letter-spacing: -.025em; }
+    p { margin: 0; color: var(--muted); }
+    .lead { font-size: 19px; max-width: 660px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      background: var(--panel);
+      text-decoration: none;
+      font-weight: 800;
+    }
+    .button.primary { border-color: #d79041; background: #d58328; color: #fffaf2; }
+    .panel, .terminal, .decision { background: rgba(255,250,242,.9); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); }
+    .terminal { overflow: hidden; }
+    .bar { display: flex; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--line); background: #f1e3d1; }
+    .dot { width: 10px; height: 10px; border-radius: 999px; background: #d86654; }
+    .dot:nth-child(2) { background: #ddae4e; }
+    .dot:nth-child(3) { background: #68a66f; }
+    pre { margin: 0; padding: 20px; white-space: pre-wrap; color: #30251a; font-size: 14px; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 24px; }
+    .panel, .decision { padding: 20px; }
+    .panel ul, .decision ul { margin: 12px 0 0; padding-left: 20px; color: var(--muted); }
+    .panel li + li, .decision li + li { margin-top: 8px; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+    .step { padding: 16px; border-radius: 18px; border: 1px solid var(--line); background: #fff7eb; }
+    .step strong { display: block; margin-bottom: 6px; }
+    .decision { margin-top: 24px; border-color: #cddfcf; background: #f7fff8; }
+    .decision h2 { color: var(--green); }
+    .skip { border-color: #d5dce6; background: #f7fbff; }
+    .skip h2 { color: var(--blue); }
+    footer { margin-top: 28px; color: var(--muted); font-size: 14px; }
+    a { color: var(--amber); }
+    @media (max-width: 860px) { .hero, .grid, .steps { grid-template-columns: 1fr; } h1 { letter-spacing: -.04em; } }
+  </style>
+</head>
+<body>
+  <main>
+    <nav>
+      <a href="./">Round Table Workspace</a>
+      <a href="https://github.com/MarkDonish/round-table-workspace">GitHub repo</a>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">5-minute evaluation path</div>
+        <h1>Try the review gate, then decide whether it is worth starring.</h1>
+        <p class="lead">
+          Round Table Workspace is for developers who use AI coding agents but
+          still want a local review step before trusting generated work.
+        </p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/MarkDonish/round-table-workspace">Star on GitHub</a>
+          <a class="button" href="./one-minute-demo.html">One-minute demo</a>
+          <a class="button" href="./ai-generated-feature-review-demo.html">AI feature demo</a>
+        </div>
+      </div>
+      <div class="terminal" aria-label="Five-minute local trial command">
+        <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <pre><code>git clone https://github.com/MarkDonish/round-table-workspace.git
+cd round-table-workspace
+./rtw ship-check "Should we merge this AI-generated feature?"
+./rtw doctor --quick</code></pre>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="What to look for">
+      <div class="panel">
+        <h3>Look for a decision</h3>
+        <p>A useful run should return `ship`, `revise`, or `reject`, not just a confident paragraph.</p>
+      </div>
+      <div class="panel">
+        <h3>Look for review angles</h3>
+        <p>Product, engineering, risk, and user-facing concerns should be visible enough to act on.</p>
+      </div>
+      <div class="panel">
+        <h3>Look for evidence gaps</h3>
+        <p>The workflow should say what is missing before generated work is trusted.</p>
+      </div>
+    </section>
+
+    <section class="steps" aria-label="Evaluation flow">
+      <div class="step"><strong>1. Clone</strong><span>Use the default local path.</span></div>
+      <div class="step"><strong>2. Run ship-check</strong><span>Ask about an AI-generated change.</span></div>
+      <div class="step"><strong>3. Read the result</strong><span>Check the decision and missing evidence.</span></div>
+      <div class="step"><strong>4. Star if useful</strong><span>Keep it as a pre-merge habit.</span></div>
+    </section>
+
+    <section class="decision">
+      <h2>Star If</h2>
+      <ul>
+        <li>you use AI coding agents and want a pre-merge review habit</li>
+        <li>you want a local-first alternative to trusting one confident chat answer</li>
+        <li>you need a repeatable way to say `revise` before generated work ships</li>
+        <li>you want public claims to stay tied to current evidence</li>
+      </ul>
+    </section>
+
+    <section class="decision skip">
+      <h2>Skip For Now If</h2>
+      <ul>
+        <li>you need a hosted SaaS dashboard</li>
+        <li>you need universal live support for every local agent host</li>
+        <li>you need provider-live execution before configuring and validating that lane</li>
+        <li>you want a replacement for tests, security review, or human ownership</li>
+      </ul>
+    </section>
+
+    <footer>
+      Claim boundary: default demos are local-first and fixture-backed. No host-live or provider-live support is claimed without fresh evidence.
+      Source version: <a href="./quick-evaluation.md">Markdown guide</a>.
+    </footer>
+  </main>
+</body>
+</html>

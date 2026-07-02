@@ -7,6 +7,7 @@ Primary repo: https://github.com/MarkDonish/round-table-workspace
 Pages overview: https://markdonish.github.io/round-table-workspace/
 One-minute demo: https://markdonish.github.io/round-table-workspace/one-minute-demo.html
 One-minute demo image: https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png
+Quick evaluation page: https://markdonish.github.io/round-table-workspace/quick-evaluation.html
 Use cases: https://markdonish.github.io/round-table-workspace/use-cases.html
 AI feature review demo: https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html
 Repo preview card: https://markdonish.github.io/round-table-workspace/repo-card.html
