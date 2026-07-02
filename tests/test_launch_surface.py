@@ -35,7 +35,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("product, engineering, risk, and user perspectives", text)
         self.assertIn("ai-generated-feature-review-demo.html", text)
         self.assertIn("./one-minute-demo.html", text)
-        self.assertIn("./quick-evaluation.md", text)
+        self.assertIn("./quick-evaluation.html", text)
         self.assertIn("5-minute evaluation", text)
         self.assertIn("./use-cases.html", text)
         self.assertIn("./repo-card.html", text)
@@ -320,8 +320,10 @@ class LaunchSurfaceTest(unittest.TestCase):
         quick_eval = REPO_ROOT / "docs" / "quick-evaluation.md"
         readme = REPO_ROOT / "README.md"
         docs_index = REPO_ROOT / "docs" / "index.md"
+        pages_home = REPO_ROOT / "docs" / "index.html"
         launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
         llms = REPO_ROOT / "docs" / "llms.txt"
+        sitemap = REPO_ROOT / "docs" / "sitemap.xml"
 
         self.assertTrue(quick_eval.exists())
         text = quick_eval.read_text(encoding="utf-8")
@@ -335,6 +337,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("universal live support for every local agent host", text)
         self.assertIn("provider-live", text)
         self.assertIn("fresh evidence", text)
+        self.assertIn("./quick-evaluation.html", pages_home.read_text(encoding="utf-8"))
+        self.assertIn("quick-evaluation.html", sitemap.read_text(encoding="utf-8"))
 
         for surface in (readme, docs_index, launch_copy, llms):
             self.assertIn("docs/quick-evaluation.md", surface.read_text(encoding="utf-8"))
