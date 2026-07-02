@@ -24,6 +24,31 @@ Use it when you want to:
 - keep a local evidence trail instead of relying on a chat transcript
 - decide whether generated work should ship, be revised, or be rejected
 
+## What Changes
+
+Without a review gate, the handoff often looks like this:
+
+```text
+AI agent: The feature is implemented and ready to merge.
+Human: Sounds good.
+Result: unclear risk, no evidence trail, public claims may be too broad.
+```
+
+Round Table Workspace slows that moment down:
+
+```text
+ship-check: revise
+Product: the user value is still vague
+Engineering: the change is small enough after tests pass
+Risk: the launch claim needs current evidence
+User advocate: the README needs a concrete example
+Next: revise the claim, run validation, then decide again
+```
+
+The value is not "more agents for the sake of it." It is a repeatable pause
+between a confident AI answer and a real merge, launch note, architecture
+choice, or public claim.
+
 ```bash
 git clone https://github.com/MarkDonish/round-table-workspace.git
 cd round-table-workspace

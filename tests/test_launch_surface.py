@@ -94,6 +94,16 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn(pages_url, readme)
         self.assertIn(pages_url, launch_copy)
 
+    def test_readme_explains_before_after_review_value(self) -> None:
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("## What Changes", readme)
+        self.assertIn("Without a review gate", readme)
+        self.assertIn("AI agent: The feature is implemented and ready to merge.", readme)
+        self.assertIn("ship-check: revise", readme)
+        self.assertIn("Product: the user value is still vague", readme)
+        self.assertIn("Risk: the launch claim needs current evidence", readme)
+        self.assertIn("a repeatable pause", readme)
+
     def test_pages_launch_surface_has_manual_publish_instructions(self) -> None:
         release_note = REPO_ROOT / "docs" / "releases" / "v0.2.2-pages-launch-kit.md"
         note = release_note.read_text(encoding="utf-8")
