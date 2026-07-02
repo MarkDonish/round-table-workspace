@@ -56,6 +56,10 @@
     pre { margin: 0; padding: 22px; white-space: pre-wrap; font-size: 14px; color: #30251a; }
     code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
     .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
+    .proof-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+    .proof { padding: 16px; border-radius: 18px; border: 1px solid var(--line); background: #fff7eb; }
+    .proof strong { display: block; margin-bottom: 6px; letter-spacing: -.02em; }
+    .proof span { color: var(--muted); font-size: 14px; }
     .card { padding: 20px; }
     .card h2, .card h3 { margin: 0 0 8px; letter-spacing: -.03em; }
     .card p { margin: 0; color: var(--muted); }
@@ -65,8 +69,8 @@
     .badge { display: inline-flex; border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 800; background: #fff0d8; color: #9a5515; border: 1px solid #edc58b; }
     footer { margin-top: 28px; color: var(--muted); font-size: 14px; }
     a { color: var(--amber); }
-    @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .grid, .workflow { grid-template-columns: 1fr 1fr; } }
-    @media (max-width: 560px) { main { padding-top: 34px; } .grid, .workflow { grid-template-columns: 1fr; } }
+    @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .grid, .workflow, .proof-strip { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { main { padding-top: 34px; } .grid, .workflow, .proof-strip { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -97,6 +101,12 @@ Panel: product, engineering, risk, user-advocate
 Why: useful direction, but public claims and evidence need tightening
 Next: run tests, add a visible demo, keep claims local-first unless validated</code></pre>
       </div>
+    </section>
+
+    <section class="proof-strip" aria-label="Why star Round Table Workspace">
+      <div class="proof"><strong>Who it is for</strong><span>Builders using Codex, Claude Code, or CLI agents for real product and engineering work.</span></div>
+      <div class="proof"><strong>What it catches</strong><span>Confident AI output with vague value, missing evidence, risky claims, or unclear next steps.</span></div>
+      <div class="proof"><strong>Why it is different</strong><span>It turns one answer into a local review gate with product, engineering, risk, and user perspectives.</span></div>
     </section>
 
     <section class="grid" aria-label="Use cases">
