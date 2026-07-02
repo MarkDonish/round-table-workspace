@@ -2,6 +2,7 @@
 
 Use this checklist when promoting Round Table Workspace outside the repository.
 It turns the existing launch copy into an ordered, claim-safe submission plan.
+For current public entry points, use `docs/public-submission-targets.md`.
 
 This document does not add host-live or provider-live support claims. It only
 packages already checked-in links and copy so the repository can be submitted

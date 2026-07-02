@@ -21,6 +21,9 @@ screenshots, see `docs/demo-recording-guide.md`.
 For the ordered public distribution plan across HN, developer forums,
 directories, newsletters, and team chats, see `docs/distribution-checklist.md`.
 
+For current public submission targets and entry points, see
+`docs/public-submission-targets.md`.
+
 ## One-Line Positioning
 
 Make your AI coding agents argue before they ship.

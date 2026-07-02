@@ -151,6 +151,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/community-share-kit.md", payload["assets"])
         self.assertIn("docs/directory-submission-kit.md", payload["assets"])
         self.assertIn("docs/distribution-checklist.md", payload["assets"])
+        self.assertIn("docs/public-submission-targets.md", payload["assets"])
         self.assertIn("docs/comparison-guide.md", payload["assets"])
         self.assertIn("docs/ai-failure-modes.md", payload["assets"])
         self.assertIn("docs/demo-recording-guide.md", payload["assets"])
@@ -192,6 +193,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["distribution_checklist"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md",
         )
+        self.assertIn("public_submission_targets", payload)
+        self.assertEqual(
+            payload["public_submission_targets"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md",
+        )
         self.assertIn("comparison_guide", payload)
         self.assertEqual(
             payload["comparison_guide"],
@@ -224,6 +230,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Community share kit", summary)
             self.assertIn("Directory submission kit", summary)
             self.assertIn("Distribution checklist", summary)
+            self.assertIn("Public submission targets", summary)
             self.assertIn("Comparison guide", summary)
             self.assertIn("AI failure modes", summary)
             self.assertIn("Demo recording guide", summary)
@@ -244,6 +251,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html", text)
         self.assertIn("https://markdonish.github.io/round-table-workspace/repo-card.html", text)
         self.assertIn("https://markdonish.github.io/round-table-workspace/repo-card.png", text)
+        self.assertIn("docs/public-submission-targets.md", text)
         self.assertIn("./rtw ship-check \"Should we merge this AI-generated feature?\"", text)
         self.assertIn("No host-live or provider-live support is claimed without current evidence.", text)
         self.assertIn("The workflow helps review AI-generated work; it does not guarantee correctness.", text)
@@ -268,6 +276,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo.html", text)
         self.assertIn("https://markdonish.github.io/round-table-workspace/repo-card.html", text)
         self.assertIn("https://markdonish.github.io/round-table-workspace/repo-card.png", text)
+        self.assertIn("docs/public-submission-targets.md", text)
         self.assertIn("host-live or provider-live", text)
         self.assertIn("Do not claim", text)
         self.assertIn("Submission Checklist", text)
@@ -293,11 +302,39 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("GitHub repository as the first URL", text)
         self.assertIn("repo-card.html", text)
         self.assertIn("repo-card.png", text)
+        self.assertIn("docs/public-submission-targets.md", text)
         self.assertIn("Do not claim host-live or provider-live support without fresh evidence.", text)
         self.assertIn("72h result", text)
 
         for surface in (readme, docs_index, launch_copy, share_kit, submission_kit, llms):
             self.assertIn("docs/distribution-checklist.md", surface.read_text(encoding="utf-8"))
+
+    def test_public_submission_targets_are_claim_safe_and_linked(self) -> None:
+        targets = REPO_ROOT / "docs" / "public-submission-targets.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        submission_kit = REPO_ROOT / "docs" / "directory-submission-kit.md"
+        distribution = REPO_ROOT / "docs" / "distribution-checklist.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(targets.exists())
+        text = targets.read_text(encoding="utf-8")
+        self.assertIn("# Public Submission Targets", text)
+        self.assertIn("Verified: 2026-07-02.", text)
+        self.assertIn("Hacker News / Show HN", text)
+        self.assertIn("https://news.ycombinator.com/submit", text)
+        self.assertIn("Product Hunt", text)
+        self.assertIn("https://www.producthunt.com/launch", text)
+        self.assertIn("DevHunt", text)
+        self.assertIn("https://devhunt.org/", text)
+        self.assertIn("Do not publish a second public campaign from the same angle until the 72-hour", text)
+        self.assertIn("It does not add", text)
+        self.assertIn("host-live or provider-live support", text)
+
+        for surface in (readme, docs_index, launch_copy, share_kit, submission_kit, distribution, llms):
+            self.assertIn("docs/public-submission-targets.md", surface.read_text(encoding="utf-8"))
 
     def test_comparison_guide_is_claim_safe_and_linked(self) -> None:
         comparison = REPO_ROOT / "docs" / "comparison-guide.md"

@@ -296,6 +296,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `docs/community-share-kit.md` | Claim-safe community sharing guide and short blurbs |
 | `docs/directory-submission-kit.md` | Copy-ready fields for open-source directories and community roundups |
 | `docs/distribution-checklist.md` | Step-by-step public distribution checklist for star-focused promotion |
+| `docs/public-submission-targets.md` | Current public submission targets, entry points, and tracking fields |
 | `docs/ai-generated-feature-review-demo.html` | Pages-ready demo for reviewing AI-generated work before merge |
 | `docs/ai-generated-feature-review-demo.md` | Concrete pre-merge demo for reviewing AI-generated work |
 | `docs/user-entry-guide.md` | Plain-language guide to the repository model |

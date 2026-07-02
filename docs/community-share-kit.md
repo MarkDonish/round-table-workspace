@@ -41,6 +41,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/directory-submission-kit.md>
 - Distribution checklist:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md>
+- Public submission targets:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md>
 - LLM summary:
   <https://markdonish.github.io/round-table-workspace/llms.txt>
 
@@ -92,7 +94,7 @@ public claim.
 | LinkedIn | Frame it as an AI-assisted engineering governance workflow | Share the short recording or Pages demo |
 | Newsletters | Position it as a lightweight open-source tool for safer agent work | Link to the one-minute transcript or demo GIF |
 | Private team chats | Share the `ship-check` command as a quick local trial | Run it before the next AI-generated change |
-| Open-source directories | Use the repo as the primary URL and the demo as proof | Follow the distribution checklist |
+| Open-source directories | Use the repo as the primary URL and the demo as proof | Follow the distribution checklist and public submission targets |
 
 ## Good First Feedback
 

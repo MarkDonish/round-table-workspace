@@ -20,6 +20,7 @@
 | `docs/one-minute-demo.md` | Markdown source for the one-minute transcript. |
 | `docs/community-share-kit.md` | Claim-safe sharing guide for communities, newsletters, and team chats. |
 | `docs/directory-submission-kit.md` | Copy-ready submission fields for open-source directories and roundups. |
+| `docs/public-submission-targets.md` | Current public submission targets, entry points, and tracking fields. |
 | `docs/use-cases.html` | Pages-ready use-case guide for practical AI coding workflows. |
 | `docs/use-cases.md` | Markdown source for concrete Round Table Workspace use cases. |
 | `docs/llms.txt` | LLM-friendly summary for AI tools and agentic search. |
@@ -42,6 +43,7 @@
 | `docs/community-share-kit.md` | Shareable descriptions, channel angles, and public claim boundaries. |
 | `docs/directory-submission-kit.md` | Submission copy for open-source directories, newsletters, and tool lists. |
 | `docs/distribution-checklist.md` | Step-by-step public distribution checklist for star-focused promotion. |
+| `docs/public-submission-targets.md` | Current HN, Product Hunt, DevHunt, forum, and newsletter submission targets. |
 | `docs/ai-generated-feature-review-demo.html` | Visual Pages demo for the AI-generated feature review flow. |
 | `docs/ai-generated-feature-review-demo.md` | Example `ship-check` style review for an AI-generated feature before merge. |
 | `examples/transcripts/` | Illustrative `/room`, `/debate`, and handoff walkthroughs. |
