@@ -245,6 +245,18 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["quick_evaluation"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/quick-evaluation.md",
         )
+        self.assertIn("docs/review-packet.html", payload["assets"])
+        self.assertIn("docs/review-packet.md", payload["assets"])
+        self.assertIn("review_packet_pages", payload)
+        self.assertEqual(
+            payload["review_packet_pages"],
+            "https://markdonish.github.io/round-table-workspace/review-packet.html",
+        )
+        self.assertIn("review_packet", payload)
+        self.assertEqual(
+            payload["review_packet"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/review-packet.md",
+        )
         self.assertIn("mechanism_page", payload)
         self.assertEqual(
             payload["mechanism_page"],
@@ -342,6 +354,8 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Community share kit", summary)
             self.assertIn("Quick evaluation page", summary)
             self.assertIn("Quick evaluation path", summary)
+            self.assertIn("Review packet", summary)
+            self.assertIn("Review packet source", summary)
             self.assertIn("Mechanism page", summary)
             self.assertIn("Directory submission kit", summary)
             self.assertIn("Distribution checklist", summary)
@@ -394,6 +408,43 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         for surface in (readme, docs_index, launch_copy, llms):
             self.assertIn("docs/quick-evaluation.md", surface.read_text(encoding="utf-8"))
+
+    def test_review_packet_is_claim_safe_pages_ready_and_linked(self) -> None:
+        packet = REPO_ROOT / "docs" / "review-packet.md"
+        packet_html = REPO_ROOT / "docs" / "review-packet.html"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        pages_home = REPO_ROOT / "docs" / "index.html"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+        sitemap = REPO_ROOT / "docs" / "sitemap.xml"
+
+        self.assertTrue(packet.exists())
+        self.assertTrue(packet_html.exists())
+        text = packet.read_text(encoding="utf-8")
+        html = packet_html.read_text(encoding="utf-8")
+        self.assertIn("# Review Packet", text)
+        self.assertIn("30-Second Summary", text)
+        self.assertIn("Who It Is For", text)
+        self.assertIn("What To Verify First", text)
+        self.assertIn("Copy-Safe Listing", text)
+        self.assertIn("Reviewer Checklist", text)
+        self.assertIn("No host-live or provider-live support is claimed without fresh evidence.", text)
+        self.assertIn("./rtw demo startup-idea", text)
+        self.assertIn("ship / revise / reject", text)
+        self.assertIn("Round Table Workspace - Review Packet", html)
+        self.assertIn("Evaluate the AI coding review gate in one page.", html)
+        self.assertIn("Fresh Clone Trial", html)
+        self.assertIn("Copy-Safe Listing", html)
+        self.assertIn("No host-live or provider-live support is claimed without fresh evidence.", html)
+        self.assertIn('property="og:image"', html)
+        self.assertIn('name="twitter:card" content="summary_large_image"', html)
+        self.assertNotIn("<script", html.lower())
+        self.assertIn("./review-packet.html", pages_home.read_text(encoding="utf-8"))
+        self.assertIn("review-packet.html", sitemap.read_text(encoding="utf-8"))
+
+        for surface in (readme, docs_index, launch_copy, llms):
+            self.assertIn("docs/review-packet.md", surface.read_text(encoding="utf-8"))
 
     def test_community_share_kit_is_claim_safe_and_linked(self) -> None:
         share_kit = REPO_ROOT / "docs" / "community-share-kit.md"

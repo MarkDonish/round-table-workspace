@@ -8,6 +8,9 @@ see `docs/community-share-kit.md`.
 For a 5-minute local trial and star decision path for new visitors, see
 `docs/quick-evaluation.md`.
 
+For a one-page evaluator packet for directory reviewers, newsletter curators,
+and team shares, see `docs/review-packet.md`.
+
 For a plain-English explanation of reviewer selection, round-table debate, and
 ship/revise/reject decisions, see
 <https://markdonish.github.io/round-table-workspace/mechanism.html>.

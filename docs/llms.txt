@@ -8,6 +8,7 @@ Pages overview: https://markdonish.github.io/round-table-workspace/
 One-minute demo: https://markdonish.github.io/round-table-workspace/one-minute-demo.html
 One-minute demo image: https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png
 Quick evaluation page: https://markdonish.github.io/round-table-workspace/quick-evaluation.html
+Review packet: https://markdonish.github.io/round-table-workspace/review-packet.html
 Mechanism page: https://markdonish.github.io/round-table-workspace/mechanism.html
 Use cases: https://markdonish.github.io/round-table-workspace/use-cases.html
 AI feature review demo: https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html
@@ -25,6 +26,7 @@ Repo preview image: https://markdonish.github.io/round-table-workspace/repo-card
 
 - README: https://github.com/MarkDonish/round-table-workspace/blob/main/README.md
 - Quick evaluation path: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/quick-evaluation.md
+- Review packet: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/review-packet.md
 - Mechanism page: https://markdonish.github.io/round-table-workspace/mechanism.html
 - Why star this repo: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/why-star-this-repo.md
 - Comparison guide: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/comparison-guide.md

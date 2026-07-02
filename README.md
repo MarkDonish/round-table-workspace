@@ -18,6 +18,8 @@ see the
 use the
 [5-minute evaluation path](docs/quick-evaluation.md),
 open the
+[review packet](https://markdonish.github.io/round-table-workspace/review-packet.html),
+open the
 [repo preview card](https://markdonish.github.io/round-table-workspace/repo-card.html),
 or read
 [why this is worth starring](docs/why-star-this-repo.md).
@@ -95,6 +97,9 @@ For a static social preview, use the checked-in image:
 <https://markdonish.github.io/round-table-workspace/one-minute-demo-card.png>.
 For an architecture decision example, see
 [`examples/transcripts/ship-check-architecture-decision.md`](examples/transcripts/ship-check-architecture-decision.md).
+For a one-page evaluator packet, see
+[`docs/review-packet.md`](docs/review-packet.md) or the Pages packet:
+<https://markdonish.github.io/round-table-workspace/review-packet.html>.
 
 ## When To Star This
 
