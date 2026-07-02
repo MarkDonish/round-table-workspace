@@ -35,6 +35,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("product, engineering, risk, and user perspectives", text)
         self.assertIn("ai-generated-feature-review-demo.html", text)
         self.assertIn("./one-minute-demo.html", text)
+        self.assertIn("./quick-evaluation.md", text)
+        self.assertIn("5-minute evaluation", text)
         self.assertIn("./use-cases.html", text)
         self.assertIn("./repo-card.html", text)
         self.assertIn('property="og:title"', text)
