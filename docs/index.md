@@ -13,6 +13,7 @@
 | `docs/one-minute-demo.html` | Pages-ready one-minute transcript of the `ship-check` review gate. |
 | `docs/one-minute-demo.md` | Markdown source for the one-minute transcript. |
 | `docs/community-share-kit.md` | Claim-safe sharing guide for communities, newsletters, and team chats. |
+| `docs/directory-submission-kit.md` | Copy-ready submission fields for open-source directories and roundups. |
 | `docs/use-cases.html` | Pages-ready use-case guide for practical AI coding workflows. |
 | `docs/use-cases.md` | Markdown source for concrete Round Table Workspace use cases. |
 | `docs/llms.txt` | LLM-friendly summary for AI tools and agentic search. |
@@ -30,6 +31,7 @@
 | `docs/one-minute-demo.html` | Short transcript showing what `ship-check` returns before trusting generated work. |
 | `docs/use-cases.html` | Practical workflows for deciding when to run `ship-check`, `/room`, or `/debate`. |
 | `docs/community-share-kit.md` | Shareable descriptions, channel angles, and public claim boundaries. |
+| `docs/directory-submission-kit.md` | Submission copy for open-source directories, newsletters, and tool lists. |
 | `docs/ai-generated-feature-review-demo.html` | Visual Pages demo for the AI-generated feature review flow. |
 | `docs/ai-generated-feature-review-demo.md` | Example `ship-check` style review for an AI-generated feature before merge. |
 | `examples/transcripts/` | Illustrative `/room`, `/debate`, and handoff walkthroughs. |

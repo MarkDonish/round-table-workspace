@@ -27,6 +27,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/CONTRIBUTING.md>
 - Good first issues:
   <https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue>
+- Directory submission kit:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/directory-submission-kit.md>
 - LLM summary:
   <https://markdonish.github.io/round-table-workspace/llms.txt>
 

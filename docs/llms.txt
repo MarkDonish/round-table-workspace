@@ -23,6 +23,7 @@ AI feature review demo: https://markdonish.github.io/round-table-workspace/ai-ge
 - One-minute demo: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/one-minute-demo.md
 - Use cases: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/use-cases.md
 - Community share kit: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/community-share-kit.md
+- Directory submission kit: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/directory-submission-kit.md
 - Reviewer checklist: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md
 - Contributing guide: https://github.com/MarkDonish/round-table-workspace/blob/main/CONTRIBUTING.md
 

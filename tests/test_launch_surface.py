@@ -117,6 +117,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/use-cases.html", payload["assets"])
         self.assertIn("docs/use-cases.md", payload["assets"])
         self.assertIn("docs/community-share-kit.md", payload["assets"])
+        self.assertIn("docs/directory-submission-kit.md", payload["assets"])
         self.assertIn("docs/application-packet.md", payload["assets"])
         self.assertIn("docs/credits-application-answers.md", payload["assets"])
         self.assertIn("docs/reviewer-checklist.md", payload["assets"])
@@ -145,6 +146,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["community_share_kit"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/community-share-kit.md",
         )
+        self.assertIn("directory_submission_kit", payload)
+        self.assertEqual(
+            payload["directory_submission_kit"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/directory-submission-kit.md",
+        )
         self.assertIn("Make your AI agents argue", payload["positioning"])
         self.assertEqual(payload["missing_assets"], [])
         for item in payload["asset_status"]:
@@ -158,6 +164,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Application packet", summary)
             self.assertIn("Competitive insights", summary)
             self.assertIn("Community share kit", summary)
+            self.assertIn("Directory submission kit", summary)
             self.assertIn("docs/application-packet.md", summary)
         finally:
             summary_path.unlink(missing_ok=True)
@@ -179,6 +186,28 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         for surface in (readme, docs_index, launch_copy):
             self.assertIn("docs/community-share-kit.md", surface.read_text(encoding="utf-8"))
+
+    def test_directory_submission_kit_is_claim_safe_and_linked(self) -> None:
+        submission_kit = REPO_ROOT / "docs" / "directory-submission-kit.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(submission_kit.exists())
+        text = submission_kit.read_text(encoding="utf-8")
+        self.assertIn("# Directory Submission Kit", text)
+        self.assertIn("Round Table Workspace", text)
+        self.assertIn("Make your AI coding agents argue before they ship.", text)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
+        self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo.html", text)
+        self.assertIn("host-live or provider-live", text)
+        self.assertIn("Do not claim", text)
+        self.assertIn("Submission Checklist", text)
+
+        for surface in (readme, docs_index, launch_copy, share_kit, llms):
+            self.assertIn("docs/directory-submission-kit.md", surface.read_text(encoding="utf-8"))
 
     def test_github_contribution_templates_preserve_claim_boundary(self) -> None:
         templates = [

@@ -5,6 +5,9 @@ This file contains the public launch copy for Round Table Workspace.
 For reusable community blurbs, channel angles, and claim-safe sharing guidance,
 see `docs/community-share-kit.md`.
 
+For copy-ready open-source directory, newsletter, and tool-list submission
+fields, see `docs/directory-submission-kit.md`.
+
 ## One-Line Positioning
 
 Make your AI coding agents argue before they ship.

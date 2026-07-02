@@ -253,6 +253,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `docs/use-cases.html` | Pages-ready use-case guide for practical AI coding workflows |
 | `docs/use-cases.md` | Markdown source for concrete Round Table Workspace use cases |
 | `docs/community-share-kit.md` | Claim-safe community sharing guide and short blurbs |
+| `docs/directory-submission-kit.md` | Copy-ready fields for open-source directories and community roundups |
 | `docs/ai-generated-feature-review-demo.html` | Pages-ready demo for reviewing AI-generated work before merge |
 | `docs/ai-generated-feature-review-demo.md` | Concrete pre-merge demo for reviewing AI-generated work |
 | `docs/user-entry-guide.md` | Plain-language guide to the repository model |
