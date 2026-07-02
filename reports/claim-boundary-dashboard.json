@@ -1,9 +1,9 @@
 {
   "ok": true,
   "action": "claim-boundary-dashboard",
-  "generated_at": "2026-07-02T07:56:46Z",
-  "source_commit": "a284d50d7f1c0e4ead03c267183c346d4678cde2",
-  "stale_after": "2026-07-09T07:56:46Z",
+  "generated_at": "2026-07-02T08:10:02Z",
+  "source_commit": "5b46a07e1c71a8b746ef54e857b8f2f08d283044",
+  "stale_after": "2026-07-09T08:10:02Z",
   "machine_scope": "local-machine-redacted",
   "account_scope": "not_collected",
   "source": {
@@ -46,8 +46,7 @@
       "--state-root",
       "<state-root>/release-check",
       "--timeout-seconds",
-      "30",
-      "--strict-git-clean"
+      "30"
     ],
     "returncode": 0,
     "ok": true,
@@ -74,8 +73,7 @@
             "--state-root",
             "<state-root>/release-check",
             "--timeout-seconds",
-            "30",
-            "--strict-git-clean"
+            "30"
           ],
           "returncode": 0,
           "ok": true,
@@ -98,9 +96,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-02T07:56:46Z",
-        "stale_after": "2026-07-09T07:56:46Z",
-        "source_commit": "a284d50d7f1c0e4ead03c267183c346d4678cde2",
+        "generated_at": "2026-07-02T08:10:02Z",
+        "stale_after": "2026-07-09T08:10:02Z",
+        "source_commit": "5b46a07e1c71a8b746ef54e857b8f2f08d283044",
         "artifact_paths": [
           "<state-root>/release-check/release-check.json",
           "<state-root>/release-check/release-check.md"
@@ -137,9 +135,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-02T07:56:46Z",
-        "stale_after": "2026-07-09T07:56:46Z",
-        "source_commit": "a284d50d7f1c0e4ead03c267183c346d4678cde2",
+        "generated_at": "2026-07-02T08:10:02Z",
+        "stale_after": "2026-07-09T08:10:02Z",
+        "source_commit": "5b46a07e1c71a8b746ef54e857b8f2f08d283044",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md",
@@ -177,9 +175,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-02T07:56:46Z",
-        "stale_after": "2026-07-09T07:56:46Z",
-        "source_commit": "a284d50d7f1c0e4ead03c267183c346d4678cde2",
+        "generated_at": "2026-07-02T08:10:02Z",
+        "stale_after": "2026-07-09T08:10:02Z",
+        "source_commit": "5b46a07e1c71a8b746ef54e857b8f2f08d283044",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"
@@ -204,9 +202,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-02T07:56:46Z",
-        "stale_after": "2026-07-09T07:56:46Z",
-        "source_commit": "a284d50d7f1c0e4ead03c267183c346d4678cde2",
+        "generated_at": "2026-07-02T08:10:02Z",
+        "stale_after": "2026-07-09T08:10:02Z",
+        "source_commit": "5b46a07e1c71a8b746ef54e857b8f2f08d283044",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"
@@ -231,9 +229,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-02T07:56:46Z",
-        "stale_after": "2026-07-09T07:56:46Z",
-        "source_commit": "a284d50d7f1c0e4ead03c267183c346d4678cde2",
+        "generated_at": "2026-07-02T08:10:02Z",
+        "stale_after": "2026-07-09T08:10:02Z",
+        "source_commit": "5b46a07e1c71a8b746ef54e857b8f2f08d283044",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"
@@ -258,9 +256,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-02T07:56:46Z",
-        "stale_after": "2026-07-09T07:56:46Z",
-        "source_commit": "a284d50d7f1c0e4ead03c267183c346d4678cde2",
+        "generated_at": "2026-07-02T08:10:02Z",
+        "stale_after": "2026-07-09T08:10:02Z",
+        "source_commit": "5b46a07e1c71a8b746ef54e857b8f2f08d283044",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"
@@ -285,9 +283,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-02T07:56:46Z",
-        "stale_after": "2026-07-09T07:56:46Z",
-        "source_commit": "a284d50d7f1c0e4ead03c267183c346d4678cde2",
+        "generated_at": "2026-07-02T08:10:02Z",
+        "stale_after": "2026-07-09T08:10:02Z",
+        "source_commit": "5b46a07e1c71a8b746ef54e857b8f2f08d283044",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"
@@ -312,9 +310,9 @@
         "provider_id": "chat_completions",
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-02T07:56:46Z",
-        "stale_after": "2026-07-09T07:56:46Z",
-        "source_commit": "a284d50d7f1c0e4ead03c267183c346d4678cde2",
+        "generated_at": "2026-07-02T08:10:02Z",
+        "stale_after": "2026-07-09T08:10:02Z",
+        "source_commit": "5b46a07e1c71a8b746ef54e857b8f2f08d283044",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"
