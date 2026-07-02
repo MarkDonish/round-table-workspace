@@ -21,6 +21,7 @@
 | `docs/community-share-kit.md` | Claim-safe sharing guide for communities, newsletters, and team chats. |
 | `docs/directory-submission-kit.md` | Copy-ready submission fields for open-source directories and roundups. |
 | `docs/public-submission-targets.md` | Current public submission targets, entry points, and tracking fields. |
+| `docs/developer-forum-feedback-kit.md` | Feedback-first Reddit, forum, Discord, Slack, and discussion post kit. |
 | `docs/show-hn-submission-draft.md` | Claim-safe Show HN title, first comment, reply bank, and tracking notes. |
 | `docs/newsletter-roundup-pitch-kit.md` | Newsletter and roundup pitches for AI agent and developer-tool curators. |
 | `docs/product-hunt-launch-kit.md` | Product Hunt launch fields, maker comment, FAQ, assets, and guardrails. |
@@ -48,6 +49,7 @@
 | `docs/directory-submission-kit.md` | Submission copy for open-source directories, newsletters, and tool lists. |
 | `docs/distribution-checklist.md` | Step-by-step public distribution checklist for star-focused promotion. |
 | `docs/public-submission-targets.md` | Current HN, Product Hunt, DevHunt, forum, and newsletter submission targets. |
+| `docs/developer-forum-feedback-kit.md` | Community feedback kit to use after 72-hour feedback review. |
 | `docs/show-hn-submission-draft.md` | Show HN submission draft to use after 72-hour feedback review. |
 | `docs/newsletter-roundup-pitch-kit.md` | Pitch kit for newsletter editors, tool roundups, and curated GitHub lists. |
 | `docs/product-hunt-launch-kit.md` | Product Hunt launch kit to use after 72-hour feedback review. |

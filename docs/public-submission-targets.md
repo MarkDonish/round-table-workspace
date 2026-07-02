@@ -17,7 +17,7 @@ repository when stars are the goal.
 | 1 | Hacker News / Show HN | <https://news.ycombinator.com/submit> | GitHub repo plus one-minute demo | HN explicitly supports projects people can try, and RTW has a no-provider demo path. |
 | 2 | Product Hunt | <https://www.producthunt.com/launch> | `docs/product-hunt-launch-kit.md`, repo card, one-minute demo, GitHub repo | Product Hunt is built around makers sharing products and getting feedback from early adopters. |
 | 3 | DevHunt | <https://devhunt.org/> | Repo card and GitHub repo | DevHunt is focused on developer tools, so RTW should lead with the AI coding review workflow. |
-| 4 | Developer forums and subreddits | Use the community's own posting page | Community intro plus AI failure modes | Best when the post asks for workflow critique, not generic promotion. |
+| 4 | Developer forums and subreddits | Use the community's own posting page | `docs/developer-forum-feedback-kit.md` plus AI failure modes | Best when the post asks for workflow critique, not generic promotion. |
 | 5 | AI agent newsletters and roundups | Use each publication's submission/contact path | `docs/newsletter-roundup-pitch-kit.md` plus repo card image | Best after the first X post has feedback data or a clearer demo angle. |
 
 ## Channel Notes
@@ -91,6 +91,7 @@ What AI-generated workflow failure should this review gate catch next?
 
 Use:
 
+- `docs/developer-forum-feedback-kit.md`
 - `docs/community-share-kit.md#community-post`
 - `docs/ai-failure-modes.md`
 - `docs/use-cases.md`
@@ -128,6 +129,9 @@ and curated-list outreach after the 72-hour X feedback review.
 
 Use `docs/product-hunt-launch-kit.md` for Product Hunt listing fields, maker
 comment, FAQ, visual assets, and launch guardrails.
+
+Use `docs/developer-forum-feedback-kit.md` for Reddit, forum, Discord, Slack,
+and GitHub discussion posts after the 72-hour X feedback review.
 
 ## Source Links
 

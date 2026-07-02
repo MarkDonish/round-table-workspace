@@ -154,6 +154,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/directory-submission-kit.md", payload["assets"])
         self.assertIn("docs/distribution-checklist.md", payload["assets"])
         self.assertIn("docs/public-submission-targets.md", payload["assets"])
+        self.assertIn("docs/developer-forum-feedback-kit.md", payload["assets"])
         self.assertIn("docs/show-hn-submission-draft.md", payload["assets"])
         self.assertIn("docs/newsletter-roundup-pitch-kit.md", payload["assets"])
         self.assertIn("docs/product-hunt-launch-kit.md", payload["assets"])
@@ -203,6 +204,11 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertEqual(
             payload["public_submission_targets"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md",
+        )
+        self.assertIn("developer_forum_feedback_kit", payload)
+        self.assertEqual(
+            payload["developer_forum_feedback_kit"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/developer-forum-feedback-kit.md",
         )
         self.assertIn("show_hn_submission_draft", payload)
         self.assertEqual(
@@ -257,6 +263,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Directory submission kit", summary)
             self.assertIn("Distribution checklist", summary)
             self.assertIn("Public submission targets", summary)
+            self.assertIn("Developer forum feedback kit", summary)
             self.assertIn("Show HN submission draft", summary)
             self.assertIn("Newsletter roundup pitch kit", summary)
             self.assertIn("Product Hunt launch kit", summary)
@@ -466,6 +473,34 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         for surface in (readme, docs_index, launch_copy, share_kit, submission_kit, distribution, targets, llms):
             self.assertIn("docs/product-hunt-launch-kit.md", surface.read_text(encoding="utf-8"))
+
+    def test_developer_forum_feedback_kit_is_feedback_first_and_linked(self) -> None:
+        forum_kit = REPO_ROOT / "docs" / "developer-forum-feedback-kit.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        distribution = REPO_ROOT / "docs" / "distribution-checklist.md"
+        targets = REPO_ROOT / "docs" / "public-submission-targets.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(forum_kit.exists())
+        text = forum_kit.read_text(encoding="utf-8")
+        self.assertIn("# Developer Forum Feedback Kit", text)
+        self.assertIn("https://redditinc.com/policies/content-policy", text)
+        self.assertIn("https://www.reddit.com/wiki/selfpromotion/", text)
+        self.assertIn("Do not post this kit before the 72-hour X feedback", text)
+        self.assertIn("Community-specific rules are the source of truth", text)
+        self.assertIn("What AI-generated coding failure should this review gate catch next?", text)
+        self.assertIn("Can you upvote this?", text)
+        self.assertIn("Do not ask for votes, upvotes, stars", text)
+        self.assertIn("host-live or provider-live support", text)
+        self.assertIn("copy_source: docs/developer-forum-feedback-kit.md", text)
+        self.assertIn("stars_before", text)
+        self.assertIn("stars_after", text)
+
+        for surface in (readme, docs_index, launch_copy, share_kit, distribution, targets, llms):
+            self.assertIn("docs/developer-forum-feedback-kit.md", surface.read_text(encoding="utf-8"))
 
     def test_promotion_feedback_template_is_claim_safe_and_linked(self) -> None:
         feedback = REPO_ROOT / "docs" / "promotion-feedback-template.md"

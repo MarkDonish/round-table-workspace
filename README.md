@@ -297,6 +297,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `docs/directory-submission-kit.md` | Copy-ready fields for open-source directories and community roundups |
 | `docs/distribution-checklist.md` | Step-by-step public distribution checklist for star-focused promotion |
 | `docs/public-submission-targets.md` | Current public submission targets, entry points, and tracking fields |
+| `docs/developer-forum-feedback-kit.md` | Feedback-first Reddit, forum, Discord, Slack, and discussion post kit |
 | `docs/show-hn-submission-draft.md` | Claim-safe Show HN title, first comment, reply bank, and tracking notes |
 | `docs/newsletter-roundup-pitch-kit.md` | Newsletter and roundup pitches for AI agent and developer-tool curators |
 | `docs/product-hunt-launch-kit.md` | Product Hunt launch fields, maker comment, FAQ, assets, and guardrails |

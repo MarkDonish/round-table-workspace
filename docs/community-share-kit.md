@@ -43,6 +43,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md>
 - Public submission targets:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md>
+- Developer forum feedback kit:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/developer-forum-feedback-kit.md>
 - Show HN submission draft:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/show-hn-submission-draft.md>
 - Newsletter roundup pitch kit:

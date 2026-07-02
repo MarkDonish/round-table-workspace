@@ -42,7 +42,7 @@ https://markdonish.github.io/round-table-workspace/repo-card.png
 | Order | Surface | Goal | Link to use | Copy source |
 |---|---|---|---|---|
 | 1 | Hacker News / Show HN | Get technical critique from builders | GitHub repo | `docs/show-hn-submission-draft.md` |
-| 2 | Developer Reddit / forum threads | Find pain-aligned users of AI coding agents | GitHub repo | `docs/community-share-kit.md#community-post` |
+| 2 | Developer Reddit / forum threads | Find pain-aligned users of AI coding agents | GitHub repo | `docs/developer-forum-feedback-kit.md` |
 | 3 | Product Hunt | Reach product-minded early adopters | GitHub repo plus one-minute demo | `docs/product-hunt-launch-kit.md` |
 | 4 | Open-source directories and tool lists | Create durable discovery links | GitHub repo | `docs/directory-submission-kit.md` |
 | 5 | AI agent newsletters and roundups | Reach people already tracking agent tools | One-minute demo plus GitHub repo | `docs/newsletter-roundup-pitch-kit.md` |
@@ -127,6 +127,9 @@ For the full 24h and 72h feedback record, use
 
 For the HN-specific title, first comment, reply bank, and "do not" list, use
 `docs/show-hn-submission-draft.md`.
+
+For Reddit, forum, Discord, Slack, and GitHub discussion posts, use
+`docs/developer-forum-feedback-kit.md`.
 
 For newsletter editor emails, roundup listings, and follow-up replies, use
 `docs/newsletter-roundup-pitch-kit.md`.
