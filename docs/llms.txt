@@ -8,6 +8,8 @@ Pages overview: https://markdonish.github.io/round-table-workspace/
 One-minute demo: https://markdonish.github.io/round-table-workspace/one-minute-demo.html
 Use cases: https://markdonish.github.io/round-table-workspace/use-cases.html
 AI feature review demo: https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html
+Repo preview card: https://markdonish.github.io/round-table-workspace/repo-card.html
+Repo preview image: https://markdonish.github.io/round-table-workspace/repo-card.png
 
 ## What It Does
 
@@ -27,6 +29,7 @@ AI feature review demo: https://markdonish.github.io/round-table-workspace/ai-ge
 - Use cases: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/use-cases.md
 - Community share kit: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/community-share-kit.md
 - Directory submission kit: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/directory-submission-kit.md
+- Distribution checklist: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md
 - Reviewer checklist: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md
 - Contributing guide: https://github.com/MarkDonish/round-table-workspace/blob/main/CONTRIBUTING.md
 

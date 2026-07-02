@@ -18,6 +18,9 @@ For concrete AI coding failure modes that the workflow is meant to catch, see
 For a short visual recording plan for X, LinkedIn, newsletters, and README
 screenshots, see `docs/demo-recording-guide.md`.
 
+For the ordered public distribution plan across HN, developer forums,
+directories, newsletters, and team chats, see `docs/distribution-checklist.md`.
+
 ## One-Line Positioning
 
 Make your AI coding agents argue before they ship.

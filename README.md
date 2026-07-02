@@ -15,6 +15,8 @@ AI-generated work.** Try the
 [60-second demo](https://markdonish.github.io/round-table-workspace/one-minute-demo.html),
 see the
 [AI feature review example](https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html),
+open the
+[repo preview card](https://markdonish.github.io/round-table-workspace/repo-card.html),
 or read
 [why this is worth starring](docs/why-star-this-repo.md).
 No provider key is required for the default demo path.
@@ -285,12 +287,15 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `docs/comparison-guide.md` | Plain comparison against direct agent answers, CI, manual review, and multi-agent frameworks |
 | `docs/ai-failure-modes.md` | Concrete failure modes this workflow is designed to catch before trust |
 | `docs/demo-recording-guide.md` | Short recording plan for visual X, LinkedIn, newsletter, or README demos |
+| `docs/repo-card.html` | Pages-hosted GitHub-style repo preview card for sharing and directory submissions |
+| `docs/repo-card.png` | 1200x630 repo preview image used for social cards and directory previews |
 | `docs/one-minute-demo.html` | Pages-ready one-minute `ship-check` transcript |
 | `docs/one-minute-demo.md` | Markdown source for the one-minute demo transcript |
 | `docs/use-cases.html` | Pages-ready use-case guide for practical AI coding workflows |
 | `docs/use-cases.md` | Markdown source for concrete Round Table Workspace use cases |
 | `docs/community-share-kit.md` | Claim-safe community sharing guide and short blurbs |
 | `docs/directory-submission-kit.md` | Copy-ready fields for open-source directories and community roundups |
+| `docs/distribution-checklist.md` | Step-by-step public distribution checklist for star-focused promotion |
 | `docs/ai-generated-feature-review-demo.html` | Pages-ready demo for reviewing AI-generated work before merge |
 | `docs/ai-generated-feature-review-demo.md` | Concrete pre-merge demo for reviewing AI-generated work |
 | `docs/user-entry-guide.md` | Plain-language guide to the repository model |

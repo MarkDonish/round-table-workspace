@@ -36,6 +36,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("ai-generated-feature-review-demo.html", text)
         self.assertIn("./one-minute-demo.html", text)
         self.assertIn("./use-cases.html", text)
+        self.assertIn("./repo-card.html", text)
         self.assertIn('property="og:title"', text)
         self.assertIn('property="og:image"', text)
         self.assertIn('name="twitter:card"', text)
@@ -116,6 +117,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn(star_cta, readme)
         self.assertIn("[60-second demo]", readme)
         self.assertIn("[AI feature review example]", readme)
+        self.assertIn("[repo preview card]", readme)
         self.assertIn("[why this is worth starring](docs/why-star-this-repo.md)", readme)
         self.assertIn("No provider key is required for the default demo path.", readme)
         self.assertLess(readme.index(star_cta), readme.index(overview))
@@ -134,6 +136,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertTrue(payload["ok"])
         self.assertEqual(payload["action"], "launch-kit")
         self.assertEqual(payload["pages_url"], "https://markdonish.github.io/round-table-workspace/")
+        self.assertEqual(payload["repo_card"], "https://markdonish.github.io/round-table-workspace/repo-card.html")
+        self.assertEqual(payload["repo_card_image"], "https://markdonish.github.io/round-table-workspace/repo-card.png")
         self.assertIn("docs/launch-copy.md", payload["assets"])
         self.assertIn("docs/robots.txt", payload["assets"])
         self.assertIn("docs/sitemap.xml", payload["assets"])
@@ -142,8 +146,11 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/one-minute-demo.md", payload["assets"])
         self.assertIn("docs/use-cases.html", payload["assets"])
         self.assertIn("docs/use-cases.md", payload["assets"])
+        self.assertIn("docs/repo-card.html", payload["assets"])
+        self.assertIn("docs/repo-card.png", payload["assets"])
         self.assertIn("docs/community-share-kit.md", payload["assets"])
         self.assertIn("docs/directory-submission-kit.md", payload["assets"])
+        self.assertIn("docs/distribution-checklist.md", payload["assets"])
         self.assertIn("docs/comparison-guide.md", payload["assets"])
         self.assertIn("docs/ai-failure-modes.md", payload["assets"])
         self.assertIn("docs/demo-recording-guide.md", payload["assets"])
@@ -180,6 +187,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["directory_submission_kit"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/directory-submission-kit.md",
         )
+        self.assertIn("distribution_checklist", payload)
+        self.assertEqual(
+            payload["distribution_checklist"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md",
+        )
         self.assertIn("comparison_guide", payload)
         self.assertEqual(
             payload["comparison_guide"],
@@ -206,9 +218,12 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertEqual(summary_code, 0)
             summary = summary_path.read_text(encoding="utf-8")
             self.assertIn("Application packet", summary)
+            self.assertIn("Repo card", summary)
+            self.assertIn("Repo card image", summary)
             self.assertIn("Competitive insights", summary)
             self.assertIn("Community share kit", summary)
             self.assertIn("Directory submission kit", summary)
+            self.assertIn("Distribution checklist", summary)
             self.assertIn("Comparison guide", summary)
             self.assertIn("AI failure modes", summary)
             self.assertIn("Demo recording guide", summary)
@@ -227,6 +242,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("# Community Share Kit", text)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
         self.assertIn("https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html", text)
+        self.assertIn("https://markdonish.github.io/round-table-workspace/repo-card.html", text)
+        self.assertIn("https://markdonish.github.io/round-table-workspace/repo-card.png", text)
         self.assertIn("./rtw ship-check \"Should we merge this AI-generated feature?\"", text)
         self.assertIn("No host-live or provider-live support is claimed without current evidence.", text)
         self.assertIn("The workflow helps review AI-generated work; it does not guarantee correctness.", text)
@@ -249,12 +266,38 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Make your AI coding agents argue before they ship.", text)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
         self.assertIn("https://markdonish.github.io/round-table-workspace/one-minute-demo.html", text)
+        self.assertIn("https://markdonish.github.io/round-table-workspace/repo-card.html", text)
+        self.assertIn("https://markdonish.github.io/round-table-workspace/repo-card.png", text)
         self.assertIn("host-live or provider-live", text)
         self.assertIn("Do not claim", text)
         self.assertIn("Submission Checklist", text)
 
         for surface in (readme, docs_index, launch_copy, share_kit, llms):
             self.assertIn("docs/directory-submission-kit.md", surface.read_text(encoding="utf-8"))
+
+    def test_distribution_checklist_is_claim_safe_and_linked(self) -> None:
+        checklist = REPO_ROOT / "docs" / "distribution-checklist.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        submission_kit = REPO_ROOT / "docs" / "directory-submission-kit.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(checklist.exists())
+        text = checklist.read_text(encoding="utf-8")
+        self.assertIn("# Distribution Checklist", text)
+        self.assertIn("Submission Order", text)
+        self.assertIn("Hacker News / Show HN", text)
+        self.assertIn("Open-source directories and tool lists", text)
+        self.assertIn("GitHub repository as the first URL", text)
+        self.assertIn("repo-card.html", text)
+        self.assertIn("repo-card.png", text)
+        self.assertIn("Do not claim host-live or provider-live support without fresh evidence.", text)
+        self.assertIn("72h result", text)
+
+        for surface in (readme, docs_index, launch_copy, share_kit, submission_kit, llms):
+            self.assertIn("docs/distribution-checklist.md", surface.read_text(encoding="utf-8"))
 
     def test_comparison_guide_is_claim_safe_and_linked(self) -> None:
         comparison = REPO_ROOT / "docs" / "comparison-guide.md"

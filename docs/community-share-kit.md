@@ -19,6 +19,10 @@ before you trust generated work.
   <https://markdonish.github.io/round-table-workspace/use-cases.html>
 - AI feature review demo:
   <https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html>
+- Repo preview card:
+  <https://markdonish.github.io/round-table-workspace/repo-card.html>
+- Repo preview image:
+  <https://markdonish.github.io/round-table-workspace/repo-card.png>
 - Reviewer checklist:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md>
 - Why star this repo:
@@ -35,6 +39,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue>
 - Directory submission kit:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/directory-submission-kit.md>
+- Distribution checklist:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md>
 - LLM summary:
   <https://markdonish.github.io/round-table-workspace/llms.txt>
 
@@ -86,6 +92,7 @@ public claim.
 | LinkedIn | Frame it as an AI-assisted engineering governance workflow | Share the short recording or Pages demo |
 | Newsletters | Position it as a lightweight open-source tool for safer agent work | Link to the one-minute transcript or demo GIF |
 | Private team chats | Share the `ship-check` command as a quick local trial | Run it before the next AI-generated change |
+| Open-source directories | Use the repo as the primary URL and the demo as proof | Follow the distribution checklist |
 
 ## Good First Feedback
 
@@ -123,7 +130,9 @@ For someone deciding whether the repo is worth starring:
 4. Use the demo recording guide if they need a quick visual explanation.
 5. Read the AI feature review demo.
 6. Run the 60-second local demo.
-7. Check whether `ship`, `revise`, or `reject` would help their current agent
+7. Use the distribution checklist if they want to share the repo with a team,
+   directory, newsletter, or developer community.
+8. Check whether `ship`, `revise`, or `reject` would help their current agent
    workflow.
 
 ```bash

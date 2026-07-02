@@ -14,6 +14,12 @@ host-live or provider-live support.
   <https://markdonish.github.io/round-table-workspace/one-minute-demo.html>
 - Use cases:
   <https://markdonish.github.io/round-table-workspace/use-cases.html>
+- Repo preview card:
+  <https://markdonish.github.io/round-table-workspace/repo-card.html>
+- Repo preview image:
+  <https://markdonish.github.io/round-table-workspace/repo-card.png>
+- Distribution checklist:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md>
 - Good first issues:
   <https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue>
 
@@ -92,9 +98,10 @@ llm
 
 ## Screenshot Or Preview
 
-Use the repo card or one-minute demo:
+Use the repo card, preview image, or one-minute demo:
 
 - Repo card: <https://markdonish.github.io/round-table-workspace/repo-card.html>
+- Repo image: <https://markdonish.github.io/round-table-workspace/repo-card.png>
 - One-minute demo:
   <https://markdonish.github.io/round-table-workspace/one-minute-demo.html>
 
@@ -120,6 +127,8 @@ Prefer:
 
 - Use the GitHub repo as the primary URL when stars are the goal.
 - Use the one-minute demo as the secondary URL when a directory accepts a demo.
+- Use `docs/distribution-checklist.md` to choose the submission order and
+  tracking fields.
 - Keep the description focused on one idea: review AI-generated work before
   trusting it.
 - Include the MIT license when a directory asks for licensing.
