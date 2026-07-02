@@ -25,6 +25,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/why-star-this-repo.md>
 - Comparison guide:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/comparison-guide.md>
+- AI failure modes:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/ai-failure-modes.md>
 - Contributing guide:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/CONTRIBUTING.md>
 - Good first issues:
@@ -115,9 +117,10 @@ For someone deciding whether the repo is worth starring:
 1. Open the Pages overview.
 2. Read the comparison guide if they are deciding whether this is different
    from a direct agent answer, CI, or a manual checklist.
-3. Read the AI feature review demo.
-4. Run the 60-second local demo.
-5. Check whether `ship`, `revise`, or `reject` would help their current agent
+3. Scan the failure modes guide to see whether the pain is familiar.
+4. Read the AI feature review demo.
+5. Run the 60-second local demo.
+6. Check whether `ship`, `revise`, or `reject` would help their current agent
    workflow.
 
 ```bash

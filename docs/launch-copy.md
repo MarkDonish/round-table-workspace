@@ -12,6 +12,9 @@ For evaluator copy that explains how this differs from direct agent answers,
 CI, manual checklists, and multi-agent frameworks, see
 `docs/comparison-guide.md`.
 
+For concrete AI coding failure modes that the workflow is meant to catch, see
+`docs/ai-failure-modes.md`.
+
 ## One-Line Positioning
 
 Make your AI coding agents argue before they ship.
