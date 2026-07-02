@@ -22,6 +22,8 @@ host-live or provider-live support.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md>
 - Public submission targets:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md>
+- Show HN submission draft:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/show-hn-submission-draft.md>
 - Promotion feedback template:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/promotion-feedback-template.md>
 - Good first issues:

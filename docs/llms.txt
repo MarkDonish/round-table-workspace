@@ -31,6 +31,7 @@ Repo preview image: https://markdonish.github.io/round-table-workspace/repo-card
 - Directory submission kit: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/directory-submission-kit.md
 - Distribution checklist: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md
 - Public submission targets: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md
+- Show HN submission draft: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/show-hn-submission-draft.md
 - Promotion feedback template: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/promotion-feedback-template.md
 - Reviewer checklist: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md
 - Contributing guide: https://github.com/MarkDonish/round-table-workspace/blob/main/CONTRIBUTING.md

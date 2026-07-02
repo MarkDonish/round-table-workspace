@@ -43,6 +43,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/distribution-checklist.md>
 - Public submission targets:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md>
+- Show HN submission draft:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/show-hn-submission-draft.md>
 - Promotion feedback template:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/promotion-feedback-template.md>
 - LLM summary:
@@ -91,7 +93,7 @@ public claim.
 
 | Channel | Best angle | Suggested CTA |
 |---|---|---|
-| Hacker News | Show a local-first review gate for AI coding agents | Try the 60-second demo and critique the workflow |
+| Hacker News | Show a local-first review gate for AI coding agents | Use the Show HN draft after the 72-hour feedback review |
 | Reddit / developer forums | Ask whether teams need a pre-merge AI review gate | Share one failure mode this would catch |
 | LinkedIn | Frame it as an AI-assisted engineering governance workflow | Share the short recording or Pages demo |
 | Newsletters | Position it as a lightweight open-source tool for safer agent work | Link to the one-minute transcript or demo GIF |

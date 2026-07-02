@@ -35,6 +35,7 @@ Show HN: Round Table Workspace – local-first review gate for AI coding agents
 
 Use:
 
+- `docs/show-hn-submission-draft.md`
 - `docs/launch-copy.md#hacker-news`
 - `docs/one-minute-demo.md`
 - `docs/ai-failure-modes.md`
@@ -117,6 +118,9 @@ result is recorded.
 
 Use `docs/promotion-feedback-template.md` to record X analytics, submission
 metrics, repository movement, and the next copy angle.
+
+Use `docs/show-hn-submission-draft.md` for the HN title, first comment, reply
+bank, and HN-specific guardrails.
 
 ## Source Links
 

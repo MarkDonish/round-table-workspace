@@ -21,6 +21,7 @@
 | `docs/community-share-kit.md` | Claim-safe sharing guide for communities, newsletters, and team chats. |
 | `docs/directory-submission-kit.md` | Copy-ready submission fields for open-source directories and roundups. |
 | `docs/public-submission-targets.md` | Current public submission targets, entry points, and tracking fields. |
+| `docs/show-hn-submission-draft.md` | Claim-safe Show HN title, first comment, reply bank, and tracking notes. |
 | `docs/promotion-feedback-template.md` | 24h and 72h feedback template for choosing the next promotion angle. |
 | `docs/use-cases.html` | Pages-ready use-case guide for practical AI coding workflows. |
 | `docs/use-cases.md` | Markdown source for concrete Round Table Workspace use cases. |
@@ -45,6 +46,7 @@
 | `docs/directory-submission-kit.md` | Submission copy for open-source directories, newsletters, and tool lists. |
 | `docs/distribution-checklist.md` | Step-by-step public distribution checklist for star-focused promotion. |
 | `docs/public-submission-targets.md` | Current HN, Product Hunt, DevHunt, forum, and newsletter submission targets. |
+| `docs/show-hn-submission-draft.md` | Show HN submission draft to use after 72-hour feedback review. |
 | `docs/promotion-feedback-template.md` | X, forum, and directory feedback template for the next copy decision. |
 | `docs/ai-generated-feature-review-demo.html` | Visual Pages demo for the AI-generated feature review flow. |
 | `docs/ai-generated-feature-review-demo.md` | Example `ship-check` style review for an AI-generated feature before merge. |

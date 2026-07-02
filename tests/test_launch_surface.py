@@ -152,6 +152,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/directory-submission-kit.md", payload["assets"])
         self.assertIn("docs/distribution-checklist.md", payload["assets"])
         self.assertIn("docs/public-submission-targets.md", payload["assets"])
+        self.assertIn("docs/show-hn-submission-draft.md", payload["assets"])
         self.assertIn("docs/promotion-feedback-template.md", payload["assets"])
         self.assertIn("docs/comparison-guide.md", payload["assets"])
         self.assertIn("docs/ai-failure-modes.md", payload["assets"])
@@ -199,6 +200,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["public_submission_targets"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/public-submission-targets.md",
         )
+        self.assertIn("show_hn_submission_draft", payload)
+        self.assertEqual(
+            payload["show_hn_submission_draft"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/show-hn-submission-draft.md",
+        )
         self.assertIn("promotion_feedback_template", payload)
         self.assertEqual(
             payload["promotion_feedback_template"],
@@ -237,6 +243,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Directory submission kit", summary)
             self.assertIn("Distribution checklist", summary)
             self.assertIn("Public submission targets", summary)
+            self.assertIn("Show HN submission draft", summary)
             self.assertIn("Promotion feedback template", summary)
             self.assertIn("Comparison guide", summary)
             self.assertIn("AI failure modes", summary)
@@ -310,6 +317,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("repo-card.html", text)
         self.assertIn("repo-card.png", text)
         self.assertIn("docs/public-submission-targets.md", text)
+        self.assertIn("docs/show-hn-submission-draft.md", text)
         self.assertIn("docs/promotion-feedback-template.md", text)
         self.assertIn("Do not claim host-live or provider-live support without fresh evidence.", text)
         self.assertIn("72h result", text)
@@ -333,6 +341,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Verified: 2026-07-02.", text)
         self.assertIn("Hacker News / Show HN", text)
         self.assertIn("https://news.ycombinator.com/submit", text)
+        self.assertIn("docs/show-hn-submission-draft.md", text)
         self.assertIn("Product Hunt", text)
         self.assertIn("https://www.producthunt.com/launch", text)
         self.assertIn("DevHunt", text)
@@ -344,6 +353,37 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         for surface in (readme, docs_index, launch_copy, share_kit, submission_kit, distribution, llms):
             self.assertIn("docs/public-submission-targets.md", surface.read_text(encoding="utf-8"))
+
+    def test_show_hn_submission_draft_is_claim_safe_and_linked(self) -> None:
+        show_hn = REPO_ROOT / "docs" / "show-hn-submission-draft.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        submission_kit = REPO_ROOT / "docs" / "directory-submission-kit.md"
+        distribution = REPO_ROOT / "docs" / "distribution-checklist.md"
+        targets = REPO_ROOT / "docs" / "public-submission-targets.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(show_hn.exists())
+        text = show_hn.read_text(encoding="utf-8")
+        self.assertIn("# Show HN Submission Draft", text)
+        self.assertIn("https://news.ycombinator.com/submit", text)
+        self.assertIn("Show HN: Round Table Workspace", text)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
+        self.assertIn("docs/promotion-feedback-template.md", text)
+        self.assertIn("Do not ask for upvotes.", text)
+        self.assertIn("Do not coordinate comments or votes.", text)
+        self.assertIn("Do not submit before the 72-hour X feedback is reviewed.", text)
+        self.assertIn("fixture-backed", text)
+        self.assertIn("host-live or provider-live support", text)
+        self.assertIn("Reply Bank", text)
+        self.assertIn("ship, revise, or reject", text)
+        self.assertIn("stars_before", text)
+        self.assertIn("stars_after", text)
+
+        for surface in (readme, docs_index, launch_copy, share_kit, submission_kit, distribution, targets, llms):
+            self.assertIn("docs/show-hn-submission-draft.md", surface.read_text(encoding="utf-8"))
 
     def test_promotion_feedback_template_is_claim_safe_and_linked(self) -> None:
         feedback = REPO_ROOT / "docs" / "promotion-feedback-template.md"

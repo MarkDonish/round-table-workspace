@@ -41,7 +41,7 @@ https://markdonish.github.io/round-table-workspace/repo-card.png
 
 | Order | Surface | Goal | Link to use | Copy source |
 |---|---|---|---|---|
-| 1 | Hacker News / Show HN | Get technical critique from builders | GitHub repo | `docs/launch-copy.md#hacker-news` |
+| 1 | Hacker News / Show HN | Get technical critique from builders | GitHub repo | `docs/show-hn-submission-draft.md` |
 | 2 | Developer Reddit / forum threads | Find pain-aligned users of AI coding agents | GitHub repo | `docs/community-share-kit.md#community-post` |
 | 3 | Open-source directories and tool lists | Create durable discovery links | GitHub repo | `docs/directory-submission-kit.md` |
 | 4 | AI agent newsletters and roundups | Reach people already tracking agent tools | One-minute demo plus GitHub repo | `docs/directory-submission-kit.md#longer-description` |
@@ -123,3 +123,6 @@ agent answer.
 
 For the full 24h and 72h feedback record, use
 `docs/promotion-feedback-template.md`.
+
+For the HN-specific title, first comment, reply bank, and "do not" list, use
+`docs/show-hn-submission-draft.md`.
