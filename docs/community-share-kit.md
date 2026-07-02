@@ -33,6 +33,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/ai-failure-modes.md>
 - Demo recording guide:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/demo-recording-guide.md>
+- Short video script kit:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/short-video-script-kit.md>
 - Contributing guide:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/CONTRIBUTING.md>
 - Good first issues:

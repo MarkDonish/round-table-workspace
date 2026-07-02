@@ -13,6 +13,7 @@
 | `docs/comparison-guide.md` | Decide when RTW fits better than direct agent answers, CI, manual review, or multi-agent frameworks. |
 | `docs/ai-failure-modes.md` | Concrete AI coding failure modes the workflow is designed to slow down. |
 | `docs/demo-recording-guide.md` | Short recording plan for visual social clips, GIFs, and README demos. |
+| `docs/short-video-script-kit.md` | Copy-ready 30-second and 60-second video scripts for social demos. |
 | `docs/distribution-checklist.md` | Ordered submission plan for HN, developer forums, directories, newsletters, and team chats. |
 | `docs/repo-card.html` | Pages-hosted GitHub-style repo preview card for sharing and directory submissions. |
 | `docs/repo-card.png` | 1200x630 repo preview image for social cards and directory previews. |
@@ -43,6 +44,7 @@
 | `docs/comparison-guide.md` | Plain-language comparison for teams evaluating whether to add a review layer. |
 | `docs/ai-failure-modes.md` | Failure-mode guide for deciding whether the workflow matches a real pain. |
 | `docs/demo-recording-guide.md` | Visual demo script and recording checklist for public sharing. |
+| `docs/short-video-script-kit.md` | Short video scripts for X, LinkedIn, Product Hunt, and forum clips. |
 | `docs/one-minute-demo.html` | Short transcript showing what `ship-check` returns before trusting generated work. |
 | `docs/use-cases.html` | Practical workflows for deciding when to run `ship-check`, `/room`, or `/debate`. |
 | `docs/community-share-kit.md` | Shareable descriptions, channel angles, and public claim boundaries. |

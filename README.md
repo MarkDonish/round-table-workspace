@@ -287,6 +287,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `docs/comparison-guide.md` | Plain comparison against direct agent answers, CI, manual review, and multi-agent frameworks |
 | `docs/ai-failure-modes.md` | Concrete failure modes this workflow is designed to catch before trust |
 | `docs/demo-recording-guide.md` | Short recording plan for visual X, LinkedIn, newsletter, or README demos |
+| `docs/short-video-script-kit.md` | Copy-ready short video scripts for X, LinkedIn, Product Hunt, and forums |
 | `docs/repo-card.html` | Pages-hosted GitHub-style repo preview card for sharing and directory submissions |
 | `docs/repo-card.png` | 1200x630 repo preview image used for social cards and directory previews |
 | `docs/one-minute-demo.html` | Pages-ready one-minute `ship-check` transcript |

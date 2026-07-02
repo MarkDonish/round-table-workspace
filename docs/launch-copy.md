@@ -33,6 +33,9 @@ For newsletter editor, roundup, and curated-list pitches, see
 For Product Hunt launch fields, maker comment, FAQ, assets, and guardrails, see
 `docs/product-hunt-launch-kit.md`.
 
+For short video scripts, captions, and clip variants, see
+`docs/short-video-script-kit.md`.
+
 For Reddit, forum, Discord, Slack, and GitHub discussion posts, see
 `docs/developer-forum-feedback-kit.md`.
 

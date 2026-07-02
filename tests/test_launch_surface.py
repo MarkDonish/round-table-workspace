@@ -162,6 +162,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/comparison-guide.md", payload["assets"])
         self.assertIn("docs/ai-failure-modes.md", payload["assets"])
         self.assertIn("docs/demo-recording-guide.md", payload["assets"])
+        self.assertIn("docs/short-video-script-kit.md", payload["assets"])
         self.assertIn("docs/application-packet.md", payload["assets"])
         self.assertIn("docs/credits-application-answers.md", payload["assets"])
         self.assertIn("docs/reviewer-checklist.md", payload["assets"])
@@ -245,6 +246,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["demo_recording_guide"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/demo-recording-guide.md",
         )
+        self.assertIn("short_video_script_kit", payload)
+        self.assertEqual(
+            payload["short_video_script_kit"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/short-video-script-kit.md",
+        )
         self.assertIn("Make your AI agents argue", payload["positioning"])
         self.assertEqual(payload["missing_assets"], [])
         for item in payload["asset_status"]:
@@ -271,6 +277,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Comparison guide", summary)
             self.assertIn("AI failure modes", summary)
             self.assertIn("Demo recording guide", summary)
+            self.assertIn("Short video script kit", summary)
             self.assertIn("docs/application-packet.md", summary)
         finally:
             summary_path.unlink(missing_ok=True)
@@ -302,6 +309,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         docs_index = REPO_ROOT / "docs" / "index.md"
         launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
         share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        recording_guide = REPO_ROOT / "docs" / "demo-recording-guide.md"
         llms = REPO_ROOT / "docs" / "llms.txt"
 
         self.assertTrue(submission_kit.exists())
@@ -501,6 +509,34 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         for surface in (readme, docs_index, launch_copy, share_kit, distribution, targets, llms):
             self.assertIn("docs/developer-forum-feedback-kit.md", surface.read_text(encoding="utf-8"))
+
+    def test_short_video_script_kit_is_claim_safe_and_linked(self) -> None:
+        video_kit = REPO_ROOT / "docs" / "short-video-script-kit.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(video_kit.exists())
+        text = video_kit.read_text(encoding="utf-8")
+        self.assertIn("# Short Video Script Kit", text)
+        self.assertIn("Do not publish a new public video campaign before the 72-hour X feedback", text)
+        self.assertIn("docs/promotion-feedback-template.md", text)
+        self.assertIn("30-Second Script", text)
+        self.assertIn("60-Second Script", text)
+        self.assertIn("Product Hunt Gallery Clip", text)
+        self.assertIn("Forum-Friendly Clip", text)
+        self.assertIn("/room -> /debate -> ship-check -> ship / revise / reject", text)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
+        self.assertIn("Do not claim host-live or provider-live support without fresh evidence.", text)
+        self.assertIn("Do not ask for votes, upvotes, or coordinated promotion.", text)
+        self.assertIn("copy_source: docs/short-video-script-kit.md", text)
+        self.assertIn("stars_before", text)
+        self.assertIn("stars_after", text)
+
+        for surface in (readme, docs_index, launch_copy, share_kit, recording_guide, llms):
+            self.assertIn("docs/short-video-script-kit.md", surface.read_text(encoding="utf-8"))
 
     def test_promotion_feedback_template_is_claim_safe_and_linked(self) -> None:
         feedback = REPO_ROOT / "docs" / "promotion-feedback-template.md"

@@ -3,6 +3,9 @@
 Use this guide to record a short visual demo for X, LinkedIn, newsletters, or a
 repository README update.
 
+For copy-ready 30-second and 60-second scripts, captions, and channel variants,
+use `docs/short-video-script-kit.md`.
+
 The goal is to show the workflow in motion: an AI-generated change looks
 plausible, Round Table Workspace reviews it, and the output becomes
 `ship`, `revise`, or `reject`.
