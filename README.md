@@ -10,6 +10,15 @@ Demo: https://markdonish.github.io/round-table-workspace/
 
 Make your AI coding agents hold a review round table before you trust the output.
 
+**Star this repo if you want a local-first review gate before merging
+AI-generated work.** Try the
+[60-second demo](https://markdonish.github.io/round-table-workspace/one-minute-demo.html),
+see the
+[AI feature review example](https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html),
+or read
+[why this is worth starring](docs/why-star-this-repo.md).
+No provider key is required for the default demo path.
+
 Round Table Workspace is a local-first decision layer for Codex, Claude Code, and other CLI agents. It turns vague product or engineering questions into structured `/room` exploration, escalates risky choices into `/debate`, and adds a `ship-check` gate before you accept AI-generated work.
 
 Instead of taking one confident agent answer at face value, you get a small panel of roles that review the work from product, engineering, risk, and user perspectives, then return a practical `ship`, `revise`, or `reject` decision.

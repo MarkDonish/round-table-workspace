@@ -104,6 +104,17 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Risk: the launch claim needs current evidence", readme)
         self.assertIn("a repeatable pause", readme)
 
+    def test_readme_surfaces_star_decision_before_long_overview(self) -> None:
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+        star_cta = "**Star this repo if you want a local-first review gate"
+        overview = "Round Table Workspace is a local-first decision layer"
+        self.assertIn(star_cta, readme)
+        self.assertIn("[60-second demo]", readme)
+        self.assertIn("[AI feature review example]", readme)
+        self.assertIn("[why this is worth starring](docs/why-star-this-repo.md)", readme)
+        self.assertIn("No provider key is required for the default demo path.", readme)
+        self.assertLess(readme.index(star_cta), readme.index(overview))
+
     def test_pages_launch_surface_has_manual_publish_instructions(self) -> None:
         release_note = REPO_ROOT / "docs" / "releases" / "v0.2.2-pages-launch-kit.md"
         note = release_note.read_text(encoding="utf-8")
