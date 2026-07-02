@@ -11,6 +11,9 @@ support. Please keep that boundary intact in code, docs, tests, and examples.
 Open starter tasks:
 <https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue>
 
+Maintainer-curated starter issue guide:
+[`docs/contributor-starter-issues.md`](docs/contributor-starter-issues.md)
+
 - Improve README examples or demo transcripts.
 - Add small CLI UX improvements with tests.
 - Add schema fixtures or negative fixtures.

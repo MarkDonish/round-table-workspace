@@ -54,6 +54,9 @@ For collecting real AI workflow examples from visitors, use the GitHub issue
 form:
 <https://github.com/MarkDonish/round-table-workspace/issues/new?template=workflow_example.yml>.
 
+For first-time contributor starter tasks, see
+`docs/contributor-starter-issues.md`.
+
 For the 24h and 72h feedback record used before writing the next public post,
 see `docs/promotion-feedback-template.md`.
 

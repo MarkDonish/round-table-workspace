@@ -32,6 +32,7 @@ Repo preview image: https://markdonish.github.io/round-table-workspace/repo-card
 - Demo recording guide: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/demo-recording-guide.md
 - Short video script kit: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/short-video-script-kit.md
 - Share an AI workflow example: https://github.com/MarkDonish/round-table-workspace/issues/new?template=workflow_example.yml
+- Contributor starter issues: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/contributor-starter-issues.md
 - One-minute demo: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/one-minute-demo.md
 - Architecture decision transcript: https://github.com/MarkDonish/round-table-workspace/blob/main/examples/transcripts/ship-check-architecture-decision.md
 - Use cases: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/use-cases.md

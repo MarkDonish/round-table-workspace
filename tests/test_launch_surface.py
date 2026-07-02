@@ -196,6 +196,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/distribution-checklist.md", payload["assets"])
         self.assertIn("docs/public-submission-targets.md", payload["assets"])
         self.assertIn("docs/developer-forum-feedback-kit.md", payload["assets"])
+        self.assertIn("docs/contributor-starter-issues.md", payload["assets"])
         self.assertIn("docs/show-hn-submission-draft.md", payload["assets"])
         self.assertIn("docs/newsletter-roundup-pitch-kit.md", payload["assets"])
         self.assertIn("docs/product-hunt-launch-kit.md", payload["assets"])
@@ -269,6 +270,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["developer_forum_feedback_kit"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/developer-forum-feedback-kit.md",
         )
+        self.assertIn("contributor_starter_issues", payload)
+        self.assertEqual(
+            payload["contributor_starter_issues"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/contributor-starter-issues.md",
+        )
         self.assertIn("show_hn_submission_draft", payload)
         self.assertEqual(
             payload["show_hn_submission_draft"],
@@ -341,6 +347,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Distribution checklist", summary)
             self.assertIn("Public submission targets", summary)
             self.assertIn("Developer forum feedback kit", summary)
+            self.assertIn("Contributor starter issues", summary)
             self.assertIn("Show HN submission draft", summary)
             self.assertIn("Newsletter roundup pitch kit", summary)
             self.assertIn("Product Hunt launch kit", summary)
@@ -620,6 +627,27 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         for surface in (readme, docs_index, launch_copy, share_kit, distribution, targets, llms):
             self.assertIn("docs/developer-forum-feedback-kit.md", surface.read_text(encoding="utf-8"))
+
+    def test_contributor_starter_issues_are_claim_safe_and_linked(self) -> None:
+        starter = REPO_ROOT / "docs" / "contributor-starter-issues.md"
+        readme = REPO_ROOT / "README.md"
+        contributing = REPO_ROOT / "CONTRIBUTING.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(starter.exists())
+        text = starter.read_text(encoding="utf-8")
+        self.assertIn("# Contributor Starter Issues", text)
+        self.assertIn("good first issue", text)
+        self.assertIn("ship-check", text)
+        self.assertIn("Claim Boundary", text)
+        self.assertIn("No host-live or provider-live claims", text)
+        self.assertIn("python3 -m unittest", text)
+        self.assertIn("API keys, tokens, cookies", text)
+
+        for surface in (readme, contributing, docs_index, launch_copy, llms):
+            self.assertIn("docs/contributor-starter-issues.md", surface.read_text(encoding="utf-8"))
 
     def test_short_video_script_kit_is_claim_safe_and_linked(self) -> None:
         video_kit = REPO_ROOT / "docs" / "short-video-script-kit.md"

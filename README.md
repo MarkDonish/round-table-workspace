@@ -121,6 +121,7 @@ should cover next:
 - [Architecture-decision `ship-check` transcript](examples/transcripts/ship-check-architecture-decision.md)
 - [Screenshot-ready one-minute demo](https://markdonish.github.io/round-table-workspace/one-minute-demo.html)
 - [Real-world failure mode in the community share kit](docs/community-share-kit.md#real-world-failure-mode-to-share)
+- [Contributor starter issue guide](docs/contributor-starter-issues.md)
 - [Share an AI workflow example](https://github.com/MarkDonish/round-table-workspace/issues/new?template=workflow_example.yml)
 
 See all
