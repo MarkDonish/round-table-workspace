@@ -230,6 +230,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `LAUNCH.md` | Shortest safe path for a fresh clone |
 | `docs/index.md` | Documentation map by user, protocol, runtime, validation, and history areas |
 | `docs/why-star-this-repo.md` | Quick evaluator guide for deciding whether the repo is worth starring |
+| `docs/community-share-kit.md` | Claim-safe community sharing guide and short blurbs |
 | `docs/ai-generated-feature-review-demo.html` | Pages-ready demo for reviewing AI-generated work before merge |
 | `docs/ai-generated-feature-review-demo.md` | Concrete pre-merge demo for reviewing AI-generated work |
 | `docs/user-entry-guide.md` | Plain-language guide to the repository model |

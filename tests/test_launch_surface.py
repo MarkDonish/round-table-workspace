@@ -103,6 +103,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertEqual(payload["action"], "launch-kit")
         self.assertEqual(payload["pages_url"], "https://markdonish.github.io/round-table-workspace/")
         self.assertIn("docs/launch-copy.md", payload["assets"])
+        self.assertIn("docs/community-share-kit.md", payload["assets"])
         self.assertIn("docs/application-packet.md", payload["assets"])
         self.assertIn("docs/credits-application-answers.md", payload["assets"])
         self.assertIn("docs/reviewer-checklist.md", payload["assets"])
@@ -126,6 +127,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["competitive_insights"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/competitive-insights.md",
         )
+        self.assertIn("community_share_kit", payload)
+        self.assertEqual(
+            payload["community_share_kit"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/community-share-kit.md",
+        )
         self.assertIn("Make your AI agents argue", payload["positioning"])
         self.assertEqual(payload["missing_assets"], [])
         for item in payload["asset_status"]:
@@ -138,9 +144,28 @@ class LaunchSurfaceTest(unittest.TestCase):
             summary = summary_path.read_text(encoding="utf-8")
             self.assertIn("Application packet", summary)
             self.assertIn("Competitive insights", summary)
+            self.assertIn("Community share kit", summary)
             self.assertIn("docs/application-packet.md", summary)
         finally:
             summary_path.unlink(missing_ok=True)
+
+    def test_community_share_kit_is_claim_safe_and_linked(self) -> None:
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+
+        self.assertTrue(share_kit.exists())
+        text = share_kit.read_text(encoding="utf-8")
+        self.assertIn("# Community Share Kit", text)
+        self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
+        self.assertIn("https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html", text)
+        self.assertIn("./rtw ship-check \"Should we merge this AI-generated feature?\"", text)
+        self.assertIn("No host-live or provider-live support is claimed without current evidence.", text)
+        self.assertIn("The workflow helps review AI-generated work; it does not guarantee correctness.", text)
+
+        for surface in (readme, docs_index, launch_copy):
+            self.assertIn("docs/community-share-kit.md", surface.read_text(encoding="utf-8"))
 
     def test_competitive_insights_doc_is_original_and_source_attributed(self) -> None:
         insights = REPO_ROOT / "docs" / "competitive-insights.md"
