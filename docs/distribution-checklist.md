@@ -43,10 +43,11 @@ https://markdonish.github.io/round-table-workspace/repo-card.png
 |---|---|---|---|---|
 | 1 | Hacker News / Show HN | Get technical critique from builders | GitHub repo | `docs/show-hn-submission-draft.md` |
 | 2 | Developer Reddit / forum threads | Find pain-aligned users of AI coding agents | GitHub repo | `docs/community-share-kit.md#community-post` |
-| 3 | Open-source directories and tool lists | Create durable discovery links | GitHub repo | `docs/directory-submission-kit.md` |
-| 4 | AI agent newsletters and roundups | Reach people already tracking agent tools | One-minute demo plus GitHub repo | `docs/newsletter-roundup-pitch-kit.md` |
-| 5 | Private team chats | Get direct workflow feedback | One-minute demo | `docs/community-share-kit.md#fast-evaluation-path` |
-| 6 | GitHub issue comments or related discussions | Invite specific failure-mode feedback | AI failure modes guide | `docs/ai-failure-modes.md` |
+| 3 | Product Hunt | Reach product-minded early adopters | GitHub repo plus one-minute demo | `docs/product-hunt-launch-kit.md` |
+| 4 | Open-source directories and tool lists | Create durable discovery links | GitHub repo | `docs/directory-submission-kit.md` |
+| 5 | AI agent newsletters and roundups | Reach people already tracking agent tools | One-minute demo plus GitHub repo | `docs/newsletter-roundup-pitch-kit.md` |
+| 6 | Private team chats | Get direct workflow feedback | One-minute demo | `docs/community-share-kit.md#fast-evaluation-path` |
+| 7 | GitHub issue comments or related discussions | Invite specific failure-mode feedback | AI failure modes guide | `docs/ai-failure-modes.md` |
 
 ## Copy Blocks
 
@@ -129,3 +130,6 @@ For the HN-specific title, first comment, reply bank, and "do not" list, use
 
 For newsletter editor emails, roundup listings, and follow-up replies, use
 `docs/newsletter-roundup-pitch-kit.md`.
+
+For Product Hunt fields, maker comment, FAQ, visual assets, and launch
+guardrails, use `docs/product-hunt-launch-kit.md`.

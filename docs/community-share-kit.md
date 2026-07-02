@@ -47,6 +47,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/show-hn-submission-draft.md>
 - Newsletter roundup pitch kit:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/newsletter-roundup-pitch-kit.md>
+- Product Hunt launch kit:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/product-hunt-launch-kit.md>
 - Promotion feedback template:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/promotion-feedback-template.md>
 - LLM summary:

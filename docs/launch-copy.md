@@ -30,6 +30,9 @@ For a claim-safe Show HN title, first comment, and reply bank, see
 For newsletter editor, roundup, and curated-list pitches, see
 `docs/newsletter-roundup-pitch-kit.md`.
 
+For Product Hunt launch fields, maker comment, FAQ, assets, and guardrails, see
+`docs/product-hunt-launch-kit.md`.
+
 For the 24h and 72h feedback record used before writing the next public post,
 see `docs/promotion-feedback-template.md`.
 
