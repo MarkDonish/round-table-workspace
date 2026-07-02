@@ -39,6 +39,10 @@ For short video scripts, captions, and clip variants, see
 For Reddit, forum, Discord, Slack, and GitHub discussion posts, see
 `docs/developer-forum-feedback-kit.md`.
 
+For collecting real AI workflow examples from visitors, use the GitHub issue
+form:
+<https://github.com/MarkDonish/round-table-workspace/issues/new?template=workflow_example.yml>.
+
 For the 24h and 72h feedback record used before writing the next public post,
 see `docs/promotion-feedback-template.md`.
 

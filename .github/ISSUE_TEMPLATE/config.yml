@@ -6,3 +6,6 @@ contact_links:
   - name: Claim boundary dashboard
     url: https://github.com/MarkDonish/round-table-workspace/blob/main/reports/claim-boundary-dashboard.md
     about: Check current claimable, blocked, and unconfigured support lanes.
+  - name: Share an AI workflow example
+    url: https://github.com/MarkDonish/round-table-workspace/issues/new?template=workflow_example.yml
+    about: Share a real AI-assisted coding workflow or failure mode this review gate should cover.

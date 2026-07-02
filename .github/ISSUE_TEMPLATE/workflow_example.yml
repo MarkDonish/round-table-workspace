@@ -1,0 +1,65 @@
+name: AI workflow example
+description: Share a real AI-assisted coding workflow or failure mode this review gate should cover.
+title: "example: "
+labels:
+  - feedback
+  - example
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this when you have a real AI coding workflow, failure mode, or
+        pre-merge decision that Round Table Workspace should explain better.
+        Please keep host-live and provider-live claims separate from
+        fixture-backed or local-first examples.
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Workflow or failure mode
+      description: What happened, or what decision did you need before trusting AI-generated work?
+      placeholder: "An agent generated a migration and said it was safe, but..."
+    validations:
+      required: true
+  - type: dropdown
+    id: moment
+    attributes:
+      label: Review moment
+      description: Where would a round-table review help most?
+      options:
+        - before merging AI-generated code
+        - before publishing launch copy or release notes
+        - before accepting an architecture change
+        - before building an MVP
+        - before trusting an agent-written document
+        - other
+    validations:
+      required: true
+  - type: dropdown
+    id: expected_decision
+    attributes:
+      label: Expected decision shape
+      description: What should the review gate help decide?
+      options:
+        - ship
+        - revise
+        - reject
+        - not sure
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Useful evidence
+      description: What evidence would make the decision trustworthy? Do not include secrets.
+      placeholder: "Tests passed, migration rollback checked, README claim softened..."
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Claim boundary
+      options:
+        - label: I am not claiming host-live or provider-live support without current evidence.
+          required: true
+        - label: I removed API keys, tokens, cookies, private account details, and customer data.
+          required: true

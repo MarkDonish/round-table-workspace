@@ -163,6 +163,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/ai-failure-modes.md", payload["assets"])
         self.assertIn("docs/demo-recording-guide.md", payload["assets"])
         self.assertIn("docs/short-video-script-kit.md", payload["assets"])
+        self.assertIn(".github/ISSUE_TEMPLATE/workflow_example.yml", payload["assets"])
         self.assertIn("docs/application-packet.md", payload["assets"])
         self.assertIn("docs/credits-application-answers.md", payload["assets"])
         self.assertIn("docs/reviewer-checklist.md", payload["assets"])
@@ -251,6 +252,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["short_video_script_kit"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/short-video-script-kit.md",
         )
+        self.assertIn("workflow_example_issue", payload)
+        self.assertEqual(
+            payload["workflow_example_issue"],
+            "https://github.com/MarkDonish/round-table-workspace/issues/new?template=workflow_example.yml",
+        )
         self.assertIn("Make your AI agents argue", payload["positioning"])
         self.assertEqual(payload["missing_assets"], [])
         for item in payload["asset_status"]:
@@ -278,6 +284,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("AI failure modes", summary)
             self.assertIn("Demo recording guide", summary)
             self.assertIn("Short video script kit", summary)
+            self.assertIn("Workflow example issue form", summary)
             self.assertIn("docs/application-packet.md", summary)
         finally:
             summary_path.unlink(missing_ok=True)
@@ -638,6 +645,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             REPO_ROOT / ".github" / "ISSUE_TEMPLATE" / "bug_report.yml",
             REPO_ROOT / ".github" / "ISSUE_TEMPLATE" / "feature_request.yml",
             REPO_ROOT / ".github" / "ISSUE_TEMPLATE" / "claim_boundary.yml",
+            REPO_ROOT / ".github" / "ISSUE_TEMPLATE" / "workflow_example.yml",
             REPO_ROOT / ".github" / "PULL_REQUEST_TEMPLATE.md",
         ]
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
@@ -656,6 +664,9 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue", readme)
         self.assertIn("Filing Issues", contributing)
         self.assertIn("Claim boundary question", contributing)
+        self.assertIn("AI workflow example", contributing)
+        self.assertIn("workflow_example.yml", readme)
+        self.assertIn("workflow_example.yml", share_kit)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue", contributing)
         self.assertIn("Good First Feedback", share_kit)
         self.assertIn("CONTRIBUTING.md", share_kit)

@@ -24,6 +24,8 @@ Use the GitHub issue templates when possible:
 - Bug report: include reproduction commands and concise evidence.
 - Feature request: describe the workflow decision this would improve.
 - Claim boundary question: use this when wording or support status may be too broad.
+- AI workflow example: share a real AI-assisted coding workflow or failure mode
+  this review gate should cover next.
 
 Do not include API keys, tokens, cookies, private account data, or local-only
 secrets in issues, screenshots, logs, or pull requests.

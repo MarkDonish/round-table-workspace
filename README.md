@@ -107,11 +107,13 @@ No provider key is required for the default demo path.
 
 ## Contribute
 
-New contributors can start with small, claim-safe tasks:
+New contributors can start with small, claim-safe tasks or share the AI
+workflow this review gate should cover next:
 
 - [#7 Add an architecture-decision `ship-check` transcript](https://github.com/MarkDonish/round-table-workspace/issues/7)
 - [#8 Make the one-minute demo easier to screenshot](https://github.com/MarkDonish/round-table-workspace/issues/8)
 - [#9 Add a real-world failure mode to the community share kit](https://github.com/MarkDonish/round-table-workspace/issues/9)
+- [Share an AI workflow example](https://github.com/MarkDonish/round-table-workspace/issues/new?template=workflow_example.yml)
 
 See all
 [`good first issue`](https://github.com/MarkDonish/round-table-workspace/labels/good%20first%20issue)

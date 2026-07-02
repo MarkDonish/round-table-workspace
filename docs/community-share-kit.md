@@ -25,6 +25,8 @@ before you trust generated work.
   <https://markdonish.github.io/round-table-workspace/repo-card.png>
 - Reviewer checklist:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md>
+- Share an AI workflow example:
+  <https://github.com/MarkDonish/round-table-workspace/issues/new?template=workflow_example.yml>
 - Why star this repo:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/why-star-this-repo.md>
 - Comparison guide:
@@ -112,6 +114,7 @@ public claim.
 
 - Report where the 60-second demo was unclear.
 - Suggest one AI-generated workflow that needs a better `ship-check` example.
+- Share a real AI workflow example through the GitHub issue form.
 - Ask whether a host, provider, wrapper, or release claim is backed by current evidence.
 - Share one failure mode from real AI-assisted coding that a round-table review
   should catch.
