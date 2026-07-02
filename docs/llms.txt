@@ -22,6 +22,7 @@ AI feature review demo: https://markdonish.github.io/round-table-workspace/ai-ge
 - Why star this repo: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/why-star-this-repo.md
 - Comparison guide: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/comparison-guide.md
 - AI failure modes: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/ai-failure-modes.md
+- Demo recording guide: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/demo-recording-guide.md
 - One-minute demo: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/one-minute-demo.md
 - Use cases: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/use-cases.md
 - Community share kit: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/community-share-kit.md

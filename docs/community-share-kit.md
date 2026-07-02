@@ -27,6 +27,8 @@ before you trust generated work.
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/comparison-guide.md>
 - AI failure modes:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/ai-failure-modes.md>
+- Demo recording guide:
+  <https://github.com/MarkDonish/round-table-workspace/blob/main/docs/demo-recording-guide.md>
 - Contributing guide:
   <https://github.com/MarkDonish/round-table-workspace/blob/main/CONTRIBUTING.md>
 - Good first issues:
@@ -81,8 +83,8 @@ public claim.
 |---|---|---|
 | Hacker News | Show a local-first review gate for AI coding agents | Try the 60-second demo and critique the workflow |
 | Reddit / developer forums | Ask whether teams need a pre-merge AI review gate | Share one failure mode this would catch |
-| LinkedIn | Frame it as an AI-assisted engineering governance workflow | Review the Pages demo or checklist |
-| Newsletters | Position it as a lightweight open-source tool for safer agent work | Link to the one-minute transcript |
+| LinkedIn | Frame it as an AI-assisted engineering governance workflow | Share the short recording or Pages demo |
+| Newsletters | Position it as a lightweight open-source tool for safer agent work | Link to the one-minute transcript or demo GIF |
 | Private team chats | Share the `ship-check` command as a quick local trial | Run it before the next AI-generated change |
 
 ## Good First Feedback
@@ -118,9 +120,10 @@ For someone deciding whether the repo is worth starring:
 2. Read the comparison guide if they are deciding whether this is different
    from a direct agent answer, CI, or a manual checklist.
 3. Scan the failure modes guide to see whether the pain is familiar.
-4. Read the AI feature review demo.
-5. Run the 60-second local demo.
-6. Check whether `ship`, `revise`, or `reject` would help their current agent
+4. Use the demo recording guide if they need a quick visual explanation.
+5. Read the AI feature review demo.
+6. Run the 60-second local demo.
+7. Check whether `ship`, `revise`, or `reject` would help their current agent
    workflow.
 
 ```bash

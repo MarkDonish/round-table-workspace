@@ -15,6 +15,9 @@ CI, manual checklists, and multi-agent frameworks, see
 For concrete AI coding failure modes that the workflow is meant to catch, see
 `docs/ai-failure-modes.md`.
 
+For a short visual recording plan for X, LinkedIn, newsletters, and README
+screenshots, see `docs/demo-recording-guide.md`.
+
 ## One-Line Positioning
 
 Make your AI coding agents argue before they ship.

@@ -120,6 +120,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/directory-submission-kit.md", payload["assets"])
         self.assertIn("docs/comparison-guide.md", payload["assets"])
         self.assertIn("docs/ai-failure-modes.md", payload["assets"])
+        self.assertIn("docs/demo-recording-guide.md", payload["assets"])
         self.assertIn("docs/application-packet.md", payload["assets"])
         self.assertIn("docs/credits-application-answers.md", payload["assets"])
         self.assertIn("docs/reviewer-checklist.md", payload["assets"])
@@ -163,6 +164,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             payload["ai_failure_modes"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/ai-failure-modes.md",
         )
+        self.assertIn("demo_recording_guide", payload)
+        self.assertEqual(
+            payload["demo_recording_guide"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/demo-recording-guide.md",
+        )
         self.assertIn("Make your AI agents argue", payload["positioning"])
         self.assertEqual(payload["missing_assets"], [])
         for item in payload["asset_status"]:
@@ -179,6 +185,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Directory submission kit", summary)
             self.assertIn("Comparison guide", summary)
             self.assertIn("AI failure modes", summary)
+            self.assertIn("Demo recording guide", summary)
             self.assertIn("docs/application-packet.md", summary)
         finally:
             summary_path.unlink(missing_ok=True)
@@ -264,6 +271,26 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         for surface in (readme, docs_index, launch_copy, share_kit, llms):
             self.assertIn("docs/ai-failure-modes.md", surface.read_text(encoding="utf-8"))
+
+    def test_demo_recording_guide_is_claim_safe_and_linked(self) -> None:
+        recording = REPO_ROOT / "docs" / "demo-recording-guide.md"
+        readme = REPO_ROOT / "README.md"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+
+        self.assertTrue(recording.exists())
+        text = recording.read_text(encoding="utf-8")
+        self.assertIn("# Demo Recording Guide", text)
+        self.assertIn("45-Second Storyboard", text)
+        self.assertIn("./rtw ship-check \"Should we merge this AI-generated feature?\"", text)
+        self.assertIn("X / Twitter", text)
+        self.assertIn("LinkedIn", text)
+        self.assertIn("does not add host-live or provider-live support claims", text)
+
+        for surface in (readme, docs_index, launch_copy, share_kit, llms):
+            self.assertIn("docs/demo-recording-guide.md", surface.read_text(encoding="utf-8"))
 
     def test_github_contribution_templates_preserve_claim_boundary(self) -> None:
         templates = [
