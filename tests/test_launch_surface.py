@@ -24,10 +24,13 @@ class LaunchSurfaceTest(unittest.TestCase):
     def test_docs_index_html_is_static_launch_landing_page(self) -> None:
         page = REPO_ROOT / "docs" / "index.html"
         quick_eval_page = REPO_ROOT / "docs" / "quick-evaluation.html"
+        mechanism_page = REPO_ROOT / "docs" / "mechanism.html"
         self.assertTrue(page.exists())
         self.assertTrue(quick_eval_page.exists())
+        self.assertTrue(mechanism_page.exists())
         text = page.read_text(encoding="utf-8")
         quick_eval = quick_eval_page.read_text(encoding="utf-8")
+        mechanism = mechanism_page.read_text(encoding="utf-8")
         self.assertIn("Make your AI agents argue before they ship", text)
         self.assertIn("./rtw ship-check", text)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
@@ -39,13 +42,26 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("ai-generated-feature-review-demo.html", text)
         self.assertIn("./one-minute-demo.html", text)
         self.assertIn("./quick-evaluation.html", text)
+        self.assertIn("./mechanism.html", text)
         self.assertIn("5-minute evaluation", text)
+        self.assertIn("How it works", text)
         self.assertIn("5-minute evaluation path", quick_eval)
         self.assertIn("Star If", quick_eval)
         self.assertIn("Skip For Now If", quick_eval)
         self.assertIn("No host-live or provider-live support is claimed without fresh evidence.", quick_eval)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace", quick_eval)
         self.assertIn('property="og:image"', quick_eval)
+        self.assertIn("How Round Table Workspace Works", mechanism)
+        self.assertIn("Create reviewer candidates", mechanism)
+        self.assertIn("Keep the useful reviewers", mechanism)
+        self.assertIn("Bring them into the round table", mechanism)
+        self.assertIn("Return a decision gate", mechanism)
+        self.assertIn("ship", mechanism)
+        self.assertIn("revise", mechanism)
+        self.assertIn("reject", mechanism)
+        self.assertIn("No host-live or provider-live support is claimed without fresh evidence.", mechanism)
+        self.assertIn('property="og:image"', mechanism)
+        self.assertNotIn("<script", mechanism.lower())
         self.assertIn("./use-cases.html", text)
         self.assertIn("./repo-card.html", text)
         self.assertIn('property="og:title"', text)
@@ -170,6 +186,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/one-minute-demo.md", payload["assets"])
         self.assertIn("docs/quick-evaluation.html", payload["assets"])
         self.assertIn("docs/quick-evaluation.md", payload["assets"])
+        self.assertIn("docs/mechanism.html", payload["assets"])
         self.assertIn("docs/use-cases.html", payload["assets"])
         self.assertIn("docs/use-cases.md", payload["assets"])
         self.assertIn("docs/repo-card.html", payload["assets"])
@@ -226,6 +243,11 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertEqual(
             payload["quick_evaluation"],
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/quick-evaluation.md",
+        )
+        self.assertIn("mechanism_page", payload)
+        self.assertEqual(
+            payload["mechanism_page"],
+            "https://markdonish.github.io/round-table-workspace/mechanism.html",
         )
         self.assertIn("directory_submission_kit", payload)
         self.assertEqual(
@@ -314,6 +336,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Community share kit", summary)
             self.assertIn("Quick evaluation page", summary)
             self.assertIn("Quick evaluation path", summary)
+            self.assertIn("Mechanism page", summary)
             self.assertIn("Directory submission kit", summary)
             self.assertIn("Distribution checklist", summary)
             self.assertIn("Public submission targets", summary)

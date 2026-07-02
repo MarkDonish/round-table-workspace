@@ -23,6 +23,7 @@
 | `docs/one-minute-demo-card.png` | 1200x630 social image showing the one-minute `ship-check` decision. |
 | `docs/one-minute-demo.md` | Markdown source for the one-minute transcript. |
 | `docs/quick-evaluation.html` | Pages-ready 5-minute evaluation landing page. |
+| `docs/mechanism.html` | Plain-English Pages page explaining reviewer selection, debate, and ship/revise/reject decisions. |
 | `docs/community-share-kit.md` | Claim-safe sharing guide for communities, newsletters, and team chats. |
 | `docs/directory-submission-kit.md` | Copy-ready submission fields for open-source directories and roundups. |
 | `docs/public-submission-targets.md` | Current public submission targets, entry points, and tracking fields. |
@@ -55,6 +56,7 @@
 | `docs/one-minute-demo.html` | Screenshot-ready transcript showing what `ship-check` returns before trusting generated work. |
 | `docs/one-minute-demo-card.png` | Static 1200x630 image for social previews, galleries, and newsletters. |
 | `docs/quick-evaluation.html` | Pages-ready 5-minute evaluation landing page. |
+| `docs/mechanism.html` | Plain-English mechanism page for external visitors and social shares. |
 | `docs/use-cases.html` | Practical workflows for deciding when to run `ship-check`, `/room`, or `/debate`. |
 | `docs/community-share-kit.md` | Shareable descriptions, channel angles, and public claim boundaries. |
 | `docs/directory-submission-kit.md` | Submission copy for open-source directories, newsletters, and tool lists. |
