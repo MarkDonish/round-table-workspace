@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A concrete Round Table Workspace demo for reviewing AI-generated work before merge." />
+  <meta name="theme-color" content="#f7f0e6" />
+  <meta property="og:title" content="AI Feature Review Demo" />
+  <meta property="og:description" content="See how Round Table Workspace turns one confident AI-generated feature into a ship/revise/reject decision." />
+  <meta property="og:type" content="article" />
+  <meta property="og:url" content="https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="AI Feature Review Demo" />
+  <meta name="twitter:description" content="A concrete pre-merge review demo for AI-generated work." />
+  <title>AI Feature Review Demo - Round Table Workspace</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f0e6;
+      --panel: #fffaf2;
+      --ink: #211912;
+      --muted: #75685b;
+      --line: #eadcc9;
+      --amber: #c77721;
+      --green: #2f7a4c;
+      --red: #9d3a2f;
+      --shadow: 0 24px 80px rgba(72, 44, 18, .13);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 8% 0%, #fff7ea 0, var(--bg) 42%, #efe2d1 100%);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    main { width: min(1080px, calc(100vw - 32px)); margin: 0 auto; padding: 48px 0 44px; }
+    .nav { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 34px; }
+    .nav a, .button { color: var(--ink); text-decoration: none; font-weight: 760; }
+    .nav a { color: var(--amber); }
+    .hero { display: grid; grid-template-columns: .95fr 1.05fr; gap: 26px; align-items: center; }
+    .eyebrow { color: var(--amber); font-size: 12px; font-weight: 820; letter-spacing: .09em; text-transform: uppercase; }
+    h1 { margin: 12px 0 18px; font-size: clamp(40px, 5.6vw, 74px); line-height: .96; letter-spacing: -.06em; }
+    h2, h3 { margin: 0 0 10px; letter-spacing: -.03em; }
+    p { color: var(--muted); }
+    .lead { margin: 0 0 24px; font-size: 19px; max-width: 620px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); }
+    .button.primary { border-color: #d79041; background: #d58328; color: #fffaf2; }
+    .terminal, .card { background: rgba(255,250,242,.92); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); }
+    .terminal { overflow: hidden; }
+    .bar { display: flex; gap: 8px; padding: 16px 18px; border-bottom: 1px solid var(--line); background: #f1e3d1; }
+    .dot { width: 11px; height: 11px; border-radius: 999px; background: #d86654; }
+    .dot:nth-child(2) { background: #ddae4e; }
+    .dot:nth-child(3) { background: #68a66f; }
+    pre { margin: 0; padding: 22px; white-space: pre-wrap; font-size: 14px; color: #30251a; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 28px; }
+    .card { padding: 20px; }
+    .card p { margin: 0; }
+    .decision { display: grid; grid-template-columns: .95fr 1.05fr; gap: 18px; margin-top: 24px; }
+    .badge { display: inline-flex; border-radius: 999px; padding: 6px 10px; margin-bottom: 12px; font-size: 12px; font-weight: 800; background: #fff0d8; color: #9a5515; border: 1px solid #edc58b; }
+    .finding { display: grid; grid-template-columns: 120px 1fr; gap: 12px; border-top: 1px solid var(--line); padding: 14px 0; }
+    .finding:first-child { border-top: 0; padding-top: 0; }
+    .finding strong { color: var(--ink); }
+    .revise { color: var(--amber); font-weight: 860; }
+    .callout { margin-top: 24px; border-left: 4px solid var(--green); }
+    footer { margin-top: 28px; color: var(--muted); font-size: 14px; }
+    footer a { color: var(--amber); font-weight: 760; }
+    @media (max-width: 860px) { .hero, .decision { grid-template-columns: 1fr; } .grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { main { padding-top: 28px; } .grid { grid-template-columns: 1fr; } .finding { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <nav class="nav">
+      <a href="./index.html">Round Table Workspace</a>
+      <a href="https://github.com/MarkDonish/round-table-workspace">GitHub repo</a>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Concrete pre-merge demo</div>
+        <h1>Review AI-generated work before you trust it.</h1>
+        <p class="lead">
+          An agent generated a plausible onboarding feature. Round Table
+          Workspace turns that confidence into a small review panel and a
+          practical decision: ship, revise, or reject.
+        </p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/MarkDonish/round-table-workspace">Star on GitHub</a>
+          <a class="button" href="./index.html">Back to overview</a>
+        </div>
+      </div>
+      <div class="terminal" aria-label="AI generated feature review command">
+        <div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <pre><code>$ ./rtw ship-check "Should we merge this AI-generated onboarding feature?"
+
+Decision: revise
+Confidence: medium
+Why:
+- useful feature shape
+- missing test coverage around persisted state
+- unclear success state for first-time users
+- public copy should avoid claiming a completed onboarding flow</code></pre>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="Generated feature scenario">
+      <div class="card"><span class="badge">Generated</span><h3>Checklist</h3><p>Welcome tasks and first-run guidance.</p></div>
+      <div class="card"><span class="badge">Generated</span><h3>State</h3><p>Completion state stored in local storage.</p></div>
+      <div class="card"><span class="badge">Generated</span><h3>Copy</h3><p>New empty dashboard language.</p></div>
+      <div class="card"><span class="badge">Question</span><h3>Merge?</h3><p>The change looks plausible, but needs review.</p></div>
+    </section>
+
+    <section class="decision">
+      <div class="card">
+        <span class="badge">Round-table findings</span>
+        <div class="finding"><strong>Product</strong><span>Useful direction, but the first-run path is still vague.</span></div>
+        <div class="finding"><strong>Engineering</strong><span>Needs tests around local-storage fallback and reset behavior.</span></div>
+        <div class="finding"><strong>Risk</strong><span>Empty-state copy makes a support promise the app does not yet prove.</span></div>
+        <div class="finding"><strong>User advocate</strong><span>Checklist labels are clearer, but the success state is missing.</span></div>
+      </div>
+      <div class="card">
+        <span class="badge">Decision</span>
+        <h2 class="revise">Revise before merge</h2>
+        <p>
+          The feature should not be rejected, but it should not ship as-is. The
+          review turns a confident generated change into concrete follow-up work.
+        </p>
+        <pre><code>Next:
+1. add tests for disabled storage, reset, and completed states
+2. add a visible success state after the checklist is done
+3. weaken "guided onboarding" to "onboarding checklist"
+4. rerun the project test suite before merge</code></pre>
+      </div>
+    </section>
+
+    <section class="card callout">
+      <h2>What this demo proves</h2>
+      <p>
+        This is an illustrative transcript, not host-live or provider-live validation evidence.
+        It demonstrates the repository's intended review pattern: make risks,
+        missing evidence, and next actions visible before AI-generated work
+        becomes trusted work.
+      </p>
+    </section>
+
+    <footer>
+      Runtime support boundaries remain conservative. For current local evidence,
+      run <code>./rtw doctor --quick</code> and <code>./rtw release-check --include-fixtures</code>.
+      Source note: <a href="./ai-generated-feature-review-demo.md">Markdown version</a>.
+    </footer>
+  </main>
+</body>
+</html>

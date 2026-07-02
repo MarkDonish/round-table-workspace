@@ -28,9 +28,23 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Make your AI agents argue before they ship", text)
         self.assertIn("./rtw ship-check", text)
         self.assertIn("https://github.com/MarkDonish/round-table-workspace", text)
+        self.assertIn("ai-generated-feature-review-demo.html", text)
         self.assertIn('property="og:title"', text)
         self.assertIn('name="twitter:card"', text)
         self.assertIn('name="theme-color"', text)
+        self.assertNotIn("<script", text.lower())
+
+    def test_ai_generated_feature_review_demo_is_pages_ready(self) -> None:
+        page = REPO_ROOT / "docs" / "ai-generated-feature-review-demo.html"
+        markdown = REPO_ROOT / "docs" / "ai-generated-feature-review-demo.md"
+        self.assertTrue(page.exists())
+        self.assertTrue(markdown.exists())
+        text = page.read_text(encoding="utf-8")
+        self.assertIn("Review AI-generated work before you trust it", text)
+        self.assertIn("Decision: revise", text)
+        self.assertIn("Star on GitHub", text)
+        self.assertIn("This is an illustrative transcript, not host-live or provider-live validation evidence.", text)
+        self.assertIn("./ai-generated-feature-review-demo.md", text)
         self.assertNotIn("<script", text.lower())
 
     def test_credits_application_answers_exist_and_are_linked(self) -> None:

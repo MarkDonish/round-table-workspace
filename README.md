@@ -43,7 +43,9 @@ Next: run tests, add a visible demo, keep claims local-first unless validated
 ```
 
 For a concrete pre-merge example, see
-[`docs/ai-generated-feature-review-demo.md`](docs/ai-generated-feature-review-demo.md).
+[`docs/ai-generated-feature-review-demo.md`](docs/ai-generated-feature-review-demo.md)
+or the Pages demo:
+<https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html>.
 
 ## When To Star This
 
@@ -228,6 +230,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 | `LAUNCH.md` | Shortest safe path for a fresh clone |
 | `docs/index.md` | Documentation map by user, protocol, runtime, validation, and history areas |
 | `docs/why-star-this-repo.md` | Quick evaluator guide for deciding whether the repo is worth starring |
+| `docs/ai-generated-feature-review-demo.html` | Pages-ready demo for reviewing AI-generated work before merge |
 | `docs/ai-generated-feature-review-demo.md` | Concrete pre-merge demo for reviewing AI-generated work |
 | `docs/user-entry-guide.md` | Plain-language guide to the repository model |
 | `docs/agent-consumer-quickstart.md` | Command guide for Codex, Claude Code, and generic local agents |

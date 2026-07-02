@@ -10,6 +10,7 @@
 | `README.md` | Project overview, five-minute path, support boundary, and key links. |
 | `LAUNCH.md` | Shortest safe startup path for fresh clones and local agent hosts. |
 | `docs/why-star-this-repo.md` | Fast evaluator guide for deciding whether the repo is worth starring. |
+| `docs/ai-generated-feature-review-demo.html` | Pages-ready demo for reviewing AI-generated work before merge. |
 | `docs/ai-generated-feature-review-demo.md` | Concrete pre-merge demo for reviewing AI-generated work. |
 | `AGENTS.md` | Repository operating rules, explicit-only triggers, and source boundaries. |
 | `docs/user-entry-guide.md` | Plain-language explanation of the repository logic. |
@@ -19,6 +20,7 @@
 | Document | Use |
 |---|---|
 | `docs/agent-consumer-quickstart.md` | Clone-friendly commands for Codex, Claude Code, and generic local agents. |
+| `docs/ai-generated-feature-review-demo.html` | Visual Pages demo for the AI-generated feature review flow. |
 | `docs/ai-generated-feature-review-demo.md` | Example `ship-check` style review for an AI-generated feature before merge. |
 | `examples/transcripts/` | Illustrative `/room`, `/debate`, and handoff walkthroughs. |
 | `docs/roadmap.md` | Release horizons and roadmap direction. |
