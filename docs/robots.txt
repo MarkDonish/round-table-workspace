@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://markdonish.github.io/round-table-workspace/sitemap.xml

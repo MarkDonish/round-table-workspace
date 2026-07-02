@@ -11,6 +11,8 @@
 | `LAUNCH.md` | Shortest safe startup path for fresh clones and local agent hosts. |
 | `docs/why-star-this-repo.md` | Fast evaluator guide for deciding whether the repo is worth starring. |
 | `docs/community-share-kit.md` | Claim-safe sharing guide for communities, newsletters, and team chats. |
+| `docs/llms.txt` | LLM-friendly summary for AI tools and agentic search. |
+| `docs/sitemap.xml` | Pages sitemap for public discovery. |
 | `docs/ai-generated-feature-review-demo.html` | Pages-ready demo for reviewing AI-generated work before merge. |
 | `docs/ai-generated-feature-review-demo.md` | Concrete pre-merge demo for reviewing AI-generated work. |
 | `AGENTS.md` | Repository operating rules, explicit-only triggers, and source boundaries. |

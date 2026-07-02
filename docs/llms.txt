@@ -1,0 +1,40 @@
+# Round Table Workspace
+
+Round Table Workspace is a local-first review workflow for AI coding agents
+before trusting generated work.
+
+Primary repo: https://github.com/MarkDonish/round-table-workspace
+Pages overview: https://markdonish.github.io/round-table-workspace/
+AI feature review demo: https://markdonish.github.io/round-table-workspace/ai-generated-feature-review-demo.html
+
+## What It Does
+
+- `/room` explores ambiguous product or engineering questions.
+- `/debate` reviews risky choices through a structured round-table workflow.
+- `ship-check` returns `ship`, `revise`, or `reject` with evidence and next steps.
+- The default demo path is local-first and does not require provider keys.
+
+## Useful Starting Points
+
+- README: https://github.com/MarkDonish/round-table-workspace/blob/main/README.md
+- Why star this repo: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/why-star-this-repo.md
+- Community share kit: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/community-share-kit.md
+- Reviewer checklist: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md
+- Contributing guide: https://github.com/MarkDonish/round-table-workspace/blob/main/CONTRIBUTING.md
+
+## Claim Boundary
+
+Do not describe fixture-backed demos, wrappers, or config preflight as
+host-live or provider-live support. Current support claims must be backed by
+fresh evidence. If evidence is missing, mark the lane as unconfigured, blocked,
+pending, or historical-only.
+
+## Fast Local Trial
+
+```bash
+git clone https://github.com/MarkDonish/round-table-workspace.git
+cd round-table-workspace
+./rtw demo startup-idea
+./rtw ship-check "Should we merge this AI-generated feature?"
+./rtw doctor --quick
+```

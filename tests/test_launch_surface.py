@@ -34,6 +34,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn('name="twitter:card"', text)
         self.assertIn('name="twitter:image"', text)
         self.assertIn('name="theme-color"', text)
+        self.assertIn('href="./sitemap.xml"', text)
+        self.assertIn('href="./llms.txt"', text)
         self.assertNotIn("<script", text.lower())
 
     def test_ai_generated_feature_review_demo_is_pages_ready(self) -> None:
@@ -48,6 +50,8 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn('property="og:image"', text)
         self.assertIn('name="twitter:image"', text)
         self.assertIn('name="twitter:card" content="summary_large_image"', text)
+        self.assertIn('href="./sitemap.xml"', text)
+        self.assertIn('href="./llms.txt"', text)
         self.assertIn("This is an illustrative transcript, not host-live or provider-live validation evidence.", text)
         self.assertIn("./ai-generated-feature-review-demo.md", text)
         self.assertNotIn("<script", text.lower())
@@ -103,6 +107,9 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertEqual(payload["action"], "launch-kit")
         self.assertEqual(payload["pages_url"], "https://markdonish.github.io/round-table-workspace/")
         self.assertIn("docs/launch-copy.md", payload["assets"])
+        self.assertIn("docs/robots.txt", payload["assets"])
+        self.assertIn("docs/sitemap.xml", payload["assets"])
+        self.assertIn("docs/llms.txt", payload["assets"])
         self.assertIn("docs/community-share-kit.md", payload["assets"])
         self.assertIn("docs/application-packet.md", payload["assets"])
         self.assertIn("docs/credits-application-answers.md", payload["assets"])
@@ -186,6 +193,30 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Claim boundary question", contributing)
         self.assertIn("Good First Feedback", share_kit)
         self.assertIn("CONTRIBUTING.md", share_kit)
+
+    def test_public_discovery_files_are_claim_safe(self) -> None:
+        robots = REPO_ROOT / "docs" / "robots.txt"
+        sitemap = REPO_ROOT / "docs" / "sitemap.xml"
+        llms = REPO_ROOT / "docs" / "llms.txt"
+        docs_index = REPO_ROOT / "docs" / "index.md"
+        share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+
+        for path in (robots, sitemap, llms):
+            self.assertTrue(path.exists(), str(path))
+
+        robots_text = robots.read_text(encoding="utf-8")
+        sitemap_text = sitemap.read_text(encoding="utf-8")
+        llms_text = llms.read_text(encoding="utf-8")
+
+        self.assertIn("Sitemap: https://markdonish.github.io/round-table-workspace/sitemap.xml", robots_text)
+        self.assertIn("<loc>https://markdonish.github.io/round-table-workspace/</loc>", sitemap_text)
+        self.assertIn("ai-generated-feature-review-demo.html", sitemap_text)
+        self.assertIn("Round Table Workspace is a local-first review workflow", llms_text)
+        self.assertIn("host-live or provider-live", llms_text)
+        self.assertIn('./rtw ship-check "Should we merge this AI-generated feature?"', llms_text)
+        self.assertIn("docs/llms.txt", docs_index.read_text(encoding="utf-8"))
+        self.assertIn("docs/sitemap.xml", docs_index.read_text(encoding="utf-8"))
+        self.assertIn("https://markdonish.github.io/round-table-workspace/llms.txt", share_kit.read_text(encoding="utf-8"))
 
     def test_competitive_insights_doc_is_original_and_source_attributed(self) -> None:
         insights = REPO_ROOT / "docs" / "competitive-insights.md"

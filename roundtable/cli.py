@@ -700,6 +700,9 @@ def build_launch_kit_payload() -> dict[str, object]:
     assets = [
         "README.md",
         "docs/index.html",
+        "docs/robots.txt",
+        "docs/sitemap.xml",
+        "docs/llms.txt",
         "docs/launch-copy.md",
         "docs/community-share-kit.md",
         "docs/application-packet.md",
