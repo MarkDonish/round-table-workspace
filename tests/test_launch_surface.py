@@ -516,6 +516,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         docs_index = REPO_ROOT / "docs" / "index.md"
         launch_copy = REPO_ROOT / "docs" / "launch-copy.md"
         share_kit = REPO_ROOT / "docs" / "community-share-kit.md"
+        recording_guide = REPO_ROOT / "docs" / "demo-recording-guide.md"
         llms = REPO_ROOT / "docs" / "llms.txt"
 
         self.assertTrue(video_kit.exists())
