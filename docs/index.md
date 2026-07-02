@@ -9,6 +9,7 @@
 |---|---|
 | `README.md` | Project overview, five-minute path, support boundary, and key links. |
 | `LAUNCH.md` | Shortest safe startup path for fresh clones and local agent hosts. |
+| `docs/why-star-this-repo.md` | Fast evaluator guide for deciding whether the repo is worth starring. |
 | `AGENTS.md` | Repository operating rules, explicit-only triggers, and source boundaries. |
 | `docs/user-entry-guide.md` | Plain-language explanation of the repository logic. |
 

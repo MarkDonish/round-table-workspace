@@ -14,6 +14,16 @@ Round Table Workspace is a local-first decision layer for Codex, Claude Code, an
 
 Instead of taking one confident agent answer at face value, you get a small panel of roles that review the work from product, engineering, risk, and user perspectives, then return a practical `ship`, `revise`, or `reject` decision.
 
+If you use AI coding agents for real work, this repository is for the moment
+right before you merge, publish, or trust their output.
+
+Use it when you want to:
+
+- catch weak reasoning before it becomes a real engineering decision
+- turn one confident agent answer into a small review panel
+- keep a local evidence trail instead of relying on a chat transcript
+- decide whether generated work should ship, be revised, or be rejected
+
 ```bash
 git clone https://github.com/MarkDonish/round-table-workspace.git
 cd round-table-workspace
@@ -31,6 +41,22 @@ Panel: product, engineering, risk, user-advocate
 Why: useful direction, but public claims and evidence need tightening
 Next: run tests, add a visible demo, keep claims local-first unless validated
 ```
+
+## When To Star This
+
+Star this repo if you want a local-first review layer for AI coding workflows,
+especially if you use Codex, Claude Code, or other CLI agents and want a
+repeatable decision gate before trusting generated work.
+
+The current best path to try is:
+
+```bash
+./rtw demo startup-idea
+./rtw ship-check "Should we merge this AI-generated feature?"
+./rtw doctor --quick
+```
+
+No provider key is required for the default demo path.
 
 ## Why This Exists
 
@@ -119,7 +145,7 @@ Core command surface:
 
 ## Current Scope
 
-Current release: `v0.2.2-pages-launch-kit`.
+The current release is `v0.2.2-pages-launch-kit`.
 
 This repository currently provides:
 
@@ -198,6 +224,7 @@ If a report or artifact exposes a still-valid rule, migrate that rule into an ac
 |---|---|
 | `LAUNCH.md` | Shortest safe path for a fresh clone |
 | `docs/index.md` | Documentation map by user, protocol, runtime, validation, and history areas |
+| `docs/why-star-this-repo.md` | Quick evaluator guide for deciding whether the repo is worth starring |
 | `docs/user-entry-guide.md` | Plain-language guide to the repository model |
 | `docs/agent-consumer-quickstart.md` | Command guide for Codex, Claude Code, and generic local agents |
 | `docs/source-truth-map.md` | Boundary between source files and historical / generated material |
