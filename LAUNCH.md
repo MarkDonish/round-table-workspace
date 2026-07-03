@@ -122,7 +122,7 @@ consumer checkout of the release tag:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
-  --ref v0.2.2-pages-launch-kit \
+  --ref v0.2.3-mechanism-clarity \
   --state-root /tmp/round-table-post-release-consumer-audit
 ```
 
@@ -241,4 +241,4 @@ python3 .codex/skills/room-skill/runtime/development_checkpoint.py \
 Checkpoint outputs under `reports/checkpoints/generated/` are historical
 continuity records, not implementation source.
 
-Current release notes: `docs/releases/v0.2.2-pages-launch-kit.md`.
+Current release notes: `docs/releases/v0.2.3-mechanism-clarity.md`.

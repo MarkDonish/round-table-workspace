@@ -1061,14 +1061,14 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("competitive-insights", surface.read_text(encoding="utf-8"))
 
     def test_next_release_notes_exist_and_readme_names_current_release(self) -> None:
-        release_note = REPO_ROOT / "docs" / "releases" / "v0.2.2-pages-launch-kit.md"
+        release_note = REPO_ROOT / "docs" / "releases" / "v0.2.3-mechanism-clarity.md"
         self.assertTrue(release_note.exists())
         note = release_note.read_text(encoding="utf-8")
-        self.assertIn("GitHub Pages", note)
-        self.assertIn("launch-kit", note)
+        self.assertIn("Mechanism Clarity", note)
+        self.assertIn("reviewer candidates", note)
 
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn("v0.2.2-pages-launch-kit", readme)
+        self.assertIn("v0.2.3-mechanism-clarity", readme)
 
     def test_github_release_publication_defaults_follow_current_release(self) -> None:
         publication_check = self.load_module(
@@ -1079,17 +1079,17 @@ class LaunchSurfaceTest(unittest.TestCase):
             "extract_github_release_body",
             REPO_ROOT / ".codex" / "skills" / "room-skill" / "runtime" / "extract_github_release_body.py",
         )
-        draft = REPO_ROOT / "docs" / "releases" / "v0.2.2-pages-launch-kit-github-release.md"
+        draft = REPO_ROOT / "docs" / "releases" / "v0.2.3-mechanism-clarity-github-release.md"
 
         self.assertTrue(draft.exists())
-        self.assertEqual(publication_check.DEFAULT_TAG, "v0.2.2-pages-launch-kit")
+        self.assertEqual(publication_check.DEFAULT_TAG, "v0.2.3-mechanism-clarity")
         self.assertEqual(
             publication_check.DEFAULT_RELEASE_DRAFT,
-            "docs/releases/v0.2.2-pages-launch-kit-github-release.md",
+            "docs/releases/v0.2.3-mechanism-clarity-github-release.md",
         )
         self.assertEqual(
             release_extractor.DEFAULT_RELEASE_DRAFT,
-            "docs/releases/v0.2.2-pages-launch-kit-github-release.md",
+            "docs/releases/v0.2.3-mechanism-clarity-github-release.md",
         )
         extraction = release_extractor.build_report(
             SimpleNamespace(
@@ -1106,10 +1106,10 @@ class LaunchSurfaceTest(unittest.TestCase):
             expected_release_draft=publication_check.DEFAULT_RELEASE_DRAFT,
         )
         self.assertTrue(workflow_check["defaults_match_requested_release"])
-        self.assertEqual(workflow_check["default_tag"], "v0.2.2-pages-launch-kit")
+        self.assertEqual(workflow_check["default_tag"], "v0.2.3-mechanism-clarity")
         self.assertEqual(
             workflow_check["default_release_draft"],
-            "docs/releases/v0.2.2-pages-launch-kit-github-release.md",
+            "docs/releases/v0.2.3-mechanism-clarity-github-release.md",
         )
         self.assertEqual(workflow_check["default_dry_run"], "false")
         self.assertTrue(workflow_check["publication_safe"])
@@ -1284,10 +1284,10 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         release_defaults = report["checks"]["release_publication_defaults"]
         self.assertTrue(release_defaults["ok"], release_defaults)
-        self.assertEqual(release_defaults["workflow_default_tag"], "v0.2.2-pages-launch-kit")
+        self.assertEqual(release_defaults["workflow_default_tag"], "v0.2.3-mechanism-clarity")
         self.assertEqual(
             release_defaults["workflow_default_release_draft"],
-            "docs/releases/v0.2.2-pages-launch-kit-github-release.md",
+            "docs/releases/v0.2.3-mechanism-clarity-github-release.md",
         )
         self.assertFalse(release_defaults["workflow_push_trigger_can_publish"])
         self.assertTrue(release_defaults["workflow_has_tag_checkout_guard"])

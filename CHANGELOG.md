@@ -45,7 +45,7 @@ live validation evidence.
 - Claim boundary dashboard local-mainline claims now depend on fresh
   `release_readiness_check.py` evidence instead of a static claimable flag.
 - GitHub Release publication defaults now target the current
-  `v0.2.2-pages-launch-kit` release draft.
+  `v0.2.3-mechanism-clarity` release draft.
 - JSON Schema validation fallback now supports the conditional and composition
   keywords used by current schemas and reports its validator boundary.
 - Default state roots now use `tempfile.gettempdir()`, with `python -m

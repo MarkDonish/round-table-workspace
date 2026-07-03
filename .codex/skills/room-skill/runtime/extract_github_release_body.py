@@ -18,7 +18,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from roundtable_core.runtime.paths import resolve_checked_path
 
-DEFAULT_RELEASE_DRAFT = "docs/releases/v0.2.2-pages-launch-kit-github-release.md"
+DEFAULT_RELEASE_DRAFT = "docs/releases/v0.2.3-mechanism-clarity-github-release.md"
 DEFAULT_OUTPUT = Path(os.environ.get("TMPDIR", "/tmp")) / "round-table-github-release-body.md"
 
 

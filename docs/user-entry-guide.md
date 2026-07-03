@@ -209,13 +209,13 @@ For developers or future agents:
 For release/support claims:
 
 1. `docs/release-candidate-scope.md`
-2. `docs/releases/v0.2.2-pages-launch-kit.md`
+2. `docs/releases/v0.2.3-mechanism-clarity.md`
 3. `CHANGELOG.md`
-4. `docs/releases/v0.2.2-pages-launch-kit-github-release.md`
+4. `docs/releases/v0.2.3-mechanism-clarity-github-release.md`
 
 ## What The Repository Can Claim Today
 
-The current release is `v0.2.2-pages-launch-kit`.
+The current release is `v0.2.3-mechanism-clarity`.
 
 Claimable:
 

@@ -80,4 +80,4 @@ project scope unless separate live validation evidence is produced.
 - Application packet: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/application-packet.md
 - Reviewer checklist: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/reviewer-checklist.md
 - Competitive insights: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/competitive-insights.md
-- Release notes: https://github.com/MarkDonish/round-table-workspace/releases/tag/v0.2.2-pages-launch-kit
+- Release notes: https://github.com/MarkDonish/round-table-workspace/releases/tag/v0.2.3-mechanism-clarity

@@ -6,11 +6,11 @@ on:
       tag:
         description: "Release tag to publish or update."
         required: false
-        default: "v0.2.2-pages-launch-kit"
+        default: "v0.2.3-mechanism-clarity"
       release_draft:
         description: "Repo-relative release draft containing the GitHub Release body."
         required: false
-        default: "docs/releases/v0.2.2-pages-launch-kit-github-release.md"
+        default: "docs/releases/v0.2.3-mechanism-clarity-github-release.md"
       prerelease:
         description: "Publish as a prerelease."
         required: false
@@ -35,13 +35,13 @@ on:
       - ".codex/skills/room-skill/runtime/github_release_publication_check.py"
       - "scripts/check_source_truth_consistency.py"
       - "scripts/release_check.py"
-      - "docs/releases/v0.2.2-pages-launch-kit-github-release.md"
+      - "docs/releases/v0.2.3-mechanism-clarity-github-release.md"
 
 permissions:
   contents: write
 
 concurrency:
-  group: publish-github-release-${{ github.event.inputs.tag || 'v0.2.2-pages-launch-kit' }}
+  group: publish-github-release-${{ github.event.inputs.tag || 'v0.2.3-mechanism-clarity' }}
   cancel-in-progress: false
 
 jobs:
@@ -63,8 +63,8 @@ jobs:
       - name: Normalize inputs
         shell: bash
         run: |
-          tag="${TAG_INPUT:-v0.2.2-pages-launch-kit}"
-          release_draft="${RELEASE_DRAFT_INPUT:-docs/releases/v0.2.2-pages-launch-kit-github-release.md}"
+          tag="${TAG_INPUT:-v0.2.3-mechanism-clarity}"
+          release_draft="${RELEASE_DRAFT_INPUT:-docs/releases/v0.2.3-mechanism-clarity-github-release.md}"
           prerelease="${PRERELEASE_INPUT:-true}"
           make_latest="${MAKE_LATEST_INPUT:-false}"
           dry_run="${DRY_RUN_INPUT:-true}"

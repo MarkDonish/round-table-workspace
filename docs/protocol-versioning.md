@@ -4,13 +4,13 @@
 > fixture versions so migration checks do not treat different layers as the same
 > thing.
 >
-> Status: active governance source for v0.2.2.
+> Status: active governance source for v0.2.3.
 
 ## Version Layers
 
 | Layer | Example | Meaning | Source |
 |---|---|---|---|
-| Release version | `v0.2.2-pages-launch-kit` | Product/repo release label shown in README, LAUNCH, changelog, and release notes. | `README.md`, `LAUNCH.md`, `CHANGELOG.md`, `docs/releases/` |
+| Release version | `v0.2.3-mechanism-clarity` | Product/repo release label shown in README, LAUNCH, changelog, and release notes. | `README.md`, `LAUNCH.md`, `CHANGELOG.md`, `docs/releases/` |
 | Protocol version | `v0.2` | Human protocol family for `/room`, `/debate`, and handoff behavior. | `docs/protocol-spec.md`, architecture docs |
 | Schema version | `0.1.0` | Portable JSON artifact schema version. Must remain semver-like and should not include a leading `v`. | `schemas/*.schema.json`, portable fixtures |
 | Runtime artifact version | `v0.1` | Legacy checked-in runtime packet or launch bundle version. May use historical labels until migrated. | runtime scripts and canonical fixtures |
@@ -20,7 +20,7 @@
 ## Rules
 
 1. Release versions may use prerelease labels such as `v0.2.0-alpha` or
-   descriptive release labels such as `v0.2.2-pages-launch-kit`.
+   descriptive release labels such as `v0.2.3-mechanism-clarity`.
 2. Portable schema versions use `0.1.0` style values.
 3. Legacy runtime artifacts may keep `v0.1` only when a projection or migration
    function converts them into portable schema objects.
@@ -52,4 +52,4 @@ the portable schema and fixture set before removing the legacy projection.
 `scripts/check_source_truth_consistency.py` checks that README/LAUNCH agree on
 the release label and warns on obvious authority confusion. It should not reject
 valid schema `0.1.0` values simply because the current release is
-`v0.2.2-pages-launch-kit`.
+`v0.2.3-mechanism-clarity`.

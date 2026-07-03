@@ -34,9 +34,9 @@ machines/accounts must rerun `claude_code_live_validation.py`.
 
 The current reproducible release target is:
 
-- Tag: `v0.2.2-pages-launch-kit`
+- Tag: `v0.2.3-mechanism-clarity`
 - Changelog: `CHANGELOG.md`
-- Release notes: `docs/releases/v0.2.2-pages-launch-kit.md`
+- Release notes: `docs/releases/v0.2.3-mechanism-clarity.md`
 
 Create or update this tag only after the strict release gate and claim-safe
 release report pass from a clean Git tree.
@@ -137,7 +137,7 @@ an older release draft, or allows push-triggered publication, `release-check`
 must fail until the workflow is updated or the release is published manually
 with fresh evidence.
 
-The checked-in workflow currently defaults to `v0.2.2-pages-launch-kit` and
+The checked-in workflow currently defaults to `v0.2.3-mechanism-clarity` and
 uses push-triggered runs as dry-runs; real publication remains a manual
 `workflow_dispatch` action.
 
@@ -203,7 +203,7 @@ consumer audit from a fresh cloned checkout of the release ref:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
-  --ref v0.2.2-pages-launch-kit \
+  --ref v0.2.3-mechanism-clarity \
   --state-root /tmp/round-table-post-release-consumer-audit
 ```
 

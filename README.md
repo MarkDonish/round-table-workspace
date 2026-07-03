@@ -272,7 +272,7 @@ Core command surface:
 
 ## Current Scope
 
-The current release is `v0.2.2-pages-launch-kit`.
+The current release is `v0.2.3-mechanism-clarity`.
 
 This repository currently provides:
 

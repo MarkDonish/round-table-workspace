@@ -245,7 +245,7 @@ Audit a tagged release from a fresh cloned checkout:
 
 ```bash
 python3 .codex/skills/room-skill/runtime/post_release_consumer_audit.py \
-  --ref v0.2.2-pages-launch-kit \
+  --ref v0.2.3-mechanism-clarity \
   --state-root /tmp/round-table-post-release-consumer-audit
 ```
 

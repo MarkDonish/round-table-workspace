@@ -25,12 +25,12 @@ This is not the same as claiming every local agent host or every provider is liv
 
 ## Current Release Artifact
 
-The current release is `v0.2.2-pages-launch-kit`.
+The current release is `v0.2.3-mechanism-clarity`.
 
 Use:
 
 - `CHANGELOG.md` for the release history.
-- `docs/releases/v0.2.2-pages-launch-kit.md` for the human-readable release note.
+- `docs/releases/v0.2.3-mechanism-clarity.md` for the human-readable release note.
 - `release_candidate_report.py` output for machine-readable support-scope evidence.
 
 The tag must point to a commit that has passed the strict release gate.

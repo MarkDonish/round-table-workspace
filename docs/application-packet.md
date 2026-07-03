@@ -8,7 +8,7 @@ or open-source program applications that ask for an existing GitHub repository.
 - Name: Round Table Workspace
 - GitHub repository: https://github.com/MarkDonish/round-table-workspace
 - Public demo: https://markdonish.github.io/round-table-workspace/
-- Current release: v0.2.2-pages-launch-kit
+- Current release: v0.2.3-mechanism-clarity
 - Primary positioning: Make your AI agents argue before they ship.
 
 ## What It Does
@@ -81,4 +81,4 @@ unless separate live validation evidence is produced.
 - Repository: https://github.com/MarkDonish/round-table-workspace
 - Public demo target: https://markdonish.github.io/round-table-workspace/
 - Competitive insights: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/competitive-insights.md
-- Release notes: https://github.com/MarkDonish/round-table-workspace/releases/tag/v0.2.2-pages-launch-kit
+- Release notes: https://github.com/MarkDonish/round-table-workspace/releases/tag/v0.2.3-mechanism-clarity
