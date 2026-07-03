@@ -18,6 +18,7 @@ turns one confident AI answer into a small decision panel, then gives you a
 |---|---|---|
 | One direct AI agent answer | Fast generation, coding, drafting, and iteration | Adds a review step before the answer becomes trusted work |
 | Manual code review checklist | Human judgment and project context | Produces a structured first-pass decision record before review |
+| AI-assisted PR review | Quick second opinion on a diff or summary | Captures explicit risks, evidence gaps, and a `ship` / `revise` / `reject` decision record when the question is bigger than comments on one patch |
 | Multi-agent framework | Building or orchestrating agent systems | Keeps the scope narrower: decide whether work is ready |
 | CI / test suite | Proving code still passes known checks | Surfaces product, risk, evidence, and claim-boundary gaps |
 | Chat transcript | Flexible exploration | Creates local JSON / Markdown artifacts that can be audited |
