@@ -25,6 +25,36 @@ or read
 [why this is worth starring](docs/why-star-this-repo.md).
 No provider key is required for the default demo path.
 
+## Copy-Paste Trial
+
+From a fresh clone, try the pre-merge gate first:
+
+```bash
+git clone https://github.com/MarkDonish/round-table-workspace.git
+cd round-table-workspace
+./rtw ship-check "Should we merge this AI-generated feature?"
+./rtw doctor --quick
+```
+
+In the JSON output, look for the decision and panel votes:
+
+```json
+{
+  "decision": "revise",
+  "panel_votes": [
+    {"agent": "product", "vote": "revise"},
+    {"agent": "engineering", "vote": "ship"},
+    {"agent": "risk", "vote": "revise"},
+    {"agent": "user-advocate", "vote": "revise"}
+  ],
+  "next_actions": [
+    "Run ./rtw doctor --quick and the unit test suite."
+  ]
+}
+```
+
+Star it if that is the pause you want before trusting generated work.
+
 Round Table Workspace is a local-first decision layer for Codex, Claude Code, and other CLI agents. It turns vague product or engineering questions into structured `/room` exploration, escalates risky choices into `/debate`, and adds a `ship-check` gate before you accept AI-generated work.
 
 Instead of taking one confident agent answer at face value, you get a small panel of roles that review the work from product, engineering, risk, and user perspectives, then return a practical `ship`, `revise`, or `reject` decision.

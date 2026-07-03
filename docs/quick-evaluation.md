@@ -16,6 +16,27 @@ cd round-table-workspace
 
 No provider key is required for this default path.
 
+Expected JSON shape:
+
+```json
+{
+  "decision": "revise",
+  "panel_votes": [
+    {"agent": "product", "vote": "revise"},
+    {"agent": "engineering", "vote": "ship"},
+    {"agent": "risk", "vote": "revise"},
+    {"agent": "user-advocate", "vote": "revise"}
+  ],
+  "next_actions": [
+    "Run ./rtw doctor --quick and the unit test suite."
+  ]
+}
+```
+
+If that is the pause you want before trusting generated work, star the repo and
+try it before your next AI-generated feature, launch note, architecture change,
+or agent-written document ships.
+
 ## What To Look For
 
 The useful signal is not that another agent says "yes." The useful signal is

@@ -159,6 +159,19 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("No provider key is required for the default demo path.", readme)
         self.assertLess(readme.index(star_cta), readme.index(overview))
 
+    def test_readme_has_copy_paste_trial_before_mechanism_overview(self) -> None:
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+        trial = "## Copy-Paste Trial"
+        overview = "Round Table Workspace is a local-first decision layer"
+        self.assertIn(trial, readme)
+        self.assertIn("git clone https://github.com/MarkDonish/round-table-workspace.git", readme)
+        self.assertIn("./rtw ship-check \"Should we merge this AI-generated feature?\"", readme)
+        self.assertIn('"decision": "revise"', readme)
+        self.assertIn('"panel_votes"', readme)
+        self.assertIn('"agent": "risk"', readme)
+        self.assertIn("Star it if that is the pause you want before trusting generated work.", readme)
+        self.assertLess(readme.index(trial), readme.index(overview))
+
     def test_pages_launch_surface_has_manual_publish_instructions(self) -> None:
         release_note = REPO_ROOT / "docs" / "releases" / "v0.2.2-pages-launch-kit.md"
         note = release_note.read_text(encoding="utf-8")
@@ -403,6 +416,10 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("5-Minute Local Trial", text)
         self.assertIn("./rtw ship-check \"Should we merge this AI-generated feature?\"", text)
         self.assertIn("./rtw doctor --quick", text)
+        self.assertIn('"decision": "revise"', text)
+        self.assertIn('"panel_votes"', text)
+        self.assertIn('"agent": "risk"', html)
+        self.assertIn("Star it if that is the pause you want before trusting generated work.", html)
         self.assertIn("No provider key is required", text)
         self.assertIn("Star the repo if", text)
         self.assertIn("Skip For Now If", text)

@@ -133,6 +133,23 @@ cd round-table-workspace
       </div>
     </section>
 
+    <section class="decision" aria-label="Expected result shape">
+      <h2>Expected JSON Shape</h2>
+      <pre><code>{
+  "decision": "revise",
+  "panel_votes": [
+    {"agent": "product", "vote": "revise"},
+    {"agent": "engineering", "vote": "ship"},
+    {"agent": "risk", "vote": "revise"},
+    {"agent": "user-advocate", "vote": "revise"}
+  ],
+  "next_actions": [
+    "Run ./rtw doctor --quick and the unit test suite."
+  ]
+}</code></pre>
+      <p>Star it if that is the pause you want before trusting generated work.</p>
+    </section>
+
     <section class="steps" aria-label="Evaluation flow">
       <div class="step"><strong>1. Clone</strong><span>Use the default local path.</span></div>
       <div class="step"><strong>2. Run ship-check</strong><span>Ask about an AI-generated change.</span></div>
