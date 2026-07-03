@@ -11,6 +11,7 @@
 | `LAUNCH.md` | Shortest safe startup path for fresh clones and local agent hosts. |
 | `docs/quick-evaluation.md` | 5-minute local trial and star decision path for new visitors. |
 | `docs/review-packet.md` | One-page evaluator packet for stars, directory listings, roundups, and team shares. |
+| `docs/mechanism.md` | GitHub-readable explanation of reviewer creation, selection, debate, and decision records. |
 | `docs/why-star-this-repo.md` | Fast evaluator guide for deciding whether the repo is worth starring. |
 | `docs/comparison-guide.md` | Decide when RTW fits better than direct agent answers, CI, manual review, or multi-agent frameworks. |
 | `docs/ai-failure-modes.md` | Concrete AI coding failure modes the workflow is designed to slow down. |
@@ -61,6 +62,7 @@
 | `docs/one-minute-demo-card.png` | Static 1200x630 image for social previews, galleries, and newsletters. |
 | `docs/quick-evaluation.html` | Pages-ready 5-minute evaluation landing page. |
 | `docs/review-packet.html` | Pages-ready one-page packet for evaluators and directory reviewers. |
+| `docs/mechanism.md` | Markdown mechanism guide for GitHub visitors and AI retrieval. |
 | `docs/mechanism.html` | Plain-English mechanism page for external visitors and social shares. |
 | `docs/use-cases.html` | Practical workflows for deciding when to run `ship-check`, `/room`, or `/debate`. |
 | `docs/community-share-kit.md` | Shareable descriptions, channel angles, and public claim boundaries. |

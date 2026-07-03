@@ -141,7 +141,12 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Product: the user value is still vague", readme)
         self.assertIn("Risk: the launch claim needs current evidence", readme)
         self.assertIn("a repeatable pause", readme)
-        self.assertIn("create reviewer candidates", readme)
+        self.assertIn("## How The Review Room Works", readme)
+        self.assertIn("This is not a random multi-agent chat.", readme)
+        self.assertIn("Create reviewer candidates", readme)
+        self.assertIn("Select reviewers for this decision", readme)
+        self.assertIn("Bound the debate", readme)
+        self.assertIn("Write a decision record", readme)
         self.assertIn("Keep the reviewers that add real signal", readme)
         self.assertIn("Bring them into a round-table discussion", readme)
         self.assertIn("Return a decision gate with risks", readme)
@@ -155,9 +160,24 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("[AI feature review example]", readme)
         self.assertIn("[5-minute evaluation path](docs/quick-evaluation.md)", readme)
         self.assertIn("[repo preview card]", readme)
+        self.assertIn("[how the review room works](docs/mechanism.md)", readme)
         self.assertIn("[why this is worth starring](docs/why-star-this-repo.md)", readme)
         self.assertIn("No provider key is required for the default demo path.", readme)
         self.assertLess(readme.index(star_cta), readme.index(overview))
+
+    def test_mechanism_markdown_is_github_readable_and_claim_safe(self) -> None:
+        mechanism = REPO_ROOT / "docs" / "mechanism.md"
+        self.assertTrue(mechanism.exists())
+        text = mechanism.read_text(encoding="utf-8")
+        self.assertIn("# How The Review Room Works", text)
+        self.assertIn("not trying to be a random multi-agent chatroom", text)
+        self.assertIn("Create reviewer candidates", text)
+        self.assertIn("Select reviewers for this decision", text)
+        self.assertIn("Bound the debate", text)
+        self.assertIn("Write a decision record", text)
+        self.assertIn("`ship`, `revise`, or `reject`", text)
+        self.assertIn("No host-live or provider-live support is claimed without fresh evidence.", text)
+        self.assertIn("./rtw ship-check \"Should we merge this AI-generated feature?\"", text)
 
     def test_readme_has_copy_paste_trial_before_mechanism_overview(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
@@ -208,6 +228,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("docs/one-minute-demo.md", payload["assets"])
         self.assertIn("docs/quick-evaluation.html", payload["assets"])
         self.assertIn("docs/quick-evaluation.md", payload["assets"])
+        self.assertIn("docs/mechanism.md", payload["assets"])
         self.assertIn("docs/mechanism.html", payload["assets"])
         self.assertIn("docs/use-cases.html", payload["assets"])
         self.assertIn("docs/use-cases.md", payload["assets"])
@@ -280,6 +301,11 @@ class LaunchSurfaceTest(unittest.TestCase):
             "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/review-packet.md",
         )
         self.assertIn("mechanism_page", payload)
+        self.assertIn("mechanism_guide", payload)
+        self.assertEqual(
+            payload["mechanism_guide"],
+            "https://github.com/MarkDonish/round-table-workspace/blob/main/docs/mechanism.md",
+        )
         self.assertEqual(
             payload["mechanism_page"],
             "https://markdonish.github.io/round-table-workspace/mechanism.html",
@@ -378,6 +404,7 @@ class LaunchSurfaceTest(unittest.TestCase):
             self.assertIn("Quick evaluation path", summary)
             self.assertIn("Review packet", summary)
             self.assertIn("Review packet source", summary)
+            self.assertIn("Mechanism guide", summary)
             self.assertIn("Mechanism page", summary)
             self.assertIn("Directory submission kit", summary)
             self.assertIn("Distribution checklist", summary)

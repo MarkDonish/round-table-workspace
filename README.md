@@ -21,6 +21,8 @@ open the
 [review packet](https://markdonish.github.io/round-table-workspace/review-packet.html),
 open the
 [repo preview card](https://markdonish.github.io/round-table-workspace/repo-card.html),
+read
+[how the review room works](docs/mechanism.md),
 or read
 [why this is worth starring](docs/why-star-this-repo.md).
 No provider key is required for the default demo path.
@@ -59,9 +61,18 @@ Round Table Workspace is a local-first decision layer for Codex, Claude Code, an
 
 Instead of taking one confident agent answer at face value, you get a small panel of roles that review the work from product, engineering, risk, and user perspectives, then return a practical `ship`, `revise`, or `reject` decision.
 
-Plainly: it can create reviewer candidates, keep the reviewers with useful
-signal, bring them into a round-table debate, and turn the discussion into a
-decision you can act on: `ship`, `revise`, or `reject`.
+## How The Review Room Works
+
+This is not a random multi-agent chat. It is a bounded review gate:
+
+| Move | Plain meaning | What you get |
+|---|---|---|
+| Create reviewer candidates | Start from the question or generated change and ask which review angles could catch failure modes. | Possible product, engineering, risk, and user-facing reviewers. |
+| Select reviewers for this decision | Keep the reviewers that add useful pressure to this exact decision. | A small panel instead of a noisy crowd. |
+| Bound the debate | Make the panel argue about value, evidence, risk, and next action. | Clear disagreement instead of one confident answer. |
+| Write a decision record | Turn the discussion into a local artifact. | `ship`, `revise`, or `reject`, plus risks, missing evidence, and next steps. |
+
+The point is to make the moment before merge, launch, or trust auditable.
 
 If you use AI coding agents for real work, this repository is for the moment
 right before you merge, publish, or trust their output.
