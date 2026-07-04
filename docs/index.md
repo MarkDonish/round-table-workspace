@@ -13,7 +13,7 @@
 | `docs/review-packet.md` | One-page evaluator packet for stars, directory listings, roundups, and team shares. |
 | `docs/mechanism.md` | GitHub-readable explanation of reviewer creation, selection, debate, and decision records. |
 | `docs/why-star-this-repo.md` | Fast evaluator guide for deciding whether the repo is worth starring. |
-| `docs/comparison-guide.md` | Decide when RTW fits better than direct agent answers, CI, manual review, or multi-agent frameworks. |
+| `docs/comparison-guide.md` | Decide when RTW fits better than direct agent answers, CI, manual review, multi-agent frameworks, or council-style deliberation. |
 | `docs/ai-failure-modes.md` | Concrete AI coding failure modes the workflow is designed to slow down. |
 | `docs/demo-recording-guide.md` | Short recording plan for visual social clips, GIFs, and README demos. |
 | `docs/short-video-script-kit.md` | Copy-ready 30-second and 60-second video scripts for social demos. |
@@ -54,7 +54,7 @@
 | `docs/agent-consumer-quickstart.md` | Clone-friendly commands for Codex, Claude Code, and generic local agents. |
 | `docs/quick-evaluation.md` | 5-minute local trial and star decision path before deeper setup. |
 | `docs/review-packet.md` | One-page evaluator packet for deciding whether to star, list, or share the repo. |
-| `docs/comparison-guide.md` | Plain-language comparison for teams evaluating whether to add a review layer. |
+| `docs/comparison-guide.md` | Plain-language comparison for teams evaluating whether to add a review layer, including council-style deliberation. |
 | `docs/ai-failure-modes.md` | Failure-mode guide for deciding whether the workflow matches a real pain. |
 | `docs/demo-recording-guide.md` | Visual demo script and recording checklist for public sharing. |
 | `docs/short-video-script-kit.md` | Short video scripts for X, LinkedIn, Product Hunt, and forum clips. |

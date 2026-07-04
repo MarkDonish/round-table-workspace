@@ -23,6 +23,8 @@ open the
 [repo preview card](https://markdonish.github.io/round-table-workspace/repo-card.html),
 read
 [how the review room works](docs/mechanism.md),
+compare it with
+[council-style deliberation](docs/comparison-guide.md#council-style-deliberation),
 or read
 [why this is worth starring](docs/why-star-this-repo.md).
 No provider key is required for the default demo path.
@@ -73,6 +75,23 @@ This is not a random multi-agent chat. It is a bounded review gate:
 | Write a decision record | Turn the discussion into a local artifact. | `ship`, `revise`, or `reject`, plus risks, missing evidence, and next steps. |
 
 The point is to make the moment before merge, launch, or trust auditable.
+
+## Council Or Review Gate?
+
+Council-style deliberation tools are useful when you want broad intellectual
+pressure on a hard question. Round Table Workspace is narrower: it starts from
+AI-generated work, a launch claim, or an engineering decision and asks whether
+that work should be trusted yet.
+
+| If you want... | Use this repo for... |
+|---|---|
+| many named personas exploring a broad question | a smaller reviewer panel selected for one coding decision |
+| a long deliberation transcript | a local decision record a maintainer can act on |
+| general strategy advice | pre-merge, pre-launch, or pre-claim review |
+| more model output | `ship`, `revise`, or `reject` with risks and next steps |
+
+That narrower scope is the product: it fits the tense moment after an AI coding
+agent says "ready" and before you accept the work.
 
 If you use AI coding agents for real work, this repository is for the moment
 right before you merge, publish, or trust their output.

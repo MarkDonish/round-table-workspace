@@ -32,6 +32,7 @@ Repo preview image: https://markdonish.github.io/round-table-workspace/repo-card
 - Mechanism page: https://markdonish.github.io/round-table-workspace/mechanism.html
 - Why star this repo: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/why-star-this-repo.md
 - Comparison guide: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/comparison-guide.md
+- Council-style deliberation comparison: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/comparison-guide.md#council-style-deliberation
 - AI failure modes: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/ai-failure-modes.md
 - Demo recording guide: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/demo-recording-guide.md
 - Short video script kit: https://github.com/MarkDonish/round-table-workspace/blob/main/docs/short-video-script-kit.md

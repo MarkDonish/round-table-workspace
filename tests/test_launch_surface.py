@@ -150,6 +150,10 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("Keep the reviewers that add real signal", readme)
         self.assertIn("Bring them into a round-table discussion", readme)
         self.assertIn("Return a decision gate with risks", readme)
+        self.assertIn("## Council Or Review Gate?", readme)
+        self.assertIn("Council-style deliberation tools", readme)
+        self.assertIn("a smaller reviewer panel selected for one coding decision", readme)
+        self.assertIn("pre-merge, pre-launch, or pre-claim review", readme)
 
     def test_readme_surfaces_star_decision_before_long_overview(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
@@ -161,6 +165,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("[5-minute evaluation path](docs/quick-evaluation.md)", readme)
         self.assertIn("[repo preview card]", readme)
         self.assertIn("[how the review room works](docs/mechanism.md)", readme)
+        self.assertIn("[council-style deliberation](docs/comparison-guide.md#council-style-deliberation)", readme)
         self.assertIn("[why this is worth starring](docs/why-star-this-repo.md)", readme)
         self.assertIn("No provider key is required for the default demo path.", readme)
         self.assertLess(readme.index(star_cta), readme.index(overview))
@@ -828,6 +833,10 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("# Comparison Guide", text)
         self.assertIn("One direct AI agent answer", text)
         self.assertIn("Multi-agent framework", text)
+        self.assertIn("## Council-Style Deliberation", text)
+        self.assertIn("broad deliberation councils", text)
+        self.assertIn("selects reviewers that add pressure to this decision", text)
+        self.assertIn("optimizes for the trust moment before merge, launch, or public claim", text)
         self.assertIn("CI / test suite", text)
         self.assertIn("Should this AI-assisted work be trusted yet?", text)
         self.assertIn("host-live or provider-live", text)
@@ -835,6 +844,10 @@ class LaunchSurfaceTest(unittest.TestCase):
 
         for surface in (readme, docs_index, launch_copy, share_kit, llms):
             self.assertIn("docs/comparison-guide.md", surface.read_text(encoding="utf-8"))
+        self.assertIn(
+            "docs/comparison-guide.md#council-style-deliberation",
+            llms.read_text(encoding="utf-8"),
+        )
 
     def test_ai_failure_modes_guide_is_claim_safe_and_linked(self) -> None:
         failure_modes = REPO_ROOT / "docs" / "ai-failure-modes.md"

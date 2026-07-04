@@ -22,6 +22,25 @@ turns one confident AI answer into a small decision panel, then gives you a
 | CI / test suite | Proving code still passes known checks | Surfaces product, risk, evidence, and claim-boundary gaps |
 | Chat transcript | Flexible exploration | Creates local JSON / Markdown artifacts that can be audited |
 
+## Council-Style Deliberation
+
+Some tools are designed as broad deliberation councils: many named personas,
+polarity pairs, multiple modes, and long-form strategic verdicts. That shape is
+useful when the user wants intellectual range.
+
+Round Table Workspace takes a narrower path for AI coding workflows:
+
+| Council-style tool | Round Table Workspace |
+|---|---|
+| starts from a hard general question | starts from generated work or a pending coding decision |
+| emphasizes breadth of personas | selects reviewers that add pressure to this decision |
+| may produce a long deliberation transcript | produces a local `ship`, `revise`, or `reject` record |
+| optimizes for strategic thinking | optimizes for the trust moment before merge, launch, or public claim |
+
+That difference is deliberate. The project is easiest to evaluate when a
+maintainer asks: "Would this have slowed down a bad AI-assisted merge or an
+unsupported launch claim?"
+
 ## Use Round Table Workspace When
 
 - an AI coding agent produced work that sounds plausible but needs review
