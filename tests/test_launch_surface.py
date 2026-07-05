@@ -132,6 +132,20 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn(pages_url, readme)
         self.assertIn(pages_url, launch_copy)
 
+    def test_x_launch_thread_is_mechanism_first_and_card_safe(self) -> None:
+        launch_copy = (REPO_ROOT / "docs" / "launch-copy.md").read_text(encoding="utf-8")
+        self.assertIn("## X / Twitter Launch Thread", launch_copy)
+        self.assertIn("Keep the GitHub repository", launch_copy)
+        self.assertIn("link in the main post", launch_copy)
+        self.assertIn("native GitHub card", launch_copy)
+        self.assertIn("Before merging AI-written code, I run Round Table Workspace.", launch_copy)
+        self.assertIn("spins up reviewer agents", launch_copy)
+        self.assertIn("keeps the useful ones", launch_copy)
+        self.assertIn("ship, revise, or reject", launch_copy)
+        self.assertIn("candidate reviewer agents", launch_copy)
+        self.assertIn("confidence into something checkable", launch_copy)
+        self.assertIn("docs/promotion-feedback-template.md", launch_copy)
+
     def test_readme_explains_before_after_review_value(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("## What Changes", readme)

@@ -102,58 +102,46 @@ llm
 
 ## X / Twitter Launch Thread
 
-AI coding agents are fast. Too fast.
+Use this mechanism-first version when X feedback says the audience understands
+the problem but still needs the workflow explained. Keep the GitHub repository
+link in the main post so X can render the native GitHub card. Do not replace the
+repo link with a screenshot when stars are the goal.
 
-They can build an MVP before anyone asks:
-
-Should we build this at all?
-
-So I built Round Table Workspace: a local-first round table where Codex,
-Claude Code, and CLI agents debate before you ship.
-
-What it does:
-
-- `/room` explores ambiguous ideas
-- `/debate` reviews risky decisions
-- `ship-check` returns ship / revise / reject
-- outputs JSON + Markdown evidence
-- runs local-first, no provider required for the default demo
-
-The idea is simple:
-
-Stop letting one confident AI agent make every product and engineering decision.
-Make the agents argue first.
-
-Example:
-
-```bash
-./rtw ship-check "Should we merge this AI-generated feature?"
-```
-
-Output:
+Main post:
 
 ```text
-Decision: revise
-Panel: product, engineering, risk, user-advocate
-Next: run tests, add a visible demo, keep claims local-first unless validated
+Before merging AI-written code, I run Round Table Workspace.
+
+It spins up reviewer agents, keeps the useful ones, brings them into a bounded debate, then returns a practical decision: ship, revise, or reject.
+
+https://github.com/MarkDonish/round-table-workspace
 ```
 
-Useful for:
+Reply 1:
 
-- AI-generated code reviews
-- MVP decisions
-- architecture tradeoffs
-- launch claim checks
-- local-first agent workflow experiments
+```text
+Step 1: it creates candidate reviewer agents and keeps the ones that add real signal: product risk, engineering evidence, claim boundaries, or user-facing gaps.
+```
 
-GitHub:
-https://github.com/MarkDonish/round-table-workspace
+Reply 2:
 
-Live demo:
-https://markdonish.github.io/round-table-workspace/
+```text
+Inside the review, agents push on each other's claims, call out contradictions, and name the evidence still missing. The point is to turn confidence into something checkable.
+```
 
-If this helps your AI coding workflow, star it and try it before your next
-AI-generated feature ships.
+Reply 3:
+
+```text
+The output is small on purpose: ship, revise, or reject, plus the concrete next actions before merge. That is the handoff I want from agent-generated work.
+```
+
+Publishing checks:
+
+- Wait for the native GitHub card before posting the main tweet.
+- Put the GitHub repo link in the main post, not only in a reply.
+- Post replies slowly if the platform throttles consecutive replies.
+- Record 24h and 72h feedback in `docs/promotion-feedback-template.md`
+  before writing the next public campaign.
 
 ## Hacker News
 
