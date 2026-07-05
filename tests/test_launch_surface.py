@@ -172,7 +172,10 @@ class LaunchSurfaceTest(unittest.TestCase):
     def test_readme_surfaces_star_decision_before_long_overview(self) -> None:
         readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
         star_cta = "**Star this repo if you want a local-first review gate"
+        visual_demo = "![Round Table Workspace one-minute ship-check demo"
         overview = "Round Table Workspace is a local-first decision layer"
+        self.assertIn(visual_demo, readme)
+        self.assertIn("docs/one-minute-demo-card.png)", readme)
         self.assertIn(star_cta, readme)
         self.assertIn("[60-second demo]", readme)
         self.assertIn("[AI feature review example]", readme)
@@ -182,6 +185,7 @@ class LaunchSurfaceTest(unittest.TestCase):
         self.assertIn("[council-style deliberation](docs/comparison-guide.md#council-style-deliberation)", readme)
         self.assertIn("[why this is worth starring](docs/why-star-this-repo.md)", readme)
         self.assertIn("No provider key is required for the default demo path.", readme)
+        self.assertLess(readme.index(visual_demo), readme.index("## Copy-Paste Trial"))
         self.assertLess(readme.index(star_cta), readme.index(overview))
 
     def test_mechanism_markdown_is_github_readable_and_claim_safe(self) -> None:

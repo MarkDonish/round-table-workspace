@@ -10,6 +10,8 @@ Demo: https://markdonish.github.io/round-table-workspace/
 
 Make your AI coding agents hold a review round table before you trust the output.
 
+![Round Table Workspace one-minute ship-check demo showing a revise decision and reviewer panel](docs/one-minute-demo-card.png)
+
 **Star this repo if you want a local-first review gate before merging
 AI-generated work.** Try the
 [60-second demo](https://markdonish.github.io/round-table-workspace/one-minute-demo.html),
