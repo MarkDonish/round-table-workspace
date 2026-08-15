@@ -9,7 +9,9 @@ from pathlib import Path
 from typing import Sequence
 
 from roundtable_core.commands import (
+    build_enhanced_ship_check_payload,
     build_stub_payload as service_build_stub_payload,
+    render_ship_check_markdown_report,
     resolve_cli_state_root,
     run_agent_disable,
     run_agent_enable,
@@ -20,6 +22,7 @@ from roundtable_core.commands import (
     run_debate_fixture,
     run_golden_demo,
     run_room_fixture,
+    save_ship_check_archive_report,
     validate_schema_files,
 )
 from roundtable_core.runtime.paths import UnsafePathError, assert_no_symlink_components
@@ -163,6 +166,13 @@ def build_parser() -> argparse.ArgumentParser:
     ship_check.add_argument("--live", action="store_true", help="Execute real concurrent multi-LLM review calls across panel roles.")
     ship_check.add_argument("--provider", choices=["deepseek", "ollama", "openai", "openrouter"], help="LLM provider for live execution.")
     ship_check.add_argument("--model", help="Override specific LLM model name for live execution.")
+    ship_check.add_argument(
+        "--save",
+        nargs="?",
+        const=True,
+        default=False,
+        help="Save standard Markdown archive report to reports/ or specified path.",
+    )
     add_output_args(ship_check, suppress_defaults=True)
 
     launch_kit = subparsers.add_parser(
@@ -429,31 +439,54 @@ def run_ship_check(args: argparse.Namespace) -> int:
     live = bool(getattr(args, "live", False))
     provider = getattr(args, "provider", None)
     model = getattr(args, "model", None)
+    save_target = getattr(args, "save", False)
 
-    payload = build_ship_check_payload(
-        question,
-        diff=diff,
-        staged=staged,
-        cwd=cwd,
-        roles=roles,
-        live=live,
-        provider=provider,
-        model=model,
-    )
+    if live:
+        payload = build_ship_check_payload(
+            question,
+            diff=diff,
+            staged=staged,
+            cwd=cwd,
+            roles=roles,
+            live=live,
+            provider=provider,
+            model=model,
+        )
+    else:
+        payload = build_enhanced_ship_check_payload(
+            question,
+            diff=diff,
+            staged=staged,
+            cwd=cwd,
+            roles=roles,
+        )
+
+    if save_target:
+        custom_path = save_target if isinstance(save_target, str) else None
+        saved_path = save_ship_check_archive_report(
+            payload,
+            custom_path=custom_path,
+            repo_root=REPO_ROOT,
+        )
+        payload["saved_report"] = str(saved_path)
+
+    markdown_summary = render_ship_check_markdown_report(payload)
 
     if not getattr(args, "json", False) and not getattr(args, "quiet", False) and sys.stdout.isatty():
-        from roundtable_core.ui.formatter import format_ship_check_terminal
-
-        print(format_ship_check_terminal(payload))
+        try:
+            from roundtable_core.ui.formatter import format_ship_check_terminal
+            print(format_ship_check_terminal(payload))
+        except Exception:
+            print(markdown_summary)
         if getattr(args, "output_json", None):
             write_json_file(Path(args.output_json).expanduser(), payload)
         if getattr(args, "output_markdown", None):
             write_text_file(
                 Path(args.output_markdown).expanduser(),
-                render_ship_check_summary(payload).rstrip() + "\n",
+                markdown_summary.rstrip() + "\n",
             )
     else:
-        emit_payload(args, payload, markdown=render_ship_check_summary(payload))
+        emit_payload(args, payload, markdown=markdown_summary)
     return exit_code_for_payload(payload)
 
 

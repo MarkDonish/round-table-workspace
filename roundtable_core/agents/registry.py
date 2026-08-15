@@ -93,6 +93,14 @@ ALIASES = {
     "feynman": "feynman",
     "naval": "naval",
     "trump": "trump",
+    "geohot": "geohot",
+    "george hotz": "geohot",
+    "hotz": "geohot",
+    "dario": "dario-amodei",
+    "dario amodei": "dario-amodei",
+    "amodei": "dario-amodei",
+    "fowler": "martin-fowler",
+    "martin fowler": "martin-fowler",
 }
 
 

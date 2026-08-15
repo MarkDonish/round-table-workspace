@@ -58,6 +58,11 @@ ROLE_ICONS: dict[str, str] = {
     "musk": "🚀",
     "sun": "🔥",
     "pg": "🏛️ ",
+    "geohot": "⚡",
+    "dario-amodei": "🛡️ ",
+    "dario": "🛡️ ",
+    "martin-fowler": "📐",
+    "fowler": "📐",
 }
 
 

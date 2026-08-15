@@ -1,4 +1,4 @@
-﻿# Agent Role Map
+# Agent Role Map
 
 本文件定义 `/debate` 圆桌会议中各名人 Agent 的职责边界、标签与对冲关系。
 
@@ -17,6 +17,9 @@
 | Ilya Sutskever | `ilya-sutskever-skill` | 前沿 AI 抽象、研究方向、模型哲学 | 普通人表达、现实落地动作 | `offensive` | `abstract` | `moderate` | Karpathy、Feynman | 可能过于抽象 |
 | MrBeast | `mrbeast-skill` | 传播策划、注意力获取、选题张力 | 严肃风险判断、底层原理解释 | `offensive` | `grounded` | `dominant` | Munger、Feynman | 容易过度追流量 |
 | Trump | `trump-skill` | 强势表达、谈判压强、注意力争夺 | 平衡判断、复杂分析、教育解释 | `offensive` | `grounded` | `dominant` | Taleb、Munger | 容易制造过度对立和夸张 |
+| Geohot | `geohot-skill` | 极简架构、零代码膨胀、黑客式底层重构 | 企业级沉重流程、温和折衷 | `offensive` | `grounded` | `dominant` | Martin Fowler、Dario Amodei | 过于激进，可能忽视正规化架构与安全防御边界 |
+| Dario Amodei | `dario-amodei-skill` | AI 能力边界、提示注入防御、Fail-Closed 安全守门 | 短期商业催促、纯视觉与文案包装 | `defensive` | `grounded` | `dominant` | Geohot、Elon Musk | 过于谨慎，可能增加系统安全摩擦 |
+| Martin Fowler | `martin-fowler-skill` | 重构模式、领域边界设计、测试金字塔与反腐化 | 早期切口探索、推倒重来式重写 | `defensive` | `grounded` | `moderate` | Geohot、Elon Musk | 偏规范重构，可能引入不必要的模式设计 |
 
 ---
 

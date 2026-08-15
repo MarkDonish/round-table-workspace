@@ -105,6 +105,9 @@ agent as if the real person is present or speaking.
 | `performance-specialist` | `Performance` | `defensive` | `grounded` | `moderate` | `no` | `product, planning, strategy` | `simulate, stress_test, converge` | `technical_feasibility, resource_allocation, execution_path, first_principles` |
 | `api-contract-reviewer` | `API Reviewer` | `moderate` | `grounded` | `moderate` | `no` | `product, strategy, planning` | `simulate, converge, decision` | `technical_feasibility, value_proposition, user_experience, execution_path` |
 | `database-auditor` | `DB Auditor` | `defensive` | `grounded` | `dominant` | `no` | `risk, planning, strategy` | `stress_test, converge, decision` | `downside_analysis, technical_feasibility, execution_path, resource_allocation` |
+| `geohot` | `Geohot` | `offensive` | `grounded` | `dominant` | `no` | `product, planning, strategy` | `simulate, converge, decision` | `first_principles, execution_path, technical_feasibility, product_focus, resource_allocation` |
+| `dario-amodei` | `Dario` | `defensive` | `grounded` | `dominant` | `no` | `risk, strategy, learning` | `stress_test, converge, decision` | `downside_analysis, regulatory_risk, technical_feasibility, first_principles, long_term_strategy` |
+| `martin-fowler` | `Fowler` | `defensive` | `grounded` | `moderate` | `no` | `product, planning, strategy` | `simulate, converge, decision` | `technical_feasibility, execution_path, first_principles, product_focus` |
 
 Allowed `sub_problem_tags`:
 

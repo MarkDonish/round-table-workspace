@@ -39,3 +39,4 @@ temp/
 
 # Generated runtime artifacts
 artifacts/runtime/rooms/
+reports/ship-checks/
