@@ -10,6 +10,7 @@ This is the Claude Code project-skill entry for `/debate`.
 It is an adapter, not the canonical implementation source. The canonical `/debate` sources remain:
 
 - `AGENTS.md`
+- `docs/protocol-spec.md`
 - `.codex/skills/debate-roundtable-skill/SKILL.md`
 - `.codex/skills/debate-roundtable-skill/runtime/README.md`
 - `docs/debate-runtime-bridge.md`
@@ -17,13 +18,24 @@ It is an adapter, not the canonical implementation source. The canonical `/debat
 - `docs/debate-skill-architecture.md`
 - `docs/agent-role-map.md`
 - `docs/reviewer-protocol.md`
+- `docs/decision-quality-rubric.md`
 - `docs/red-flags.md`
 - `docs/room-to-debate-handoff.md`
+- `schemas/debate-session.schema.json`
+- `schemas/debate-result.schema.json`
+- `schemas/room-to-debate-handoff.schema.json`
 - `prompts/debate-roundtable.md`
 - `prompts/debate-reviewer.md`
 - `prompts/debate-followup.md`
 
 If this file conflicts with those sources, follow those sources and report the mismatch.
+
+## Self-Contained Path Resolution & Fallback
+
+This skill adapter is 100% self-contained and portable:
+- Primary path resolution uses repo-relative paths (e.g. `docs/...`, `prompts/...`, `schemas/...`).
+- Canonical absolute path fallback: When running outside the repository root or in global host contexts, resolve all referenced files against `/Users/markdonish/round-table-workspace/` (e.g. `/Users/markdonish/round-table-workspace/docs/protocol-spec.md`).
+- All protocols, schemas, and prompt specifications are fully contained within this repository.
 
 ## Trigger Boundary
 

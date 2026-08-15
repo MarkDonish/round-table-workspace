@@ -10,6 +10,7 @@ This is the Claude Code project-skill entry for `/room`.
 It is an adapter, not the canonical implementation source. The canonical `/room` sources remain:
 
 - `AGENTS.md`
+- `docs/protocol-spec.md`
 - `.codex/skills/room-skill/SKILL.md`
 - `.codex/skills/room-skill/WORKFLOW.md`
 - `.codex/skills/room-skill/runtime/README.md`
@@ -21,12 +22,21 @@ It is an adapter, not the canonical implementation source. The canonical `/room`
 - `docs/room-chat-contract.md`
 - `docs/agent-registry.md`
 - `docs/room-to-debate-handoff.md`
+- `schemas/room-session.schema.json`
+- `schemas/room-to-debate-handoff.schema.json`
 - `prompts/room-selection.md`
 - `prompts/room-chat.md`
 - `prompts/room-summary.md`
 - `prompts/room-upgrade.md`
 
 If this file conflicts with those sources, follow those sources and report the mismatch.
+
+## Self-Contained Path Resolution & Fallback
+
+This skill adapter is 100% self-contained and portable:
+- Primary path resolution uses repo-relative paths (e.g. `docs/...`, `prompts/...`, `schemas/...`).
+- Canonical absolute path fallback: When running outside the repository root or in global host contexts, resolve all referenced files against `/Users/markdonish/round-table-workspace/` (e.g. `/Users/markdonish/round-table-workspace/docs/protocol-spec.md`).
+- All protocols, schemas, and prompt specifications are fully contained within this repository.
 
 ## Trigger Boundary
 

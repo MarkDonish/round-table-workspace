@@ -67,6 +67,9 @@ Each registry entry should expose these portable fields:
 | `performance-specialist` | `Performance` | `defensive` | `grounded` | `moderate` | `no` | `product, planning, strategy` | `simulate, stress_test, converge` | `technical_feasibility, resource_allocation, execution_path, first_principles` |
 | `api-contract-reviewer` | `API Reviewer` | `moderate` | `grounded` | `moderate` | `no` | `product, strategy, planning` | `simulate, converge, decision` | `technical_feasibility, value_proposition, user_experience, execution_path` |
 | `database-auditor` | `DB Auditor` | `defensive` | `grounded` | `dominant` | `no` | `risk, planning, strategy` | `stress_test, converge, decision` | `downside_analysis, technical_feasibility, execution_path, resource_allocation` |
+| `geohot` | `Geohot` | `offensive` | `grounded` | `dominant` | `no` | `product, planning, strategy` | `simulate, converge, decision` | `first_principles, execution_path, technical_feasibility, product_focus, resource_allocation` |
+| `dario-amodei` | `Dario` | `defensive` | `grounded` | `dominant` | `no` | `risk, strategy, learning` | `stress_test, converge, decision` | `downside_analysis, regulatory_risk, technical_feasibility, first_principles, long_term_strategy` |
+| `martin-fowler` | `Fowler` | `defensive` | `grounded` | `moderate` | `no` | `product, planning, strategy` | `simulate, converge, decision` | `technical_feasibility, execution_path, first_principles, product_focus` |
 
 ## Cognitive Lens Overlay
 
@@ -85,6 +88,9 @@ Users may still write `--with Jobs,Taleb`, but the internal mapping is
 | `performance-specialist` | `Performance Specialist` | `computational complexity, concurrency safety, resource leak detection, latency minimization` | `high-throughput paths, database queries, async workflows, resource optimization` | `premature optimization without metrics, speculative architectural rewrites` | Quantify bottlenecks, big-O scaling, I/O blocking, and memory overhead. |
 | `api-contract-reviewer` | `API Contract Reviewer` | `backward compatibility, schema evolution, error surface design, idempotency` | `API design, schema migrations, endpoint changes, public SDK interfaces` | `breaking existing clients, inconsistent error response shapes, undocumented edge cases` | Audit interface contracts, versioning guarantees, and failure payloads. |
 | `database-auditor` | `Database & Migration Auditor` | `migration atomicity, lock contention, index efficiency, data rollback safety` | `schema migrations, SQL alterations, data backfills, indexing changes` | `table-locking migrations in production, irreversible DDL operations without backups` | Verify zero-downtime compatibility, query plans, locks, and rollback scripts. |
+| `geohot` | `Geohot lens` | `minimalist architecture, zero-bloat engineering, ruthless simplification, extreme hacker efficiency` | `codebase bloat reduction, system simplification, lean architecture, hackathon velocity` | `voice imitation, unsupported biographical claims, unnecessary abstraction layers` | Use the zero-bloat hacker architecture lens; do not imitate George Hotz's voice. |
+| `dario-amodei` | `Dario Amodei lens` | `AI capability boundary, prompt injection defense, red-teaming, non-determinism risk, fail-closed safety` | `AI safety review, prompt injection defense, capability boundary analysis, fail-closed system design` | `voice imitation, unverified lab-internal claims, unsupported biographical speculation` | Use the AI safety and capability boundary lens; do not imitate Dario Amodei's voice. |
+| `martin-fowler` | `Martin Fowler lens` | `refactoring patterns, domain boundaries, test pyramid, interface cohesion, anti-cruft architecture` | `codebase refactoring, domain modeling, test coverage design, architectural debt control` | `voice imitation, dogmatic enterprise overhead, unsupported biographical claims` | Use the refactoring and software architecture lens; do not imitate Martin Fowler's voice. |
 
 ---
 

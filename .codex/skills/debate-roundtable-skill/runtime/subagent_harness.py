@@ -22,6 +22,7 @@ from roundtable_core.runtime.subagent_executor import (
     SubagentResult,
     SubagentTask,
     generate_deterministic_blind_argument,
+    sanitize_profile_for_blind_review,
 )
 from roundtable_core.validation import validate_file
 
@@ -111,6 +112,7 @@ def load_participant_profile(agent_id: str) -> tuple[str, str, str, str]:
             f"Focus on practical analysis, identifying missing evidence, and bounding risk."
         )
 
+    profile_text = sanitize_profile_for_blind_review(profile_text)
     return display_name, short_name, responsibility, profile_text
 
 
@@ -447,12 +449,14 @@ class SubagentDebateHarness:
             "updated_at": now,
         }
 
-        # Format complete debate_session
+        # Format complete debate_session conforming to schemas/debate-session.schema.json
         debate_session = {
             "schema_version": "0.1.0",
             "session_id": session_id,
             "workflow": "debate",
-            "status": "completed",
+            "input_source": "direct_debate",
+            "source_room_id": None,
+            "handoff_packet": None,
             "launch_bundle": launch_bundle,
             "selected_panel": selected_panel,
             "agent_arguments": agent_arguments,

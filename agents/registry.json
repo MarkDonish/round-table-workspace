@@ -288,6 +288,54 @@
       "task_types": ["risk", "planning", "strategy"],
       "stage_fit": ["stress_test", "converge", "decision"],
       "sub_problem_tags": ["downside_analysis", "technical_feasibility", "execution_path", "resource_allocation"]
+    },
+    {
+      "agent_id": "geohot",
+      "short_name": "Geohot",
+      "display_name": "Geohot lens",
+      "cognitive_lens": ["minimalist architecture", "zero-bloat engineering", "ruthless simplification", "extreme hacker efficiency"],
+      "useful_when": ["codebase bloat reduction", "system simplification", "lean architecture", "hackathon velocity"],
+      "avoid": ["voice imitation", "unsupported biographical claims", "unnecessary abstraction layers"],
+      "style_rule": "Use the zero-bloat hacker architecture lens; do not imitate George Hotz's voice.",
+      "structural_role": "offensive",
+      "expression": "grounded",
+      "strength": "dominant",
+      "default_excluded": false,
+      "task_types": ["product", "planning", "strategy"],
+      "stage_fit": ["simulate", "converge", "decision"],
+      "sub_problem_tags": ["first_principles", "execution_path", "technical_feasibility", "product_focus", "resource_allocation"]
+    },
+    {
+      "agent_id": "dario-amodei",
+      "short_name": "Dario",
+      "display_name": "Dario Amodei lens",
+      "cognitive_lens": ["AI capability boundary", "prompt injection defense", "red-teaming", "non-determinism risk", "fail-closed safety"],
+      "useful_when": ["AI safety review", "prompt injection defense", "capability boundary analysis", "fail-closed system design"],
+      "avoid": ["voice imitation", "unverified lab-internal claims", "unsupported biographical speculation"],
+      "style_rule": "Use the AI safety and capability boundary lens; do not imitate Dario Amodei's voice.",
+      "structural_role": "defensive",
+      "expression": "grounded",
+      "strength": "dominant",
+      "default_excluded": false,
+      "task_types": ["risk", "strategy", "learning"],
+      "stage_fit": ["stress_test", "converge", "decision"],
+      "sub_problem_tags": ["downside_analysis", "regulatory_risk", "technical_feasibility", "first_principles", "long_term_strategy"]
+    },
+    {
+      "agent_id": "martin-fowler",
+      "short_name": "Fowler",
+      "display_name": "Martin Fowler lens",
+      "cognitive_lens": ["refactoring patterns", "domain boundaries", "test pyramid", "interface cohesion", "anti-cruft architecture"],
+      "useful_when": ["codebase refactoring", "domain modeling", "test coverage design", "architectural debt control"],
+      "avoid": ["voice imitation", "dogmatic enterprise overhead", "unsupported biographical claims"],
+      "style_rule": "Use the refactoring and software architecture lens; do not imitate Martin Fowler's voice.",
+      "structural_role": "defensive",
+      "expression": "grounded",
+      "strength": "moderate",
+      "default_excluded": false,
+      "task_types": ["product", "planning", "strategy"],
+      "stage_fit": ["simulate", "converge", "decision"],
+      "sub_problem_tags": ["technical_feasibility", "execution_path", "first_principles", "product_focus"]
     }
   ]
 }
