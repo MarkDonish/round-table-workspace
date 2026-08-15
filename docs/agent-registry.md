@@ -1,7 +1,7 @@
 # Agent Registry
 
 > Purpose: provide a checked-in, portable registry view for `/room` and `/debate` runtime selection.
-> Last reviewed: 2026-04-21
+> Last reviewed: 2026-08-15
 
 ---
 
@@ -63,6 +63,10 @@ Each registry entry should expose these portable fields:
 | `mrbeast` | `MrBeast` | `offensive` | `grounded` | `dominant` | `no` | `content, product, writing` | `explore, simulate, decision` | `distribution, narrative_construction, user_experience, growth_strategy` |
 | `trump` | `Trump` | `offensive` | `grounded` | `dominant` | `yes` | `content, strategy` | `converge, decision` | `narrative_construction, distribution, team_dynamics` |
 | `justin-sun` | `Sun` | `offensive` | `dramatic` | `dominant` | `no` | `strategy, startup, content` | `explore, simulate, decision` | `market_sizing, competitive_structure, market_timing, narrative_construction, resource_allocation, monetization` |
+| `security-auditor` | `Security` | `defensive` | `grounded` | `dominant` | `no` | `risk, planning, strategy` | `stress_test, converge, decision` | `downside_analysis, regulatory_risk, first_principles, technical_feasibility` |
+| `performance-specialist` | `Performance` | `defensive` | `grounded` | `moderate` | `no` | `product, planning, strategy` | `simulate, stress_test, converge` | `technical_feasibility, resource_allocation, execution_path, first_principles` |
+| `api-contract-reviewer` | `API Reviewer` | `moderate` | `grounded` | `moderate` | `no` | `product, strategy, planning` | `simulate, converge, decision` | `technical_feasibility, value_proposition, user_experience, execution_path` |
+| `database-auditor` | `DB Auditor` | `defensive` | `grounded` | `dominant` | `no` | `risk, planning, strategy` | `stress_test, converge, decision` | `downside_analysis, technical_feasibility, execution_path, resource_allocation` |
 
 ## Cognitive Lens Overlay
 
@@ -77,6 +81,10 @@ Users may still write `--with Jobs,Taleb`, but the internal mapping is
 | `taleb` | `Taleb lens` | `tail risk, fragility, skin in the game` | `downside risk, fragile assumptions, asymmetric payoff` | `voice imitation, insult style, unverified claims about Taleb` | Use the risk lens; do not imitate Nassim Taleb's voice. |
 | `munger` | `Munger lens` | `incentives, inversion, downside control` | `kill rules, decision filters, risk review` | `voice imitation, quotes presented as fact without source` | Use the mental-model lens; do not imitate Charlie Munger's voice. |
 | `karpathy` | `Karpathy lens` | `technical feasibility, learning loops, system simplicity` | `AI product loop, implementation thin slice, education workflow` | `voice imitation, claiming private views` | Use the technical-learning lens; do not imitate Andrej Karpathy's voice. |
+| `security-auditor` | `Security Auditor` | `vulnerability audit, secret hygiene, defensive boundary, least privilege` | `auth review, secret handling, user input validation, dependency risk` | `ignoring threat models, generic hand-waving, missing rollback path` | Focus on attack vectors, OWASP vulnerabilities, and blast radius control. |
+| `performance-specialist` | `Performance Specialist` | `computational complexity, concurrency safety, resource leak detection, latency minimization` | `high-throughput paths, database queries, async workflows, resource optimization` | `premature optimization without metrics, speculative architectural rewrites` | Quantify bottlenecks, big-O scaling, I/O blocking, and memory overhead. |
+| `api-contract-reviewer` | `API Contract Reviewer` | `backward compatibility, schema evolution, error surface design, idempotency` | `API design, schema migrations, endpoint changes, public SDK interfaces` | `breaking existing clients, inconsistent error response shapes, undocumented edge cases` | Audit interface contracts, versioning guarantees, and failure payloads. |
+| `database-auditor` | `Database & Migration Auditor` | `migration atomicity, lock contention, index efficiency, data rollback safety` | `schema migrations, SQL alterations, data backfills, indexing changes` | `table-locking migrations in production, irreversible DDL operations without backups` | Verify zero-downtime compatibility, query plans, locks, and rollback scripts. |
 
 ---
 

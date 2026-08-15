@@ -70,6 +70,8 @@ def dispatch(args: argparse.Namespace, parser: argparse.ArgumentParser) -> int:
         return run_ship_check(args)
     if args.command == "launch-kit":
         return run_launch_kit(args)
+    if args.command == "mcp":
+        return run_mcp(args)
     if args.command == "room":
         if args.stub:
             return print_stub("room", " ".join(args.question), args.state_root, args=args)
@@ -152,7 +154,11 @@ def build_parser() -> argparse.ArgumentParser:
         "ship-check",
         help="Run a local ship/revise/reject decision gate for AI-generated work.",
     )
-    ship_check.add_argument("question", nargs="+", help="Change, feature, or launch decision to review before shipping.")
+    ship_check.add_argument("question", nargs="*", default=[], help="Change, feature, or launch decision to review before shipping.")
+    ship_check.add_argument("--diff", action="store_true", help="Inspect unstaged git diff in current repository.")
+    ship_check.add_argument("--staged", action="store_true", help="Inspect staged git diff in current repository.")
+    ship_check.add_argument("--cwd", help="Target repository working directory for Git inspection.")
+    ship_check.add_argument("--with-role", action="append", dest="roles", help="Explicit reviewer roles to include in the review panel.")
     add_output_args(ship_check, suppress_defaults=True)
 
     launch_kit = subparsers.add_parser(
@@ -221,6 +227,12 @@ def build_parser() -> argparse.ArgumentParser:
     add_agent_registry_arg(agent_disable)
     agent_disable.add_argument("agent_id")
     add_output_args(agent_disable, suppress_defaults=True)
+
+    mcp = subparsers.add_parser(
+        "mcp",
+        help="Start the Model Context Protocol (MCP) stdio JSON-RPC server.",
+    )
+    mcp.add_argument("action", nargs="?", default="serve", choices=["serve"], help="Action to run (default: serve).")
 
     return parser
 
@@ -380,10 +392,19 @@ def run_debate(args: argparse.Namespace) -> int:
 
 
 def run_ship_check(args: argparse.Namespace) -> int:
-    question = " ".join(args.question)
-    payload = build_ship_check_payload(question)
+    question = " ".join(args.question) if getattr(args, "question", None) else ""
+    diff = bool(getattr(args, "diff", False))
+    staged = bool(getattr(args, "staged", False))
+    cwd = getattr(args, "cwd", None)
+    roles = getattr(args, "roles", None)
+    payload = build_ship_check_payload(question, diff=diff, staged=staged, cwd=cwd, roles=roles)
     emit_payload(args, payload, markdown=render_ship_check_summary(payload))
     return exit_code_for_payload(payload)
+
+
+def run_mcp(args: argparse.Namespace) -> int:
+    from roundtable_core.mcp.server import run_mcp_server
+    return run_mcp_server()
 
 
 def run_launch_kit(args: argparse.Namespace) -> int:
@@ -601,7 +622,108 @@ def dedupe_preserving_order(items: list[str]) -> list[str]:
     return unique
 
 
-def build_ship_check_payload(question: str) -> dict[str, object]:
+def build_ship_check_payload(
+    question: str,
+    *,
+    diff: bool = False,
+    staged: bool = False,
+    cwd: str | None = None,
+    roles: list[str] | None = None,
+) -> dict[str, object]:
+    if diff or staged or cwd or (not question and not roles):
+        from roundtable_core.git.diff_inspector import inspect_git_diff
+        from roundtable_core.git.heuristic_router import recommend_panel_for_diff
+
+        diff_res = inspect_git_diff(cwd, staged=staged, include_untracked=True)
+        recommended = recommend_panel_for_diff(diff_res)
+        selected_roles = roles if roles else recommended.roles
+
+        panel_votes = []
+        for role in selected_roles:
+            vote = "ship"
+            reason = "The change is small enough to ship when tests and local validation pass."
+            if role in ("security-auditor", "security"):
+                if "security_auth" in diff_res.categories:
+                    vote = "revise"
+                    reason = "Auth/secret files modified. Verify sanitization, rate limiting, and zero credential leakage."
+                else:
+                    vote = "ship"
+                    reason = "No high-risk secret or auth boundaries compromised."
+            elif role in ("database-auditor", "db"):
+                if "database_migration" in diff_res.categories:
+                    vote = "revise"
+                    reason = "Database schema/migration changed. Ensure zero-downtime compatibility and verify rollback scripts."
+                else:
+                    vote = "ship"
+                    reason = "No database table locks or dangerous DDL operations detected."
+            elif role in ("risk", "taleb", "munger"):
+                if diff_res.insertions > 300 or len(diff_res.changed_files) > 10:
+                    vote = "revise"
+                    reason = "Large change footprint (+%d lines). Recommend breaking down into smaller reviewable slices." % diff_res.insertions
+                else:
+                    vote = "revise"
+                    reason = "Claim boundaries and rollback notes should be explicit before launch copy is promoted."
+            elif role in ("product", "jobs"):
+                vote = "revise"
+                reason = "The user value should be stated as an observable outcome before shipping."
+            elif role in ("user-advocate", "feynman"):
+                vote = "revise"
+                reason = "The public README should show a concrete before/after example, not only architecture language."
+            elif role in ("api-contract-reviewer", "api"):
+                if "api_endpoint" in diff_res.categories:
+                    vote = "revise"
+                    reason = "API surface modified. Confirm backward compatibility for existing client requests."
+                else:
+                    vote = "ship"
+                    reason = "No breaking API interface changes detected."
+            else:
+                vote = "ship"
+                reason = f"Role '{role}' reviewed and concurred with the implementation path."
+
+            panel_votes.append({"agent": role, "vote": vote, "reason": reason})
+
+        revise_count = sum(1 for v in panel_votes if v["vote"] == "revise")
+        reject_count = sum(1 for v in panel_votes if v["vote"] == "reject")
+        decision = "reject" if reject_count > 0 else ("revise" if revise_count > 0 else "ship")
+
+        risks = [
+            "Overclaiming host-live or provider-live behavior without fresh validation evidence.",
+            "README positioning may stay too abstract for first-time visitors.",
+            "A single-agent answer can miss product, risk, and user-readiness tradeoffs.",
+        ]
+        if "security_auth" in diff_res.categories:
+            risks.append("Modified security/auth configuration without end-to-end negative testing.")
+        if "database_migration" in diff_res.categories:
+            risks.append("Database schema migration could lead to table locking or irreversible data alteration.")
+
+        return {
+            "ok": True,
+            "action": "ship-check",
+            "status": "fixture_backed",
+            "question": question or ("Inspect git changes" if not staged else "Inspect staged git changes"),
+            "decision": decision,
+            "confidence": "medium",
+            "summary": "Useful enough to continue, but revise positioning, evidence, and user-facing examples before claiming it is launch-ready.",
+            "panel_votes": panel_votes,
+            "diff_summary": diff_res.summary_text,
+            "categories": diff_res.categories,
+            "risks": risks,
+            "missing_evidence": [
+                "Fresh test run for the current checkout.",
+                "A visible demo transcript or screenshot for the public launch surface.",
+                "A short rollback or revision path if launch feedback is weak.",
+            ],
+            "next_actions": [
+                "Run ./rtw doctor --quick and the unit test suite.",
+                "Add one concrete demo transcript or screenshot to the README.",
+                "Keep public claims local-first unless host-live/provider-live evidence exists.",
+            ],
+            "claim_boundary": [
+                "ship-check is a fixture-backed local ship/revise/reject decision gate, not a host-live or provider-live agent execution claim.",
+                "Use it as a pre-ship review scaffold; verify with project-specific tests before merging or releasing.",
+            ],
+        }
+
     panel_votes = [
         {
             "agent": "product",

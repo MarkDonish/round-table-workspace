@@ -101,6 +101,10 @@ agent as if the real person is present or speaking.
 | `mrbeast` | `MrBeast` | `offensive` | `grounded` | `dominant` | `no` | `content, product, writing` | `explore, simulate, decision` | `distribution, narrative_construction, user_experience, growth_strategy` |
 | `trump` | `Trump` | `offensive` | `grounded` | `dominant` | `yes` | `content, strategy` | `converge, decision` | `narrative_construction, distribution, team_dynamics` |
 | `justin-sun` | `Sun` | `offensive` | `dramatic` | `dominant` | `no` | `strategy, startup, content` | `explore, simulate, decision` | `market_sizing, competitive_structure, market_timing, narrative_construction, resource_allocation, monetization` |
+| `security-auditor` | `Security` | `defensive` | `grounded` | `dominant` | `no` | `risk, planning, strategy` | `stress_test, converge, decision` | `downside_analysis, regulatory_risk, first_principles, technical_feasibility` |
+| `performance-specialist` | `Performance` | `defensive` | `grounded` | `moderate` | `no` | `product, planning, strategy` | `simulate, stress_test, converge` | `technical_feasibility, resource_allocation, execution_path, first_principles` |
+| `api-contract-reviewer` | `API Reviewer` | `moderate` | `grounded` | `moderate` | `no` | `product, strategy, planning` | `simulate, converge, decision` | `technical_feasibility, value_proposition, user_experience, execution_path` |
+| `database-auditor` | `DB Auditor` | `defensive` | `grounded` | `dominant` | `no` | `risk, planning, strategy` | `stress_test, converge, decision` | `downside_analysis, technical_feasibility, execution_path, resource_allocation` |
 
 Allowed `sub_problem_tags`:
 

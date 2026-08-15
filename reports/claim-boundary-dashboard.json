@@ -1,9 +1,9 @@
 {
   "ok": true,
   "action": "claim-boundary-dashboard",
-  "generated_at": "2026-07-15T02:19:31Z",
-  "source_commit": "8d60ea5d6b786c30f41a39409d94fe1e1e5a2b50",
-  "stale_after": "2026-07-22T02:19:31Z",
+  "generated_at": "2026-08-15T00:03:49Z",
+  "source_commit": "9aeffedc638c66d8e23cdcd3a1f3c9456c609503+dirty",
+  "stale_after": "2026-08-22T00:03:49Z",
   "machine_scope": "local-machine-redacted",
   "account_scope": "not_collected",
   "source": {
@@ -21,12 +21,12 @@
       "claimable_host_live": [],
       "missing_host_cli": [
         "gemini_cli",
-        "opencode",
         "aider",
         "goose"
       ],
       "blocked_host_live": [],
       "pending_host_live": [
+        "opencode",
         "cursor_agent"
       ],
       "skipped_host_live": [],
@@ -96,9 +96,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-15T02:19:31Z",
-        "stale_after": "2026-07-22T02:19:31Z",
-        "source_commit": "8d60ea5d6b786c30f41a39409d94fe1e1e5a2b50",
+        "generated_at": "2026-08-15T00:03:49Z",
+        "stale_after": "2026-08-22T00:03:49Z",
+        "source_commit": "9aeffedc638c66d8e23cdcd3a1f3c9456c609503+dirty",
         "artifact_paths": [
           "<state-root>/release-check/release-check.json",
           "<state-root>/release-check/release-check.md"
@@ -123,7 +123,7 @@
         "claimable": false,
         "evidence_status": "historical_only",
         "historical_reason": "checked-in host-live report lacks fresh structured provenance; rerun claude_code_live_validation.py before making a current host-live claim",
-        "report_mtime": "2026-04-28T11:24:32Z"
+        "report_mtime": "2026-06-01T08:40:04Z"
       },
       "evidence_record": {
         "evidence_kind": "claim_boundary_lane",
@@ -135,9 +135,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-15T02:19:31Z",
-        "stale_after": "2026-07-22T02:19:31Z",
-        "source_commit": "8d60ea5d6b786c30f41a39409d94fe1e1e5a2b50",
+        "generated_at": "2026-08-15T00:03:49Z",
+        "stale_after": "2026-08-22T00:03:49Z",
+        "source_commit": "9aeffedc638c66d8e23cdcd3a1f3c9456c609503+dirty",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md",
@@ -154,7 +154,7 @@
           "claimable": false,
           "evidence_status": "historical_only",
           "historical_reason": "checked-in host-live report lacks fresh structured provenance; rerun claude_code_live_validation.py before making a current host-live claim",
-          "report_mtime": "2026-04-28T11:24:32Z"
+          "report_mtime": "2026-06-01T08:40:04Z"
         },
         "claimable": false,
         "claim_text": "historical_evidence_not_current_claim"
@@ -175,9 +175,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-15T02:19:31Z",
-        "stale_after": "2026-07-22T02:19:31Z",
-        "source_commit": "8d60ea5d6b786c30f41a39409d94fe1e1e5a2b50",
+        "generated_at": "2026-08-15T00:03:49Z",
+        "stale_after": "2026-08-22T00:03:49Z",
+        "source_commit": "9aeffedc638c66d8e23cdcd3a1f3c9456c609503+dirty",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"
@@ -189,22 +189,22 @@
     },
     {
       "lane": "host:opencode",
-      "status": "not_configured",
+      "status": "pending_live_validation",
       "claim": "not_claimed",
-      "evidence": "Install `opencode` or skip this host on this machine.",
+      "evidence": "Run the recommended validation command, or rerun this matrix with --run-live-ready/--run-installed.",
       "evidence_record": {
         "evidence_kind": "claim_boundary_lane",
         "evidence_source": "scripts/claim_boundary_dashboard.py",
         "validator": "live_lane_evidence_report.py",
         "lane": "host:opencode",
-        "status": "not_configured",
+        "status": "pending_live_validation",
         "host_id": "opencode",
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-15T02:19:31Z",
-        "stale_after": "2026-07-22T02:19:31Z",
-        "source_commit": "8d60ea5d6b786c30f41a39409d94fe1e1e5a2b50",
+        "generated_at": "2026-08-15T00:03:49Z",
+        "stale_after": "2026-08-22T00:03:49Z",
+        "source_commit": "9aeffedc638c66d8e23cdcd3a1f3c9456c609503+dirty",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"
@@ -229,9 +229,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-15T02:19:31Z",
-        "stale_after": "2026-07-22T02:19:31Z",
-        "source_commit": "8d60ea5d6b786c30f41a39409d94fe1e1e5a2b50",
+        "generated_at": "2026-08-15T00:03:49Z",
+        "stale_after": "2026-08-22T00:03:49Z",
+        "source_commit": "9aeffedc638c66d8e23cdcd3a1f3c9456c609503+dirty",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"
@@ -256,9 +256,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-15T02:19:31Z",
-        "stale_after": "2026-07-22T02:19:31Z",
-        "source_commit": "8d60ea5d6b786c30f41a39409d94fe1e1e5a2b50",
+        "generated_at": "2026-08-15T00:03:49Z",
+        "stale_after": "2026-08-22T00:03:49Z",
+        "source_commit": "9aeffedc638c66d8e23cdcd3a1f3c9456c609503+dirty",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"
@@ -283,9 +283,9 @@
         "provider_id": null,
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-15T02:19:31Z",
-        "stale_after": "2026-07-22T02:19:31Z",
-        "source_commit": "8d60ea5d6b786c30f41a39409d94fe1e1e5a2b50",
+        "generated_at": "2026-08-15T00:03:49Z",
+        "stale_after": "2026-08-22T00:03:49Z",
+        "source_commit": "9aeffedc638c66d8e23cdcd3a1f3c9456c609503+dirty",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"
@@ -310,9 +310,9 @@
         "provider_id": "chat_completions",
         "machine_scope": "local-machine-redacted",
         "account_scope": "not_collected",
-        "generated_at": "2026-07-15T02:19:31Z",
-        "stale_after": "2026-07-22T02:19:31Z",
-        "source_commit": "8d60ea5d6b786c30f41a39409d94fe1e1e5a2b50",
+        "generated_at": "2026-08-15T00:03:49Z",
+        "stale_after": "2026-08-22T00:03:49Z",
+        "source_commit": "9aeffedc638c66d8e23cdcd3a1f3c9456c609503+dirty",
         "artifact_paths": [
           "<state-root>/live-lane-evidence-report.json",
           "<state-root>/live-lane-evidence-report.md"

@@ -7,6 +7,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from roundtable_core.protocol.handoff import portable_handoff_to_runtime_packet, runtime_packet_to_portable_handoff
 from roundtable_core.protocol.projections import (
     project_debate_artifacts_to_result,
@@ -15,8 +19,6 @@ from roundtable_core.protocol.projections import (
 )
 from roundtable_core.validation import validate_file
 
-
-REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 class ProtocolRuntimeClosureTest(unittest.TestCase):
