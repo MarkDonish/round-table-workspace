@@ -84,6 +84,13 @@ def get_default_provider_config(
     )
 
 
+def _sanitize_error(msg: str) -> str:
+    # Redact Bearer tokens and API keys (sk-..., etc.)
+    redacted = re.sub(r"(Bearer\s+)[A-Za-z0-9_\-\.]{8,}", r"\1[REDACTED]", msg)
+    redacted = re.sub(r"sk-[A-Za-z0-9_\-\.]{12,}", "sk-[REDACTED]", redacted)
+    return redacted
+
+
 def call_chat_completion(
     messages: list[dict[str, str]],
     config: ProviderConfig,
@@ -113,10 +120,11 @@ def call_chat_completion(
             body = response.read().decode("utf-8")
             return json.loads(body)
     except urllib.error.HTTPError as err:
-        err_msg = err.read().decode("utf-8", errors="replace")
+        err_msg = _sanitize_error(err.read().decode("utf-8", errors="replace"))
         raise RuntimeError(f"HTTP {err.code} from {url}: {err_msg}") from err
     except Exception as exc:
-        raise RuntimeError(f"Failed to connect to LLM provider at {url}: {exc}") from exc
+        clean_exc = _sanitize_error(str(exc))
+        raise RuntimeError(f"Failed to connect to LLM provider at {url}: {clean_exc}") from exc
 
 
 def _render_role_system_prompt(role: str) -> str:
@@ -188,11 +196,12 @@ def _review_single_role(
             "model": config.model,
         }
     except Exception as exc:
+        clean_err = _sanitize_error(str(exc))
         return {
             "agent": role,
             "vote": "revise",
-            "reason": f"Live LLM call error: {exc}",
-            "error": str(exc),
+            "reason": f"Live LLM call error: {clean_err}",
+            "error": clean_err,
         }
 
 

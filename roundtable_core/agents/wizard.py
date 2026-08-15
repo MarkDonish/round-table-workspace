@@ -92,13 +92,14 @@ def create_agent_bundle(
         enable=True,
     )
 
-    # 4. Sync to local user skills directories if present
-    for host_dir in [Path.home() / ".codex" / "skills", Path.home() / ".agents" / "skills"]:
-        if host_dir.exists():
-            target_skill_dir = host_dir / skill_name
-            target_skill_dir.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(profile_path, target_skill_dir / "roundtable-profile.md")
-            shutil.copy2(manifest_path, target_skill_dir / "manifest.json")
+    # 4. Sync to local user skills directories if present (only when running against real repo)
+    if repo_root is None:
+        for host_dir in [Path.home() / ".codex" / "skills", Path.home() / ".agents" / "skills"]:
+            if host_dir.exists():
+                target_skill_dir = host_dir / skill_name
+                target_skill_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(profile_path, target_skill_dir / "roundtable-profile.md")
+                shutil.copy2(manifest_path, target_skill_dir / "manifest.json")
 
     return {
         "ok": True,
