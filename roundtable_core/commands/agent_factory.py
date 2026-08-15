@@ -79,6 +79,35 @@ def run_agent_disable(*, registry: str | None = None, agent_id: str) -> dict[str
     )
 
 
+def run_agent_wizard(
+    *,
+    agent_id: str,
+    display_name: str | None = None,
+    short_name: str | None = None,
+    structural_role: str = "moderate",
+    strength: str = "Domain analysis and review",
+    expression: str = "Structured and objective",
+    cognitive_lens: list[str] | None = None,
+    useful_when: list[str] | None = None,
+    avoid: list[str] | None = None,
+) -> dict[str, Any]:
+    from roundtable_core.agents.wizard import create_agent_bundle
+
+    d_name = display_name or agent_id.replace("-", " ").title()
+    s_name = short_name or d_name.split()[0]
+    return create_agent_bundle(
+        agent_id=agent_id,
+        display_name=d_name,
+        short_name=s_name,
+        structural_role=structural_role,
+        strength=strength,
+        expression=expression,
+        cognitive_lens=cognitive_lens,
+        useful_when=useful_when,
+        avoid=avoid,
+    )
+
+
 def looks_like_manifest_path(target: str) -> bool:
     return target.endswith(".json") or "/" in target or "\\" in target
 

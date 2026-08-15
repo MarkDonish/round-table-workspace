@@ -5,6 +5,7 @@ from .agent_factory import (
     run_agent_list,
     run_agent_register,
     run_agent_validate,
+    run_agent_wizard,
 )
 from .runtime import (
     build_stub_payload,
@@ -28,6 +29,7 @@ __all__ = [
     "run_agent_list",
     "run_agent_register",
     "run_agent_validate",
+    "run_agent_wizard",
     "run_debate_fixture",
     "run_golden_demo",
     "run_room_fixture",

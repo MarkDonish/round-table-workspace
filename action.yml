@@ -1,0 +1,51 @@
+name: "Round Table Workspace PR Review Gate"
+description: "Run multi-agent round-table review (ship / revise / reject) on Pull Request code diffs before merging."
+author: "Mark Donish"
+branding:
+  icon: "check-circle"
+  color: "blue"
+
+inputs:
+  github_token:
+    description: "GitHub Token for posting review comments on the PR"
+    required: false
+    default: "${{ github.token }}"
+  fail_on_reject:
+    description: "Fail the workflow if the round-table decision is REJECT"
+    required: false
+    default: "true"
+  fail_on_revise:
+    description: "Fail the workflow if the round-table decision is REVISE"
+    required: false
+    default: "false"
+  staged_only:
+    description: "Inspect staged changes only"
+    required: false
+    default: "false"
+
+outputs:
+  decision:
+    description: "The final review decision: ship, revise, or reject"
+    value: "${{ steps.run-rtw.outputs.decision }}"
+  summary:
+    description: "Markdown summary of the round table panel review"
+    value: "${{ steps.run-rtw.outputs.summary }}"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Run Round Table Review
+      id: run-rtw
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        FAIL_ON_REJECT: ${{ inputs.fail_on_reject }}
+        FAIL_ON_REVISE: ${{ inputs.fail_on_revise }}
+      run: |
+        python3 -m roundtable.cli ship-check --diff --json --output-json rtw-result.json --output-markdown rtw-summary.md
+        python3 scripts/github_pr_review.py --result-json rtw-result.json --markdown rtw-summary.md

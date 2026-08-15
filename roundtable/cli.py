@@ -16,6 +16,7 @@ from roundtable_core.commands import (
     run_agent_list,
     run_agent_register,
     run_agent_validate,
+    run_agent_wizard,
     run_debate_fixture,
     run_golden_demo,
     run_room_fixture,
@@ -159,6 +160,9 @@ def build_parser() -> argparse.ArgumentParser:
     ship_check.add_argument("--staged", action="store_true", help="Inspect staged git diff in current repository.")
     ship_check.add_argument("--cwd", help="Target repository working directory for Git inspection.")
     ship_check.add_argument("--with-role", action="append", dest="roles", help="Explicit reviewer roles to include in the review panel.")
+    ship_check.add_argument("--live", action="store_true", help="Execute real concurrent multi-LLM review calls across panel roles.")
+    ship_check.add_argument("--provider", choices=["deepseek", "ollama", "openai", "openrouter"], help="LLM provider for live execution.")
+    ship_check.add_argument("--model", help="Override specific LLM model name for live execution.")
     add_output_args(ship_check, suppress_defaults=True)
 
     launch_kit = subparsers.add_parser(
@@ -227,6 +231,19 @@ def build_parser() -> argparse.ArgumentParser:
     add_agent_registry_arg(agent_disable)
     agent_disable.add_argument("agent_id")
     add_output_args(agent_disable, suppress_defaults=True)
+
+    agent_wizard = agent_subparsers.add_parser("wizard", help="Interactively generate and register a new round-table persona bundle.")
+    add_agent_registry_arg(agent_wizard)
+    agent_wizard.add_argument("agent_id", help="Unique identifier for the new agent (e.g. 'security-auditor').")
+    agent_wizard.add_argument("--name", dest="display_name", help="Display name (e.g. 'Security Auditor').")
+    agent_wizard.add_argument("--short-name", help="Short name (e.g. 'SecAuditor').")
+    agent_wizard.add_argument("--role", dest="structural_role", default="moderate", choices=["offensive", "defensive", "moderate"], help="Structural debate role.")
+    agent_wizard.add_argument("--strength", help="Core capability and analytical strength.")
+    agent_wizard.add_argument("--expression", help="Communication tone and expression style.")
+    agent_wizard.add_argument("--lens", action="append", dest="cognitive_lens", help="Cognitive lens bullet points.")
+    agent_wizard.add_argument("--useful-when", action="append", dest="useful_when", help="Useful when conditions.")
+    agent_wizard.add_argument("--avoid", action="append", dest="avoid", help="Avoid / counter-signals.")
+    add_output_args(agent_wizard, suppress_defaults=True)
 
     mcp = subparsers.add_parser(
         "mcp",
@@ -367,6 +384,18 @@ def run_agent(args: argparse.Namespace) -> int:
         )
     elif args.agent_command == "disable":
         payload = run_agent_disable(registry=args.registry, agent_id=args.agent_id)
+    elif args.agent_command == "wizard":
+        payload = run_agent_wizard(
+            agent_id=args.agent_id,
+            display_name=getattr(args, "display_name", None),
+            short_name=getattr(args, "short_name", None),
+            structural_role=getattr(args, "structural_role", "moderate"),
+            strength=getattr(args, "strength", "Domain analysis and review"),
+            expression=getattr(args, "expression", "Structured and objective"),
+            cognitive_lens=getattr(args, "cognitive_lens", None),
+            useful_when=getattr(args, "useful_when", None),
+            avoid=getattr(args, "avoid", None),
+        )
     else:
         return EXIT_USAGE_OR_CONFIG
     emit_payload(args, payload, markdown=render_payload_summary(payload))
@@ -397,8 +426,34 @@ def run_ship_check(args: argparse.Namespace) -> int:
     staged = bool(getattr(args, "staged", False))
     cwd = getattr(args, "cwd", None)
     roles = getattr(args, "roles", None)
-    payload = build_ship_check_payload(question, diff=diff, staged=staged, cwd=cwd, roles=roles)
-    emit_payload(args, payload, markdown=render_ship_check_summary(payload))
+    live = bool(getattr(args, "live", False))
+    provider = getattr(args, "provider", None)
+    model = getattr(args, "model", None)
+
+    payload = build_ship_check_payload(
+        question,
+        diff=diff,
+        staged=staged,
+        cwd=cwd,
+        roles=roles,
+        live=live,
+        provider=provider,
+        model=model,
+    )
+
+    if not getattr(args, "json", False) and not getattr(args, "quiet", False) and sys.stdout.isatty():
+        from roundtable_core.ui.formatter import format_ship_check_terminal
+
+        print(format_ship_check_terminal(payload))
+        if getattr(args, "output_json", None):
+            write_json_file(Path(args.output_json).expanduser(), payload)
+        if getattr(args, "output_markdown", None):
+            write_text_file(
+                Path(args.output_markdown).expanduser(),
+                render_ship_check_summary(payload).rstrip() + "\n",
+            )
+    else:
+        emit_payload(args, payload, markdown=render_ship_check_summary(payload))
     return exit_code_for_payload(payload)
 
 
@@ -629,8 +684,11 @@ def build_ship_check_payload(
     staged: bool = False,
     cwd: str | None = None,
     roles: list[str] | None = None,
+    live: bool = False,
+    provider: str | None = None,
+    model: str | None = None,
 ) -> dict[str, object]:
-    if diff or staged or cwd or (not question and not roles):
+    if diff or staged or cwd or live or (not question and not roles):
         from roundtable_core.git.diff_inspector import inspect_git_diff
         from roundtable_core.git.heuristic_router import recommend_panel_for_diff
 
@@ -638,52 +696,66 @@ def build_ship_check_payload(
         recommended = recommend_panel_for_diff(diff_res)
         selected_roles = roles if roles else recommended.roles
 
-        panel_votes = []
-        for role in selected_roles:
-            vote = "ship"
-            reason = "The change is small enough to ship when tests and local validation pass."
-            if role in ("security-auditor", "security"):
-                if "security_auth" in diff_res.categories:
-                    vote = "revise"
-                    reason = "Auth/secret files modified. Verify sanitization, rate limiting, and zero credential leakage."
-                else:
-                    vote = "ship"
-                    reason = "No high-risk secret or auth boundaries compromised."
-            elif role in ("database-auditor", "db"):
-                if "database_migration" in diff_res.categories:
-                    vote = "revise"
-                    reason = "Database schema/migration changed. Ensure zero-downtime compatibility and verify rollback scripts."
-                else:
-                    vote = "ship"
-                    reason = "No database table locks or dangerous DDL operations detected."
-            elif role in ("risk", "taleb", "munger"):
-                if diff_res.insertions > 300 or len(diff_res.changed_files) > 10:
-                    vote = "revise"
-                    reason = "Large change footprint (+%d lines). Recommend breaking down into smaller reviewable slices." % diff_res.insertions
-                else:
-                    vote = "revise"
-                    reason = "Claim boundaries and rollback notes should be explicit before launch copy is promoted."
-            elif role in ("product", "jobs"):
-                vote = "revise"
-                reason = "The user value should be stated as an observable outcome before shipping."
-            elif role in ("user-advocate", "feynman"):
-                vote = "revise"
-                reason = "The public README should show a concrete before/after example, not only architecture language."
-            elif role in ("api-contract-reviewer", "api"):
-                if "api_endpoint" in diff_res.categories:
-                    vote = "revise"
-                    reason = "API surface modified. Confirm backward compatibility for existing client requests."
-                else:
-                    vote = "ship"
-                    reason = "No breaking API interface changes detected."
-            else:
+        if live:
+            from roundtable_core.providers.client import get_default_provider_config, run_live_panel_review
+
+            provider_config = get_default_provider_config(provider=provider, model=model)
+            diff_text = diff_res.raw_diff if (diff or staged or cwd) else ""
+            panel_votes = run_live_panel_review(
+                question=question or "Pre-merge codebase review",
+                diff_context=diff_text or diff_res.summary_text,
+                roles=selected_roles,
+                config=provider_config,
+            )
+            status = "live_executed"
+        else:
+            status = "fixture_backed"
+            panel_votes = []
+            for role in selected_roles:
                 vote = "ship"
-                reason = f"Role '{role}' reviewed and concurred with the implementation path."
+                reason = "The change is small enough to ship when tests and local validation pass."
+                if role in ("security-auditor", "security"):
+                    if "security_auth" in diff_res.categories:
+                        vote = "revise"
+                        reason = "Auth/secret files modified. Verify sanitization, rate limiting, and zero credential leakage."
+                    else:
+                        vote = "ship"
+                        reason = "No high-risk secret or auth boundaries compromised."
+                elif role in ("database-auditor", "db"):
+                    if "database_migration" in diff_res.categories:
+                        vote = "revise"
+                        reason = "Database schema/migration changed. Ensure zero-downtime compatibility and verify rollback scripts."
+                    else:
+                        vote = "ship"
+                        reason = "No database table locks or dangerous DDL operations detected."
+                elif role in ("risk", "taleb", "munger"):
+                    if diff_res.insertions > 300 or len(diff_res.changed_files) > 10:
+                        vote = "revise"
+                        reason = "Large change footprint (+%d lines). Recommend breaking down into smaller reviewable slices." % diff_res.insertions
+                    else:
+                        vote = "revise"
+                        reason = "Claim boundaries and rollback notes should be explicit before launch copy is promoted."
+                elif role in ("product", "jobs"):
+                    vote = "revise"
+                    reason = "The user value should be stated as an observable outcome before shipping."
+                elif role in ("user-advocate", "feynman"):
+                    vote = "revise"
+                    reason = "The public README should show a concrete before/after example, not only architecture language."
+                elif role in ("api-contract-reviewer", "api"):
+                    if "api_endpoint" in diff_res.categories:
+                        vote = "revise"
+                        reason = "API surface modified. Confirm backward compatibility for existing client requests."
+                    else:
+                        vote = "ship"
+                        reason = "No breaking API interface changes detected."
+                else:
+                    vote = "ship"
+                    reason = f"Role '{role}' reviewed and concurred with the implementation path."
 
-            panel_votes.append({"agent": role, "vote": vote, "reason": reason})
+                panel_votes.append({"agent": role, "vote": vote, "reason": reason})
 
-        revise_count = sum(1 for v in panel_votes if v["vote"] == "revise")
-        reject_count = sum(1 for v in panel_votes if v["vote"] == "reject")
+        revise_count = sum(1 for v in panel_votes if v.get("vote") == "revise")
+        reject_count = sum(1 for v in panel_votes if v.get("vote") == "reject")
         decision = "reject" if reject_count > 0 else ("revise" if revise_count > 0 else "ship")
 
         risks = [
@@ -699,10 +771,10 @@ def build_ship_check_payload(
         return {
             "ok": True,
             "action": "ship-check",
-            "status": "fixture_backed",
+            "status": status,
             "question": question or ("Inspect git changes" if not staged else "Inspect staged git changes"),
             "decision": decision,
-            "confidence": "medium",
+            "confidence": "medium" if not live else "high",
             "summary": "Useful enough to continue, but revise positioning, evidence, and user-facing examples before claiming it is launch-ready.",
             "panel_votes": panel_votes,
             "diff_summary": diff_res.summary_text,
@@ -719,8 +791,8 @@ def build_ship_check_payload(
                 "Keep public claims local-first unless host-live/provider-live evidence exists.",
             ],
             "claim_boundary": [
-                "ship-check is a fixture-backed local ship/revise/reject decision gate, not a host-live or provider-live agent execution claim.",
-                "Use it as a pre-ship review scaffold; verify with project-specific tests before merging or releasing.",
+                "ship-check evaluates pre-ship code changes using specified panel reviewers and claim boundary gates.",
+                "Verify with project-specific tests before merging or releasing.",
             ],
         }
 
