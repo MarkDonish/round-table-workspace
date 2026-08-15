@@ -248,16 +248,26 @@ Full 模式必须基于审查包审核：
 执行时优先遵循这些项目文件：
 
 - `AGENTS.md`
+- `docs/protocol-spec.md`
 - `docs/debate-skill-architecture.md`
-- `docs/agent-role-map.md`
 - `docs/reviewer-protocol.md`
-- `docs/red-flags.md`
+- `docs/decision-quality-rubric.md`
 - `docs/room-to-debate-handoff.md`
+- `schemas/debate-session.schema.json`
+- `schemas/debate-result.schema.json`
+- `schemas/room-to-debate-handoff.schema.json`
 - `prompts/debate-roundtable.md`
 - `prompts/debate-reviewer.md`
 - `prompts/debate-followup.md`
 
 如果输入是 `/room` handoff，则 `docs/room-to-debate-handoff.md` 是 packet 解释层的直接真源。
+
+### 路径与环境自包含规范
+
+本 skill 保证 100% 自包含与环境可移植：
+- 首选仓库相对路径（如 `docs/...`、`prompts/...`、`schemas/...`）
+- 规范绝对路径回退（Canonical Absolute Fallback）：当在宿主外部或非仓库根目录下调用时，统一回退解析到 `/Users/markdonish/round-table-workspace/`（例如 `/Users/markdonish/round-table-workspace/docs/protocol-spec.md`）
+- 跨宿主执行时所有引用的 protocol spec、schemas、prompts 均由本仓库完整提供，无需外部未声明依赖。
 
 以下目录不是当前实现真源：
 

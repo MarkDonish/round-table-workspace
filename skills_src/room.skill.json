@@ -1,6 +1,7 @@
 {
   "schema_version": "0.1.0",
   "skill_id": "room",
+  "canonical_repo_root_fallback": "/Users/markdonish/round-table-workspace",
   "canonical_codex_path": ".codex/skills/room-skill/SKILL.md",
   "adapter_paths": [
     ".claude/skills/room/SKILL.md"

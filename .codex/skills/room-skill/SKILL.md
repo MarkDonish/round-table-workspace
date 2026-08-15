@@ -44,6 +44,7 @@ description: |
 执行与维护时优先遵循这些仓库内文件：
 
 - `AGENTS.md`
+- `docs/protocol-spec.md`
 - `docs/room-runtime-status.md`
 - `docs/room-runtime-bridge.md`
 - `docs/room-chat-contract.md`
@@ -52,11 +53,20 @@ description: |
 - `docs/room-architecture.md`
 - `docs/room-selection-policy.md`
 - `docs/room-to-debate-handoff.md`
+- `schemas/room-session.schema.json`
+- `schemas/room-to-debate-handoff.schema.json`
 - `prompts/room-selection.md`
 - `prompts/room-chat.md`
 - `prompts/room-summary.md`
 - `prompts/room-upgrade.md`
 - `.codex/skills/room-skill/WORKFLOW.md`
+
+### 路径与环境自包含规范
+
+本 skill 保证 100% 自包含与环境可移植：
+- 首选仓库相对路径（如 `docs/...`、`prompts/...`、`schemas/...`）
+- 规范绝对路径回退（Canonical Absolute Fallback）：当在宿主外部或非仓库根目录下调用时，统一回退解析到 `/Users/markdonish/round-table-workspace/`（例如 `/Users/markdonish/round-table-workspace/docs/protocol-spec.md`、`/Users/markdonish/round-table-workspace/prompts/room-selection.md`）
+- 跨宿主执行时所有引用的 protocol spec、schemas、prompts 均由本仓库完整提供，无需外部未声明依赖。
 
 如历史报告与以上文件冲突，以上文件优先。
 
